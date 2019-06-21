@@ -1,0 +1,42 @@
+package com.jiaze.autotestapp;
+
+import android.content.Intent;
+import android.preference.Preference;
+import android.preference.PreferenceActivity;
+import android.preference.PreferenceScreen;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+
+import com.jiaze.call.CallTestActivity;
+import com.jiaze.common.Constant;
+
+public class MainActivity extends PreferenceActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        addPreferencesFromResource(R.xml.auto_test_main_activity);
+    }
+
+    @Override
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+        Intent intent = new Intent();
+        if (preference.getKey().equals(Constant.PRE_KEY_BOOT_OR_SHUTDOWN)){
+            //todo add the Boot and Shutdown Activity
+        }else if (preference.getKey().equals(Constant.PRE_KEY_SIM)){
+            //todo add the Sim Activity
+        }else if (preference.getKey().equals(Constant.PRE_KEY_NET)){
+            //todo add the Net Activity
+        }else if (preference.getKey().equals(Constant.PRE_KEY_CALL)){
+            intent.setClass(this, CallTestActivity.class);
+        }else if(preference.getKey().equals(Constant.PRE_KEY_AIR_MODE)){
+            //todo add the Air Mode Activity
+        }else if(preference.getKey().equals(Constant.PRE_KEY_SMS)){
+            //todo add the Sms Activity
+        }else if(preference.getKey().equals(Constant.PRE_KEY_PPS)){
+            //todo add the PPS Activity
+        }
+        startActivity(intent);
+        return true;
+    }
+}

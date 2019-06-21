@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference
+        android:title="@string/title_boot_and_shutdown"
+        android:key="boot_or_shutdown">
+    </Preference>
+
+    <Preference
+        android:title="@string/title_sim"
+        android:key="sim">
+    </Preference>
+
+    <Preference
+        android:title="@string/title_net"
+        android:key="net">
+    </Preference>
+
+    <Preference
+        android:title="@string/title_call"
+        android:key="call">
+    </Preference>
+
+    <Preference
+        android:title="@string/title_sms"
+        android:key="sms">
+    </Preference>
+
+    <Preference
+        android:title="@string/title_air_mode"
+        android:key="airMode">
+    </Preference>
+
+    <Preference
+        android:title="@string/title_pps"
+        android:key="pps">
+    </Preference>
+
+</PreferenceScreen>
