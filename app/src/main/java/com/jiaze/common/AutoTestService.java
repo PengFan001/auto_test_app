@@ -116,31 +116,33 @@ public abstract class AutoTestService extends Service {
     }
 
     protected void storeTestResult(){
-        File file = new File(storeTestResultDir);
+        File file = new File(storeTestResultDir + "/" + "testResult");
+        Log.d(TAG, "storeTestResult: get the storeTestDir: " + storeTestResultDir + "/" + "testResult");
         if (!file.exists()){
             try {
                 file.createNewFile();
+                Log.d(TAG, "storeTestResult: =====Create Test Result Succeed=====");
             } catch (IOException e) {
-                Log.d(TAG, "=================Create Test Result File Failed================");
+                Log.d(TAG, "storeTestResult: =====Create Test Result Failed=====");
                 e.printStackTrace();
                 return;
             }
         }
 
         StringBuilder testResultBuilder = new StringBuilder();
-        testResultBuilder.append("\r\n" + R.string.text_result);
+        testResultBuilder.append("\r\n" + getString(R.string.text_result));
         testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" + R.string.text_test_times + testTimes);
+        testResultBuilder.append("\r\n" + getString(R.string.text_test_times) + testTimes);
         testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" + R.string.text_total_runTimes + totalRunTimes);
+        testResultBuilder.append("\r\n" + getString(R.string.text_total_runTimes) + totalRunTimes);
         testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" +  R.string.text_succeed_times +  successCount);
+        testResultBuilder.append("\r\n" + getString(R.string.text_succeed_times) +  successCount);
         testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" + R.string.text_failed_times +  failedCount);
+        testResultBuilder.append("\r\n" + getString(R.string.text_failed_times) +  failedCount);
         testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" + R.string.text_succeed_rate + (successCount / failedCount) * 100 + "%");
+        testResultBuilder.append("\r\n" + getString(R.string.text_succeed_rate) + (successCount / totalRunTimes) * 100 + "%");
         testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" + R.string.text_log_dir + storeTestResultDir);
+        testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;
@@ -171,10 +173,4 @@ public abstract class AutoTestService extends Service {
         }
     }
 
-    protected static class AutoTestServiceHandler extends Handler{
-        protected final WeakReference<AutoTestService> autoTestServiceWeakReference;
-        public AutoTestServiceHandler(AutoTestService autoTestService){
-            autoTestServiceWeakReference = new WeakReference<>(autoTestService);
-        }
-    }
 }

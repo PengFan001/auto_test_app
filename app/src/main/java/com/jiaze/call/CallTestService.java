@@ -1,14 +1,19 @@
 package com.jiaze.call;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.drm.DrmStore;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -16,8 +21,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
+import com.jiaze.common.AutoTestActivity;
 import com.jiaze.common.AutoTestService;
 import com.jiaze.common.Constant;
+
 
 /**
  * =========================================
@@ -28,6 +35,7 @@ import com.jiaze.common.Constant;
  * =========================================
  */
 public class CallTestService extends AutoTestService {
+
     private static final String TEST_PARAM = "CallTest";
     public static final String TAG = "CallTestService";
 
@@ -64,58 +72,53 @@ public class CallTestService extends AutoTestService {
         }
     };
 
-    Handler mHandler = new AutoTestServiceHandler(this) {
+    Handler mHandler = new Handler(new Handler.Callback() {
         @Override
-        public void dispatchMessage(Message msg) {
-            if (autoTestServiceWeakReference != null) {
-                super.dispatchMessage(msg);
-                switch (msg.what) {
-                    case MSG_ID_CALL_OFF_HOOK:
-                        successCount++;
-                        if (mHandler != null && waitTimeOutCalculate != null){
-                            removeCallbacks(waitTimeOutCalculate);
-                        }
-                        Log.d(TAG, "======dispatchMessage: 呼叫被接听，开始通话时长计时，成功次数SuccessTime加一:" +  successCount);
-                        mHandler.postDelayed(durationTimeOutCalculate, durationTimeOutTimes * 1000);
-                        break;
-                    case MSG_ID_CALL_IDLE:
-                        runNextTime = true;
-                        if (mHandler != null && waitTimeOutCalculate != null){
-                            removeCallbacks(waitTimeOutCalculate);
-                        }
-                        Log.d(TAG, "=======dispatchMessage: 呼叫无响应, 开始下一次呼叫 runNextTime: " + runNextTime);
-                        break;
-                    case MSG_ID_CALL_RINGING:
-                        break;
-                    case MSG_ID_WAIT_TIMEOUT:
-                        failedCount++;
-                        //在等待接听超时后挂断电话
-                        if (telephonyManager != null && !isCallStateIdle()){
-                            //todo 挂断电话
-//                            telephonyManager.endCall();
-                        }
-                        if (mHandler != null && waitTimeOutCalculate != null){
-                            removeCallbacks(waitTimeOutCalculate);
-                        }
-                        runNextTime = true;
-                        Log.d(TAG, "=======dispatchMessage: 等待接听超时, 开始下一次呼叫 runNextTime: " + runNextTime);
-                        break;
-                    case MSG_ID_DURATION_TIMEOUT:
-                        //在通话时长达到之后，挂断电话
-                        if (telephonyManager != null && !isCallStateIdle()){
-                            //todo 挂断电话
-                            telephonyManager.endCall();
-                        }
-                        if (mHandler != null && durationTimeOutCalculate != null){
-                            removeCallbacks(durationTimeOutCalculate);
-                        }
-                        Log.d(TAG, "=======dispatchMessage: 通话时间超时, 开始下一次呼叫 runNextTime: " + runNextTime);
-                        break;
-
-                }
+        public boolean handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_ID_CALL_OFF_HOOK:
+                    successCount++;
+                    if (mHandler != null && waitTimeOutCalculate != null) {
+                        mHandler.removeCallbacks(waitTimeOutCalculate);
+                    }
+                    Log.d(TAG, "======dispatchMessage: 呼叫被接听，开始通话时长计时，成功次数SuccessTime加一:" + successCount);
+                    mHandler.postDelayed(durationTimeOutCalculate, durationTimeOutTimes * 1000);
+                    break;
+                case MSG_ID_CALL_IDLE:
+                    runNextTime = true;
+                    if (mHandler != null && waitTimeOutCalculate != null) {
+                        mHandler.removeCallbacks(waitTimeOutCalculate);
+                    }
+                    Log.d(TAG, "=======dispatchMessage: 呼叫无响应, 开始下一次呼叫 runNextTime: " + runNextTime);
+                    break;
+                case MSG_ID_CALL_RINGING:
+                    break;
+                case MSG_ID_WAIT_TIMEOUT:
+                    failedCount++;
+                    //在等待接听超时后挂断电话
+                    if (telephonyManager != null && !isCallStateIdle()) {
+                        //telephonyManager.endCall();
+                    }
+                    if (mHandler != null && waitTimeOutCalculate != null) {
+                        mHandler.removeCallbacks(waitTimeOutCalculate);
+                    }
+                    runNextTime = true;
+                    Log.d(TAG, "=======dispatchMessage: 等待接听超时, 开始下一次呼叫 runNextTime: " + runNextTime);
+                    break;
+                case MSG_ID_DURATION_TIMEOUT:
+                    //在通话时长达到之后，挂断电话
+                    if (telephonyManager != null && !isCallStateIdle()) {
+                        //telephonyManager.endCall();
+                    }
+                    if (mHandler != null && durationTimeOutCalculate != null) {
+                        mHandler.removeCallbacks(durationTimeOutCalculate);
+                    }
+                    Log.d(TAG, "=======dispatchMessage: 通话时间超时, 开始下一次呼叫");
+                    break;
             }
+            return false;
         }
-    };
+    });
 
     PhoneStateListener phoneStateListener = new PhoneStateListener() {
         @Override
@@ -149,13 +152,13 @@ public class CallTestService extends AutoTestService {
 
     @Override
     protected void runTestLogic() {
-        runTimes = testTimes;
+        testTimes = runTimes;
         for (; runTimes > 0 && isInTesting; runTimes--) {
             totalRunTimes++;
             startCallPhone(phone);
             runNextTime = false;
             mHandler.postDelayed(waitTimeOutCalculate, waitTimeOutTimes * 1000);
-            if (!runNextTime){
+            while (!runNextTime) {
                 try {
                     Thread.sleep(200);
                 } catch (InterruptedException e) {
@@ -163,6 +166,7 @@ public class CallTestService extends AutoTestService {
                 }
             }
             storeTestResult();
+            Log.d(TAG, "runTestLogic: =========finished the one test======");
         }
     }
 
@@ -170,7 +174,6 @@ public class CallTestService extends AutoTestService {
         Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + phone));
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
-        //todo add the permission in the Activity to allow the App call the phone because the android version is 6.0+
     }
 
     private boolean isCallStateIdle(){
@@ -184,6 +187,7 @@ public class CallTestService extends AutoTestService {
     @Override
     protected int initTestParams(Bundle bundle) {
         storeTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
+        Log.d(TAG, "initTestParams: get the testResult dir : " + storeTestResultDir);
         runTimes = bundle.getInt(getString(R.string.key_test_times));
         waitTimeOutTimes = bundle.getInt(getString(R.string.key_wait_time));
         durationTimeOutTimes = bundle.getInt(getString(R.string.key_duration_time));

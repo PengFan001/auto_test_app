@@ -1,10 +1,13 @@
 package com.jiaze.common;
 
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.File;
 
 public class Constant {
+
+    private static final String TAG = "Constant";
 
     public static final String PRE_KEY_BOOT_OR_SHUTDOWN = "boot_or_shutdown";
     public static final String PRE_KEY_CALL = "call";
@@ -55,14 +58,14 @@ public class Constant {
         File testResultPath = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/AutoTest");
         if (!testResultPath.exists()){
             testResultPath.mkdir();
+            Log.d(TAG, "createSaveTestResultPath: create the testResultPath dir" + testResultPath + "\t" +testResultPath.exists());
         }
         File resultDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/AutoTest" + "/" + dirName);
         if (!resultDir.exists()){
             resultDir.mkdir();
+            Log.d(TAG, "createSaveTestResultPath: create the resultDir" + resultDir + "\t" + resultDir.exists());
         }
 
         return resultDir.getAbsolutePath();
     }
-
-
 }

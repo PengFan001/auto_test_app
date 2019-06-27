@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.jiaze.call.CallTestActivity;

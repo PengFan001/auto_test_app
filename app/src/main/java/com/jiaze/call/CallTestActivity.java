@@ -10,6 +10,7 @@ import android.widget.TextView;
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.AutoTestActivity;
 import com.jiaze.common.Constant;
+import com.jiaze.common.TableContainer;
 
 import java.io.File;
 import java.io.FileOutputStream;
