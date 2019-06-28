@@ -8,6 +8,7 @@ import android.os.Bundle;
 
 import com.jiaze.call.CallTestActivity;
 import com.jiaze.common.Constant;
+import com.jiaze.reboot.RebootTestActivity;
 
 public class MainActivity extends PreferenceActivity {
 
@@ -21,7 +22,7 @@ public class MainActivity extends PreferenceActivity {
     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
         Intent intent = new Intent();
         if (preference.getKey().equals(Constant.PRE_KEY_BOOT_OR_SHUTDOWN)){
-            //todo add the Boot and Shutdown Activity
+            intent.setClass(this, RebootTestActivity.class);
         }else if (preference.getKey().equals(Constant.PRE_KEY_SIM)){
             //todo add the Sim Activity
         }else if (preference.getKey().equals(Constant.PRE_KEY_NET)){

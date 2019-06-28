@@ -17,6 +17,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -26,6 +27,11 @@ import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
@@ -61,12 +67,51 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
             switch (msg.what){
                 case MSG_ID_TEST_FINISHED:
                     btnStart.setText(R.string.btn_start_test);
-                    String resultPath = (String) msg.obj;
-                    Message getResult = mHandler.obtainMessage();
+                    final String resultPath = (String) msg.obj;
+                    Log.d(TAG, "handleMessage: finish the test, load the testResult from : " + resultPath);
+                    final Message getResult = mHandler.obtainMessage();
                     getResult.what = MSG_ID_GOT_TEST_RESULT;
+                    if (TextUtils.isEmpty(resultPath)){
+                        Log.d(TAG, "handleMessage: the result dir isn't exist : " + resultPath);
+                    }
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            BufferedReader bufferedReader = null;
+                            try {
+                                FileReader reader = new FileReader(new File(resultPath));
+                                bufferedReader = new BufferedReader(reader);
+                                StringBuilder builder = new StringBuilder();
+                                String line;
+                                while ((line = bufferedReader.readLine()) != null){
+                                    builder.append(line);
+                                    builder.append("\r\n");
+                                }
+                                getResult.obj = builder.toString();
+                                getResult.sendToTarget();
+                            } catch (FileNotFoundException e) {
+                                Log.d(TAG, "run: read the FileReader Failed");
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                Log.d(TAG, "run: readLine error");
+                                e.printStackTrace();
+                            }finally {
+                                if (bufferedReader != null){
+                                    try {
+                                        bufferedReader.close();
+                                    } catch (IOException e) {
+                                        Log.d(TAG, "run: close the buffer Reader Failed");
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+
+                        }
+                    }).start();
                     //todo add the function : 从文件中将测试后得到的结果读出，赋值给getResult.obj，然后再通过getResult.sendToTarget()发送出去。
                     break;
                 case MSG_ID_GOT_TEST_RESULT:
+                    Log.d(TAG, "handleMessage: testResult: " + msg.obj);
                     tvResult.setText((String)msg.obj);
                     break;
             }

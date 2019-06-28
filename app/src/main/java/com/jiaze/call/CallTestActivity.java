@@ -39,16 +39,20 @@ public class CallTestActivity extends AutoTestActivity implements View.OnClickLi
 
     @Override
     protected void initUI() {
-        //todo 从文件中读取测试所要用的参数，通过Property进行存储
+        Properties properties = Constant.loadTestParameter(this, CALL_TEST_PARAMS_SAVE_PATH);
+        String phone = properties.getProperty(getString(R.string.key_phone), "10086");
+        String testTimes = properties.getProperty(getString(R.string.key_test_times), "5");
+        String waitTime = properties.getProperty(getString(R.string.key_wait_time), "20");
+        String durationTime = properties.getProperty(getString(R.string.key_duration_time), "20");
 
         mTable.addParamsInput(getString(R.string.param_phone), true, getString(R.string.key_phone),
-                "10086", Constant.EDIT_ID_PHONE, Constant.EnumDataType.DATA_TYPE_PHONE.getType());
+                phone, Constant.EDIT_ID_PHONE, Constant.EnumDataType.DATA_TYPE_PHONE.getType());
         mTable.addParamsInput(getString(R.string.param_test_times), true, getString(R.string.key_test_times),
-                "5", Constant.EDIT_ID_TEST_TIME, Constant.EnumDataType.DATA_TYPE_INT.getType());
+                testTimes, Constant.EDIT_ID_TEST_TIME, Constant.EnumDataType.DATA_TYPE_INT.getType());
         mTable.addParamsInput(getString(R.string.param_wait_time), true, getString(R.string.key_wait_time),
-                "20", Constant.EDIT_ID_WAIT_TIME, Constant.EnumDataType.DATA_TYPE_INT.getType());
+                waitTime, Constant.EDIT_ID_WAIT_TIME, Constant.EnumDataType.DATA_TYPE_INT.getType());
         mTable.addParamsInput(getString(R.string.param_duration_time), true, getString(R.string.key_duration_time),
-                "10", Constant.EDIT_ID_DURATION_TIME, Constant.EnumDataType.DATA_TYPE_INT.getType());
+                durationTime, Constant.EDIT_ID_DURATION_TIME, Constant.EnumDataType.DATA_TYPE_INT.getType());
 
         TableRow btnRow = mTable.createTableRow();
         btnStart = (Button) mTable.createButton(getString(R.string.btn_start_test), Constant.BUTTON_START_ID, getString(R.string.key_btn_start), btnRow);
@@ -80,6 +84,10 @@ public class CallTestActivity extends AutoTestActivity implements View.OnClickLi
         properties.setProperty(getString(R.string.key_duration_time), etDurationTime.getText().toString());
 
         properties.store(fileOutputStream, PARAM_DESC);
+
+        if (fileOutputStream != null){
+            fileOutputStream.close();
+        }
     }
 
     @Override

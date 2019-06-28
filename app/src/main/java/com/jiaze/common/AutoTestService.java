@@ -158,6 +158,7 @@ public abstract class AutoTestService extends Service {
             if (bufferedWriter != null){
                 try {
                     bufferedWriter.close();
+                    fileWriter.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

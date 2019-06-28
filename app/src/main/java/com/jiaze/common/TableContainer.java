@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -19,7 +20,7 @@ import java.util.Hashtable;
 public class TableContainer {
     private Context mContext;
     private TableLayout mTableLayout;
-    private LinearLayout mContainerLayout;
+    private ScrollView mContainerLayout;
     private Hashtable<Integer, String> mChildCtlId;
     private String mTitle;
 
@@ -27,7 +28,7 @@ public class TableContainer {
         mContext = context;
         mTitle = Constant.PARAMS_NAME;
         mChildCtlId = new Hashtable<Integer, String>();
-        mContainerLayout = (LinearLayout) LayoutInflater.from(context).inflate(R.layout.test_activity, null);
+        mContainerLayout = (ScrollView) LayoutInflater.from(context).inflate(R.layout.test_activity, null);
         mTableLayout = (TableLayout) mContainerLayout.findViewById(R.id.test_table_layout);
     }
 
@@ -101,11 +102,11 @@ public class TableContainer {
         this.mTableLayout = mTableLayout;
     }
 
-    public LinearLayout getmContainerLayout() {
+    public ScrollView getmContainerLayout() {
         return mContainerLayout;
     }
 
-    public void setmContainerLayout(LinearLayout mContainerLayout) {
+    public void setmContainerLayout(ScrollView mContainerLayout) {
         this.mContainerLayout = mContainerLayout;
     }
 

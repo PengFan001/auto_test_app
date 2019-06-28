@@ -1,9 +1,16 @@
 package com.jiaze.common;
 
+import android.content.Context;
 import android.os.Environment;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class Constant {
 
@@ -68,4 +75,42 @@ public class Constant {
 
         return resultDir.getAbsolutePath();
     }
+
+    public static Properties loadTestParameter(Context context, String fileName){
+        Properties properties = new Properties();
+        if (context == null || TextUtils.isEmpty(fileName)){
+            Log.d(TAG, "loadTestParameter: the fileName or the context is Error: " + context + "\t" + fileName);
+            return properties;
+        }
+        String testDir = context.getFilesDir().getAbsolutePath() +  "/" + fileName;
+        File file = new File(testDir);
+        if (!file.exists()){
+            Log.d(TAG, "loadTestParameter: the " + fileName + "is not exist");
+            return properties;
+        }
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "loadTestParameter: create FileInputStream Failed");
+            e.printStackTrace();
+        }
+
+        try {
+            properties.load(inputStream);
+        } catch (IOException e) {
+            Log.d(TAG, "loadTestParameter: Failed to load the properties from the File");
+            e.printStackTrace();
+        }
+        if (inputStream != null){
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                Log.d(TAG, "loadTestParameter: close the inputStream failed");
+                e.printStackTrace();
+            }
+        }
+        return properties;
+    }
+
 }
