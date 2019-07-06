@@ -13,9 +13,11 @@ import android.util.Log;
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.Constant;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Properties;
@@ -124,11 +126,52 @@ public class RebootTestService extends Service {
 
     private void saveRebootTestResult(){
         //todo save the reboot test result
-    }
+        //todo question: how save the reboot test result?
+        File file = new File(storeRebootTestResultDir + "/" + "testResult");
+        Log.d(TAG, "saveRebootTestResult: get the storeTestDir: " + storeRebootTestResultDir + "/testResult");
+        if (!file.exists()){
+            try {
+                file.createNewFile();
+                Log.d(TAG, "saveRebootTestResult: =====Create Test Result File Success");
+            } catch (IOException e) {
+                Log.d(TAG, "saveRebootTestResult: =====Create Test Result File Failed");
+                e.printStackTrace();
+                return;
+            }
+        }
 
+        StringBuilder testResultBuilder = new StringBuilder();
+        testResultBuilder.append("\r\n" + getString(R.string.text_result));
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_test_times) + rebootTestTime);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeRebootTestResultDir);
+
+        BufferedWriter bufferedWriter = null;
+        FileWriter fileWriter = null;
+        try {
+            fileWriter = new FileWriter(file);
+            bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(testResultBuilder.toString());
+            Log.d(TAG, "saveRebootTestResult: Save the test Result Success");
+        } catch (IOException e) {
+            Log.d(TAG, "saveRebootTestResult: Save the test Result Failed");
+            e.printStackTrace();
+        }finally {
+            if (bufferedWriter != null){
+                try {
+                    bufferedWriter.close();
+                    fileWriter.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
     }
+
 }

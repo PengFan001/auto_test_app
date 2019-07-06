@@ -89,13 +89,14 @@ public class CallTestService extends AutoTestService {
                     if (mHandler != null && waitTimeOutCalculate != null) {
                         mHandler.removeCallbacks(waitTimeOutCalculate);
                     }
-                    Log.d(TAG, "=======dispatchMessage: 呼叫无响应, 开始下一次呼叫 runNextTime: " + runNextTime);
+                    Log.d(TAG, "=======dispatchMessage: 空闲状态，没有通话活动" + runNextTime);
                     break;
                 case MSG_ID_CALL_RINGING:
+                    Log.d(TAG, "handleMessage: Call RINGing 响铃、 第三方来电等待");
                     break;
                 case MSG_ID_WAIT_TIMEOUT:
                     failedCount++;
-                    //在等待接听超时后挂断电话
+                    //todo 在等待接听超时后挂断电话
                     if (telephonyManager != null && !isCallStateIdle()) {
                         //telephonyManager.endCall();
                     }
@@ -106,7 +107,7 @@ public class CallTestService extends AutoTestService {
                     Log.d(TAG, "=======dispatchMessage: 等待接听超时, 开始下一次呼叫 runNextTime: " + runNextTime);
                     break;
                 case MSG_ID_DURATION_TIMEOUT:
-                    //在通话时长达到之后，挂断电话
+                    //todo 在通话时长达到之后，挂断电话
                     if (telephonyManager != null && !isCallStateIdle()) {
                         //telephonyManager.endCall();
                     }

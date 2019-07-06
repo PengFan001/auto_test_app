@@ -9,18 +9,21 @@
     <string name="title_air_mode">飞行模式切换测试</string>
     <string name="title_pps">PPS业务测试</string>
 
+
     <string name="btn_start_test">开始测试</string>
     <string name="btn_stop_test">停止测试</string>
 
     <string name="text_in_testing">正在测试中</string>
     <string name="text_phone_null">测试手机号为空</string>
     <string name="text_result">测试结果:</string>
-    <string name="text_test_times">总测试次数:</string>
+    <string name="text_test_times">测试次数:</string>
     <string name="text_total_runTimes">执行次数:</string>
     <string name="text_succeed_times">成功次数:</string>
     <string name="text_failed_times">失败次数：</string>
     <string name="text_succeed_rate">测试成功率:</string>
     <string name="text_log_dir">Log路径(测试结果路径):</string>
+    <string name="text_sim_state">SIM卡状态:</string>
+    <string name="text_unknown">未知</string>
 
     <string name="param_phone">手机号</string>
     <string name="param_test_times">测试次数</string>
@@ -37,5 +40,6 @@
 
     <string name="reboot_times">重启次数: </string>
     <string name="reboot_default_value">1</string>
+
 
 </resources>
