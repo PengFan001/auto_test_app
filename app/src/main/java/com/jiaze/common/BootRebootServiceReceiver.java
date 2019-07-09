@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.jiaze.reboot.RebootTestService;
+import com.jiaze.sim.SimTestService;
 
 /**
  * =========================================
@@ -20,8 +21,11 @@ public class BootRebootServiceReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent serviceIntent = new Intent(context, RebootTestService.class);
-        context.startService(serviceIntent);
-        Log.d(TAG, "onReceive: receiver the start RebootService broadcast, start the rebootService");
+        Intent rebootServiceIntent = new Intent(context, RebootTestService.class);
+        context.startService(rebootServiceIntent);
+        Log.d(TAG, "onReceive: receiver the start RebootTestService broadcast, start the rebootTestService");
+        Intent simServiceIntent = new Intent(context, SimTestService.class);
+        context.startService(simServiceIntent);
+        Log.d(TAG, "onReceive: receiver the start SimTestService broadcast, start the simTestService");
     }
 }

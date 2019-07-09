@@ -31,6 +31,13 @@ public class Constant {
     public static final int BUTTON_START_ID = 4;
     public static final int TEXTVIEW_RESULT_ID = 5;
 
+    public static final String SIM_STATE_ABSENT = "无卡";
+    public static final String SIM_STATE_UNKNOWN = "未知状态";
+    public static final String SIM_STATE_NETWORK_LOCK = "需要NetworkPIN锁";
+    public static final String SIM_STATE_PIN_REQUIRED = "需要PIN解锁";
+    public static final String SIM_STATE_PUK_REQUIRED = "需要PUK解锁";
+    public static final String SIM_STATE_READY = "良好";
+
     public static final String PARAMS_NAME = "参数名称";
 
     public static enum EnumDataType {

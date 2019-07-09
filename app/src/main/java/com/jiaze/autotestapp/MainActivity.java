@@ -9,6 +9,7 @@ import android.os.Bundle;
 import com.jiaze.call.CallTestActivity;
 import com.jiaze.common.Constant;
 import com.jiaze.reboot.RebootTestActivity;
+import com.jiaze.sim.SimTestActivity;
 
 public class MainActivity extends PreferenceActivity {
 
@@ -24,7 +25,7 @@ public class MainActivity extends PreferenceActivity {
         if (preference.getKey().equals(Constant.PRE_KEY_BOOT_OR_SHUTDOWN)){
             intent.setClass(this, RebootTestActivity.class);
         }else if (preference.getKey().equals(Constant.PRE_KEY_SIM)){
-            //todo add the Sim Activity
+            intent.setClass(this, SimTestActivity.class);
         }else if (preference.getKey().equals(Constant.PRE_KEY_NET)){
             //todo add the Net Activity
         }else if (preference.getKey().equals(Constant.PRE_KEY_CALL)){

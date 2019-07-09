@@ -13,8 +13,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -28,12 +26,10 @@ import android.widget.Toast;
 import com.jiaze.autotestapp.R;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 
 /**
  * =========================================
@@ -108,7 +104,6 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
 
                         }
                     }).start();
-                    //todo add the function : 从文件中将测试后得到的结果读出，赋值给getResult.obj，然后再通过getResult.sendToTarget()发送出去。
                     break;
                 case MSG_ID_GOT_TEST_RESULT:
                     Log.d(TAG, "handleMessage: testResult: " + msg.obj);
@@ -137,7 +132,7 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
     }
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         bindAutoTestService();
         mTable = new TableContainer(this);
@@ -189,22 +184,8 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
                     Log.d(TAG, "==========save test params failed=========");
                     e.printStackTrace();
                 }
-                if (ContextCompat.checkSelfPermission(AutoTestActivity.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(AutoTestActivity.this, Manifest.permission.CALL_PHONE)){
-                        setPermissionAboutApp();
-                    }else {
-                        ActivityCompat.requestPermissions(AutoTestActivity.this, new String[]{Manifest.permission.CALL_PHONE}, MY_PERMISSIONS_REQUEST_CALL_PHONE);
-                    }
-                }else if (ContextCompat.checkSelfPermission(AutoTestActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(AutoTestActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)){
-                        setPermissionAboutApp();
-                    }else {
-                        ActivityCompat.requestPermissions(AutoTestActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-                    }
-                }else {
-                    mAutoTestService.startTest(getTestParams());
-                    ((Button) v).setText(R.string.btn_stop_test);
-                }
+                mAutoTestService.startTest(getTestParams());
+                ((Button) v).setText(R.string.btn_stop_test);
             }else{
                 mAutoTestService.stopTest();
                 ((Button) v).setText(R.string.btn_start_test);
@@ -212,17 +193,17 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//    }
 
 
-    private void setPermissionAboutApp(){
-        Toast.makeText(this, "Please get me the grant", Toast.LENGTH_SHORT).show();
-        Intent grantIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        Uri uri = Uri.fromParts("package", getPackageName(), null);
-        grantIntent.setData(uri);
-        startActivity(grantIntent);
-    }
+//    private void setPermissionAboutApp(){
+//        Toast.makeText(this, "Please get me the grant", Toast.LENGTH_SHORT).show();
+//        Intent grantIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+//        Uri uri = Uri.fromParts("package", getPackageName(), null);
+//        grantIntent.setData(uri);
+//        startActivity(grantIntent);
+//    }
 }

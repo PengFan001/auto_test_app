@@ -7,7 +7,6 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.jiaze.autotestapp.R;
@@ -49,7 +48,6 @@ public class RebootTestService extends Service {
         runLogical(rebootTestTime, false);
     }
 
-    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "onBind: binder the RebootTestBinder, you can get the function by this Binder");
@@ -73,17 +71,27 @@ public class RebootTestService extends Service {
         Properties properties = Constant.loadTestParameter(this, REBOOT_TEST_PARAM_SAVE_PATH);
         rebootTestTime = Integer.parseInt(properties.getProperty(getString(R.string.key_reboot_test_time), "0"));
         Log.d(TAG, "getTestParameter: get the reboot test times" + rebootTestTime);
-        storeRebootTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
-        Log.d(TAG, "getTestParameter: Create the Reboot Test Result Dir: " + storeRebootTestResultDir);
     }
 
-    private void runLogical(int testTimes, boolean btnReboot){
-        if (btnReboot){
+    private void getTestResultDir(boolean isBtnStart){
+        Properties properties = Constant.loadTestParameter(this, REBOOT_TEST_PARAM_SAVE_PATH);
+        if (isBtnStart){
+            storeRebootTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
+            Log.d(TAG, "getTestParameter: Create the Reboot Test Result Dir: " + storeRebootTestResultDir);
+        }else {
+            storeRebootTestResultDir = properties.getProperty(getString(R.string.key_test_result_path));
+            Log.d(TAG, "getTestResultDir: get the storeRebootTestResultDir from test params file success : " + storeRebootTestResultDir);
+        }
+    }
+
+    private void runLogical(int testTimes, boolean isBtnStart){
+        if (isBtnStart){
             rebootTestTime = testTimes;
         }
         while (rebootTestTime > 0){
             rebootTestTime = rebootTestTime -1;
             Log.d(TAG, "runLogical: ==========reboot times : " + rebootTestTime);
+            getTestResultDir(isBtnStart);
             Properties properties = new Properties();
             String fileDir = getFilesDir().getAbsolutePath() + "/" + REBOOT_TEST_PARAM_SAVE_PATH;
             File file = new File(fileDir);
@@ -99,6 +107,7 @@ public class RebootTestService extends Service {
             try {
                 OutputStream outputStream = new FileOutputStream(file);
                 properties.setProperty(getString(R.string.key_reboot_test_time), String.valueOf(rebootTestTime));
+                properties.setProperty(getString(R.string.key_test_result_path), storeRebootTestResultDir);
                 try {
                     properties.store(outputStream, "finished one Reboot Test");
                 } catch (IOException e) {
@@ -126,7 +135,7 @@ public class RebootTestService extends Service {
 
     private void saveRebootTestResult(){
         //todo save the reboot test result
-        //todo question: how save the reboot test result?
+        //todo question: how to save the reboot test result?
         File file = new File(storeRebootTestResultDir + "/" + "testResult");
         Log.d(TAG, "saveRebootTestResult: get the storeTestDir: " + storeRebootTestResultDir + "/testResult");
         if (!file.exists()){

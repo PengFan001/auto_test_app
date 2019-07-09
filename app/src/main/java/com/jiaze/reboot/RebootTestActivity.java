@@ -43,6 +43,7 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         @Override
         public void onServiceDisconnected(ComponentName name) {
             rebootTestBinder = null;
+            btnTest.setEnabled(false);
         }
     };
 
@@ -114,7 +115,7 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
             try {
                 properties.store(outputStream, "RebootParameter");
             } catch (IOException e) {
-                Log.d(TAG, "saveTestParams: Failed to stop the properties to the File");
+                Log.d(TAG, "saveTestParams: Failed to store the properties to the File");
                 e.printStackTrace();
             }
             if (outputStream != null){
@@ -129,6 +130,8 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
             Log.d(TAG, "saveTestParams: Create FileOutputStream Failed");
             e.printStackTrace();
         }
+
+
         
     }
 
