@@ -36,9 +36,6 @@ public class SimTestService extends Service {
     private static final String TAG = "SimTestService";
     private static final String SIM_TEST_PARAM_SAVE_PATH = "SimTestParam";
     private static final String TEST_PARAM = "SimTest";
-    private static final int SIM_TEST_REBOOT = 6;
-    private static final int SIM_TEST_NOT_REBOOT = 7;
-    private static final int FINISHED_TEST = 8;
 
     private int simTestTime = 0;
     private String simState = null;
@@ -51,32 +48,12 @@ public class SimTestService extends Service {
     private int netWorkLockTimes = 0;
     private boolean runtNextTime = false;
     private boolean isTesting = false;
+    private static boolean isReboot = false;
+    private static boolean isStop = false;
     private PowerManager powerManager;
     private TelephonyManager telephonyManager;
     private String storeSimTestResultDir;
     private SimTestBinder simTestBinder = new SimTestBinder();
-    Handler mHandler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what){
-                case SIM_TEST_REBOOT:
-                    if (powerManager != null){
-                        if (mHandler != null){
-                            mHandler.removeCallbacks(rebootTask);
-                        }
-                        powerManager.reboot("Sim test reboot");
-                    }else {
-                        Log.d(TAG, "handleMessage: Please init the powerManager");
-                    }
-                    break;
-                case FINISHED_TEST:
-                    runtNextTime  = true;
-                    Log.d(TAG, "handleMessage: runNextTime : " + runtNextTime);
-                    break;
-            }
-            return false;
-        }
-    });
 
     @Override
     public void onCreate() {
@@ -84,10 +61,17 @@ public class SimTestService extends Service {
         Log.d(TAG, "onCreate: The Sim Test Service is start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        isReboot = false;
+        isStop = false;
         getTestParams();
         if (simTestTime > 0){
             Log.d(TAG, "onCreate: continue the last test");
             getTmpTestResult();
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             runLogical();
         }else {
             Log.d(TAG, "onCreate: need't to continue the last test");
@@ -99,10 +83,11 @@ public class SimTestService extends Service {
         return simTestBinder;
     }
 
-    //SimTestService 提供的服务
     class SimTestBinder extends Binder{
         public void startTest(Bundle bundle){
             isTesting = true;
+            isReboot = false;
+            isStop = false;
             simTestTime = bundle.getInt(getString(R.string.key_sim_test_time));
             storeSimTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "getTestParameter: Create the Reboot Test Result Dir: " + storeSimTestResultDir);
@@ -140,32 +125,52 @@ public class SimTestService extends Service {
         storeSimTestResultDir = properties.getProperty(getString(R.string.key_test_result_path));
     }
 
-
-    //设置重启计时器，在计时一段时间之后进行重启
-    Runnable rebootTask = new Runnable() {
-        @Override
-        public void run() {
-            Log.d(TAG, "rebootTask run: wait 10 second, then the device will be reboot");
-            mHandler.sendEmptyMessage(SIM_TEST_REBOOT);
-        }
-    };
-
     private void runLogical(){
+        Log.d(TAG, "runLogical: start run runLogical");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: isReboot = " + isReboot);
+                Log.d(TAG, "run: isStop = " + isStop);
+                while (!isReboot){
+                    try {
+                        Thread.sleep(3000);
+                        Log.d(TAG, "run: isReboot = " + isReboot);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if (isStop){
+                        Log.d(TAG, "run: stop the RebootThread ");
+                        break;
+                    }
+                }
+                
+                if (isStop){
+                    Log.d(TAG, "run: stop the RebootThread");
+                }else {
+                    if (powerManager != null){
+                        powerManager.reboot("Sim test reboot");
+                    }else {
+                        Log.d(TAG, "run: please init the powerManager");
+                    }
+                }
+            }
+        }).start();
+
         while(simTestTime > 0){
             totalRunTimes++;
             runtNextTime = false;
-            if (simTestTime - 1 > 0){
-                mHandler.postDelayed(rebootTask, 5000);
-            }
             simTestTime = simTestTime - 1;
             Log.d(TAG, "runLogical: simTestTime reduce 1 : " + simTestTime);
             readSimState();
             saveSimTestResult();
             saveTestParamsAndTmpResult();
+            if (simTestTime - 1 >= 0){
+                isReboot = true;
+                Log.d(TAG, "runLogical: set isReboot true: ");
+            }
             if (simTestTime == 0){
-                Log.d(TAG, "runLogical: send the finished test message");
-                boolean isSend = mHandler.sendEmptyMessage(FINISHED_TEST);
-                Log.d(TAG, "runLogical:  send the finished test message result isSend: " + isSend);
+                runtNextTime = true;
             }
             Log.d(TAG, "runLogical: runNextTime : " + runtNextTime);
             while (!runtNextTime){
@@ -177,6 +182,7 @@ public class SimTestService extends Service {
             }
             Log.d(TAG, "runLogical: finished the test, then will show you the testResult");
             isTesting = false;
+            isStop = true;
         }
     }
 

@@ -39,7 +39,7 @@
 
         <EditText
             android:id="@+id/sim_test_time"
-            android:layout_width="wrap_content"
+            android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:text="@string/reboot_default_value"/>
