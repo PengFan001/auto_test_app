@@ -101,7 +101,6 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
                                     }
                                 }
                             }
-
                         }
                     }).start();
                     break;

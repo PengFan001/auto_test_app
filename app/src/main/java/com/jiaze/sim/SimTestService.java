@@ -183,6 +183,8 @@ public class SimTestService extends Service {
             Log.d(TAG, "runLogical: finished the test, then will show you the testResult");
             isTesting = false;
             isStop = true;
+            resetTestValue();
+            showResultActivity(SimTestActivity.class);
         }
     }
 
@@ -317,6 +319,24 @@ public class SimTestService extends Service {
                 }
             }
         }
+    }
+
+    private void showResultActivity(Class<?> resultActivity){
+        Intent intent = new Intent();
+        intent.setClass(this, resultActivity);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(getString(R.string.key_result), storeSimTestResultDir + "/" + "testResult");
+        startActivity(intent);
+    }
+
+    private void resetTestValue(){
+        totalRunTimes = 0;
+        absentTimes = 0;
+        readyTimes = 0;
+        pinRequiredTimes = 0;
+        pukRequiredTimes = 0;
+        netWorkLockTimes = 0;
+        unknownTimes = 0;
     }
 
     @Override
