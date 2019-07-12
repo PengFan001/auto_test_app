@@ -1,9 +1,11 @@
 package com.jiaze.sim;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,6 +43,8 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
     private Button btnStart;
     private TextView tvTestResult;
     private SimTestService.SimTestBinder simTestBinder;
+    private IntentFilter intentFilter;
+    private SimTestFinishBroadcastReceiver simTestFinishBroadcastReceiver;
     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -138,6 +142,12 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
         setContentView(R.layout.activity_sim_test);
         initUI();
         bindSimTestService();
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("com.jiaze.action.SIM_TEST_FINISHED");
+        simTestFinishBroadcastReceiver = new SimTestFinishBroadcastReceiver();
+        registerReceiver(simTestFinishBroadcastReceiver, intentFilter);
+        Log.d(TAG, "onCreate: register the SimTestFinishBroadcastReceiver");
+
     }
 
     private void bindSimTestService(){
@@ -210,11 +220,28 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
         }
     }
 
+    private class SimTestFinishBroadcastReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "onReceive: receiver the Sim Test Finished Receiver");
+            if (intent.hasExtra(getString(R.string.key_result))){
+                Message msg = mHandler.obtainMessage();
+                msg.what = MSG_ID_TEST_FINISHED;
+                msg.obj = intent.getStringExtra(getString(R.string.key_result));
+                Log.d(TAG, "onReceive: get the sim test result path : "  + msg.obj.toString());
+                msg.sendToTarget();
+            }
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (connection != null){
             unbindService(connection);
+        }
+        if (simTestFinishBroadcastReceiver != null){
+            unregisterReceiver(simTestFinishBroadcastReceiver);
         }
     }
 }

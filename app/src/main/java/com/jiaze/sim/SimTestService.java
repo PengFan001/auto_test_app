@@ -50,6 +50,7 @@ public class SimTestService extends Service {
     private boolean isTesting = false;
     private static boolean isReboot = false;
     private static boolean isStop = false;
+    private static boolean isRegister = false;
     private PowerManager powerManager;
     private TelephonyManager telephonyManager;
     private String storeSimTestResultDir;
@@ -61,8 +62,7 @@ public class SimTestService extends Service {
         Log.d(TAG, "onCreate: The Sim Test Service is start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        isReboot = false;
-        isStop = false;
+        resetIsValue();
         getTestParams();
         if (simTestTime > 0){
             Log.d(TAG, "onCreate: continue the last test");
@@ -86,8 +86,7 @@ public class SimTestService extends Service {
     class SimTestBinder extends Binder{
         public void startTest(Bundle bundle){
             isTesting = true;
-            isReboot = false;
-            isStop = false;
+            resetIsValue();
             simTestTime = bundle.getInt(getString(R.string.key_sim_test_time));
             storeSimTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "getTestParameter: Create the Reboot Test Result Dir: " + storeSimTestResultDir);
@@ -104,6 +103,10 @@ public class SimTestService extends Service {
 
         public boolean isInTesting(){
             return isTesting;
+        }
+
+        public void isRegisterBroadcast(boolean registerResult){
+            isRegister = registerResult;
         }
     }
 
@@ -327,6 +330,14 @@ public class SimTestService extends Service {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(getString(R.string.key_result), storeSimTestResultDir + "/" + "testResult");
         startActivity(intent);
+
+        //todo wait some time send the broadcast
+
+
+        Intent broadcastIntent = new Intent("com.jiaze.action.SIM_TEST_FINISHED");
+        broadcastIntent.putExtra(getString(R.string.key_result), storeSimTestResultDir + "/" + "testResult");
+        sendBroadcast(broadcastIntent);
+        Log.d(TAG, "showResultActivity: Send the showResult broadcast");
     }
 
     private void resetTestValue(){
@@ -337,6 +348,12 @@ public class SimTestService extends Service {
         pukRequiredTimes = 0;
         netWorkLockTimes = 0;
         unknownTimes = 0;
+    }
+
+    private void resetIsValue(){
+        isReboot = false;
+        isRegister = false;
+        isStop = false;
     }
 
     @Override
