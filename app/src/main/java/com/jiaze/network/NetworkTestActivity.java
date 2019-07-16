@@ -165,10 +165,10 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
                     saveTestParams();
                     networkTestBinder.startTest(getTestParameter());
-                    btnStart.setText(getString(R.string.btn_start_test));
+                    btnStart.setText(getString(R.string.btn_stop_test));
                 }else {
                     networkTestBinder.stopTest();
-                    btnStart.setText(getString(R.string.btn_stop_test));
+                    btnStart.setText(getString(R.string.btn_start_test));
                 }
                 break;
         }

@@ -182,13 +182,13 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
             case R.id.sim_start_btn:
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
                     saveTestParams();
-                    simTestBinder.startTest(getTestParameter());
-                    Log.d(TAG, "onClick: send the update Ui message");
                     mHandler.sendEmptyMessage(UPDATE_SIM_STATE);
                     btnStart.setText(getString(R.string.btn_stop_test));
+                    simTestBinder.startTest(getTestParameter());
+                    Log.d(TAG, "onClick: send the update Ui message");
                 }else {
-                    simTestBinder.stopTest();
                     btnStart.setText(getString(R.string.btn_start_test));
+                    simTestBinder.stopTest();
                 }
                 break;
         }
@@ -211,7 +211,6 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        simTestBinder.isRegister(false);
         if (connection != null){
             unbindService(connection);
         }

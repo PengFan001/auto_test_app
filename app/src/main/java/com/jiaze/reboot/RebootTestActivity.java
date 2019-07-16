@@ -109,11 +109,11 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
             case R.id.reboot_btn:
                 if (btnTest.getText().equals(getString(R.string.btn_start_test))){
                     saveTestParams();
-                    rebootTestBinder.startTest(getTestParameter());
                     btnTest.setText(R.string.btn_stop_test);
+                    rebootTestBinder.startTest(getTestParameter());
                 }else {
-                    rebootTestBinder.stopTest();
                     btnTest.setText(R.string.btn_start_test);
+                    rebootTestBinder.stopTest();
                 }
                 break;
         }
@@ -199,4 +199,15 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (connection != null){
+            unbindService(connection);
+        }
+
+        if (rebootTestFinishBroadcastReceiver != null){
+            unregisterReceiver(rebootTestFinishBroadcastReceiver);
+        }
+    }
 }
