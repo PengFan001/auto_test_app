@@ -1,16 +1,14 @@
-package com.jiaze.sim;
+package com.jiaze.network;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -28,30 +26,23 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Properties;
 
-public class SimTestActivity extends Activity implements View.OnClickListener {
+public class NetworkTestActivity extends Activity implements View.OnClickListener {
 
-    private static final String TAG = "SimTestActivity";
-    private static final String SIM_TEST_PARAM_SAVE_PATH = "SimTestParam";
-    private static final int UPDATE_SIM_STATE = 9;
-    private static final int MSG_ID_TEST_FINISHED = 10;
-    private static final int MSG_ID_GOT_TEST_RESULT = 11;
+    private static final String TAG = "NetworkTestActivity";
+    private static final String NETWORK_TEST_PARAMS_SAVE_PATH = "NetworkTestParam";
+    private static final int MSG_ID_TEST_FINISHED = 2;
+    private static final int MSG_ID_GOT_TEST_RESULT = 3;
 
-    private TextView tvSimState;
+    private TextView tvServiceState;
     private EditText etTestTime;
-    private Button btnStart;
     private TextView tvTestResult;
-    private SimTestService.SimTestBinder simTestBinder;
-    private IntentFilter intentFilter;
-    private SimTestFinishBroadcastReceiver simTestFinishBroadcastReceiver;
+    private Button btnStart;
+    private NetworkTestService.NetworkTestBinder networkTestBinder;
     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            Log.d(TAG, "handleMessage: get the msg.what = " + msg.what);
+            Log.d(TAG, "handleMessage: get the message, msg.what = " + msg.what);
             switch (msg.what){
-                case UPDATE_SIM_STATE:
-                    tvSimState.setText(simTestBinder.getSimState());
-                    Log.d(TAG, "handleMessage: get sim State : " + simTestBinder.getSimState());
-                    break;
                 case MSG_ID_TEST_FINISHED:
                     btnStart.setText(getString(R.string.btn_start_test));
                     final String resultPath = (String) msg.obj;
@@ -72,15 +63,15 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
             return false;
         }
     });
+
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            simTestBinder = (SimTestService.SimTestBinder) service;
-            Log.d(TAG, "onServiceConnected: Bind the SimTestService Succeed");
-            simTestBinder.isRegister(true);
-            tvSimState.setText(simTestBinder.getSimState());
+            networkTestBinder = (NetworkTestService.NetworkTestBinder) service;
+            Log.d(TAG, "onServiceConnected: Bind the NetworkTestService");
             btnStart.setEnabled(true);
-            if (simTestBinder.isInTesting()){
+            tvServiceState.setText(networkTestBinder.getServiceState());
+            if (networkTestBinder.isInTesting()){
                 btnStart.setText(getString(R.string.btn_stop_test));
             }else {
                 btnStart.setText(getString(R.string.btn_start_test));
@@ -89,7 +80,7 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            simTestBinder = null;
+            networkTestBinder = null;
             btnStart.setEnabled(false);
         }
     };
@@ -97,10 +88,10 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (intent.hasExtra(getString(R.string.key_result))){
+        if (intent.hasExtra(getString(R.string.key_test_result_path))){
             Message msg = mHandler.obtainMessage();
             msg.what = MSG_ID_TEST_FINISHED;
-            msg.obj = intent.getStringExtra(getString(R.string.key_result));
+            msg.obj = intent.getStringExtra(getString(R.string.key_test_result_path));
             msg.sendToTarget();
         }
     }
@@ -108,33 +99,24 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sim_test);
+        setContentView(R.layout.activity_network_test);
         initUI();
-        intentFilter = new IntentFilter();
-        intentFilter.addAction("com.jiaze.action.SIM_TEST_FINISHED");
-        simTestFinishBroadcastReceiver = new SimTestFinishBroadcastReceiver();
-        registerReceiver(simTestFinishBroadcastReceiver, intentFilter);
-        Log.d(TAG, "onCreate: register the SimTestFinishBroadcastReceiver");
-        bindSimTestService();
+        bindNetworkTestService();
     }
 
-    private void bindSimTestService(){
-        Intent intent = new Intent(this, SimTestService.class);
+    private void bindNetworkTestService(){
+        Intent intent = new Intent(this, NetworkTestService.class);
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
 
     private void initUI(){
-        Properties properties = Constant.loadTestParameter(this, SIM_TEST_PARAM_SAVE_PATH);
-        String simTestTime = properties.getProperty(getString(R.string.key_sim_test_time), "1");
-        tvSimState = (TextView) findViewById(R.id.sim_state);
-        etTestTime = (EditText) findViewById(R.id.sim_test_time);
-        btnStart = (Button) findViewById(R.id.sim_start_btn);
-        tvTestResult = (TextView) findViewById(R.id.sim_test_result);
-        if (Integer.parseInt(simTestTime) == 0){
-            etTestTime.setText(getString(R.string.reboot_default_value));
-        }else {
-            etTestTime.setText(simTestTime);
-        }
+        Properties properties = Constant.loadTestParameter(this, NETWORK_TEST_PARAMS_SAVE_PATH);
+        String networkTestTime = properties.getProperty(getString(R.string.key_network_test_time), "1");
+        tvServiceState = (TextView) findViewById(R.id.service_state);
+        etTestTime = (EditText) findViewById(R.id.network_test_time);
+        tvTestResult = (TextView) findViewById(R.id.network_test_result);
+        btnStart = (Button) findViewById(R.id.network_start_btn);
+        etTestTime.setText(networkTestTime);
         etTestTime.requestFocus();
         etTestTime.setSelection(etTestTime.getText().length());
         btnStart.setOnClickListener(this);
@@ -143,19 +125,19 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
 
     private Bundle getTestParameter(){
         Bundle bundle = new Bundle();
-        bundle.putInt(getString(R.string.key_sim_test_time), Integer.parseInt(etTestTime.getText().toString()));
+        bundle.putInt(getString(R.string.key_network_test_time), Integer.parseInt(etTestTime.getText().toString()));
         return bundle;
     }
 
     private void saveTestParams(){
-        String filePath = getFilesDir().getAbsolutePath() + "/" + SIM_TEST_PARAM_SAVE_PATH;
+        String filePath = getFilesDir().getAbsolutePath() + "/" + NETWORK_TEST_PARAMS_SAVE_PATH;
         File paramFile = new File(filePath);
         if (!paramFile.exists()){
             try {
                 paramFile.createNewFile();
-                Log.d(TAG, "saveTestParams: Create the Sim Test Parameter File Success");
+                Log.d(TAG, "saveTestParams: Create the NetWork Test Parameter File Success");
             } catch (IOException e) {
-                Log.d(TAG, "saveTestParams: Create the Sim Test Parameter File Failed");
+                Log.d(TAG, "saveTestParams: Create the NetWork Test Parameter File Failed");
                 e.printStackTrace();
             }
         }
@@ -163,7 +145,7 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
             OutputStream outputStream = new FileOutputStream(paramFile);
             Properties properties = new Properties();
             properties.setProperty(getString(R.string.key_sim_test_time), etTestTime.getText().toString());
-            properties.store(outputStream, "SimParameter");
+            properties.store(outputStream, "NetWorkParameter");
             if (outputStream != null){
                 outputStream.close();
             }
@@ -179,44 +161,24 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         switch (v.getId()){
-            case R.id.sim_start_btn:
+            case R.id.network_start_btn:
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
                     saveTestParams();
-                    simTestBinder.startTest(getTestParameter());
-                    Log.d(TAG, "onClick: send the update Ui message");
-                    mHandler.sendEmptyMessage(UPDATE_SIM_STATE);
-                    btnStart.setText(getString(R.string.btn_stop_test));
-                }else {
-                    simTestBinder.stopTest();
+                    networkTestBinder.startTest(getTestParameter());
                     btnStart.setText(getString(R.string.btn_start_test));
+                }else {
+                    networkTestBinder.stopTest();
+                    btnStart.setText(getString(R.string.btn_stop_test));
                 }
                 break;
-        }
-    }
-
-    private class SimTestFinishBroadcastReceiver extends BroadcastReceiver{
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "onReceive: receiver the Sim Test Finished Receiver");
-            if (intent.hasExtra(getString(R.string.key_result))){
-                Message msg = mHandler.obtainMessage();
-                msg.what = MSG_ID_TEST_FINISHED;
-                msg.obj = intent.getStringExtra(getString(R.string.key_result));
-                Log.d(TAG, "onReceive: get the sim test result path : "  + msg.obj.toString());
-                msg.sendToTarget();
-            }
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        simTestBinder.isRegister(false);
         if (connection != null){
             unbindService(connection);
-        }
-        if (simTestFinishBroadcastReceiver != null){
-            unregisterReceiver(simTestFinishBroadcastReceiver);
         }
     }
 }

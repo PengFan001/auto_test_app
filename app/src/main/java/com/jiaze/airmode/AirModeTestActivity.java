@@ -198,8 +198,10 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
                     airModeTestBinder.startTest(getTestParameter());
                     Log.d(TAG, "onClick: send the update UI message");
                     mHandler.sendEmptyMessage(UPDATE_AIR_MODE_STATE);
+                    btnStart.setText(getString(R.string.btn_stop_test));
                 }else {
                     airModeTestBinder.stopTest();
+                    btnStart.setText(getString(R.string.btn_start_test));
                 }
                 break;
         }

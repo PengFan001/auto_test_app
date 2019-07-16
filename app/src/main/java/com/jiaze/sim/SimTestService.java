@@ -88,14 +88,16 @@ public class SimTestService extends Service {
             isStop = false;
             simTestTime = bundle.getInt(getString(R.string.key_sim_test_time));
             storeSimTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
-            Log.d(TAG, "getTestParameter: Create the Sim Test Result Dir: " + storeSimTestResultDir);
+            Log.d(TAG, "startTest: Create the Sim Test Result Dir: " + storeSimTestResultDir);
             runLogical();
         }
 
         public void stopTest(){
             simTestTime = 0;
+            isTesting = false;
             resetIsValue();
             resetTestValue();
+            saveTestParamsAndTmpResult();
         }
 
         public String getSimState(){
@@ -225,9 +227,9 @@ public class SimTestService extends Service {
         if (!file.exists()){
             try {
                 file.createNewFile();
-                Log.d(TAG, "runLogical: reduce the sim test reboot time error");
+                Log.d(TAG, "saveTestParamsAndTmpResult: reduce the sim test reboot time error");
             } catch (IOException e) {
-                Log.d(TAG, "runLogical: Create the reboot Test Parameter File Failed");
+                Log.d(TAG, "saveTestParamsAndTmpResult: Create the reboot Test Parameter File Failed");
                 e.printStackTrace();
             }
         }

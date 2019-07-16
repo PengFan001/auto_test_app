@@ -9,6 +9,7 @@ import android.os.Bundle;
 import com.jiaze.airmode.AirModeTestActivity;
 import com.jiaze.call.CallTestActivity;
 import com.jiaze.common.Constant;
+import com.jiaze.network.NetworkTestActivity;
 import com.jiaze.reboot.RebootTestActivity;
 import com.jiaze.sim.SimTestActivity;
 
@@ -28,7 +29,7 @@ public class MainActivity extends PreferenceActivity {
         }else if (preference.getKey().equals(Constant.PRE_KEY_SIM)){
             intent.setClass(this, SimTestActivity.class);
         }else if (preference.getKey().equals(Constant.PRE_KEY_NET)){
-            //todo add the Net Activity
+            intent.setClass(this, NetworkTestActivity.class);
         }else if (preference.getKey().equals(Constant.PRE_KEY_CALL)){
             intent.setClass(this, CallTestActivity.class);
         }else if(preference.getKey().equals(Constant.PRE_KEY_AIR_MODE)){

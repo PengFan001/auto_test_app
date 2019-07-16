@@ -38,6 +38,19 @@
     <string name="text_air_mode_close_success_time">关闭成功次数:</string>
     <string name="text_air_mode_close_failed_time">关闭失败次数:</string>
     <string name="text_air_mode_close_success_rate">关闭成功率:</string>
+    <string name="text_network_state">当前网络状态:</string>
+    <string name="text_service_state">入网状态:</string>
+    <string name="text_in_service_time">正常次数:</string>
+    <string name="text_out_of_service_time">未入网次数:</string>
+    <string name="text_power_off_time">射频已关闭次数:</string>
+    <string name="text_emergency_time">仅限紧急呼叫次数:</string>
+    <string name="text_in_service">已入网</string>
+    <string name="text_out_of_service">未入网</string>
+    <string name="text_power_off">射频已关闭</string>
+    <string name="text_emergency_only">仅限紧急呼叫</string>
+    <string name="text_reboot_success_time">开机正常次数:</string>
+    <string name="text_reboot_failed_time">开机异常次数:</string>
+
 
     <string name="param_phone">手机号</string>
     <string name="param_test_times">测试次数</string>
@@ -62,7 +75,11 @@
     <string name="key_sim_netWork_times">sim_network_times</string>
     <string name="key_sim_run_times">sim_run_times</string>
     <string name="key_air_mode_test_time">air_mode_test_time</string>
-
+    <string name="key_network_test_time">network_test_time</string>
+    <string name="key_reboot_success_time">reboot_success</string>
+    <string name="key_reboot_failed_time">reboot_failed</string>
+    <string name="key_reboot_run_time">reboot_run_time</string>
+    <string name="key_is_reboot_testing">is_reboot_testing</string>
 
     <string name="reboot_times">重启次数: </string>
     <string name="reboot_default_value">1</string>

@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.jiaze.autotestapp">
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -16,13 +17,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name="com.jiaze.network.NetworkTestActivity"
+            android:launchMode="singleTask">
+        </activity>
+        <activity
             android:name="com.jiaze.airmode.AirModeTestActivity"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name="com.jiaze.sim.SimTestActivity"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name="com.jiaze.reboot.RebootTestActivity"
             android:launchMode="singleTask"
@@ -49,7 +54,11 @@
             android:enabled="true" />
         <service
             android:name="com.jiaze.airmode.AirModeTestService"
-            android:enabled="true"/>
+            android:enabled="true" />
+        <service
+            android:name="com.jiaze.network.NetworkTestService"
+            android:enabled="true">
+        </service>
 
         <receiver android:name="com.jiaze.common.BootRebootServiceReceiver">
             <intent-filter>

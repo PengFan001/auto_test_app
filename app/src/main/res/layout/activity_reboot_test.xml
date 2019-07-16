@@ -1,46 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
     <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/reboot_title"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/reboot_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/reboot_times"
+                android:paddingTop="10dp"
+                android:textSize="23sp"/>
+
+            <EditText
+                android:id="@+id/reboot_times"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:numeric="integer"
+                android:text="@string/reboot_default_value"
+                android:paddingBottom="10dp"
+                android:textSize="18sp"/>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/reboot_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/reboot_times"
-            android:paddingTop="10dp"
-            android:textSize="23sp"/>
+            android:text="@string/btn_start_test"
+            android:enabled="true"/>
 
-        <EditText
-            android:id="@+id/reboot_times"
-            android:layout_width="120dp"
+        <TextView
+            android:id="@+id/reboot_test_result"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="number"
-            android:numeric="integer"
-            android:text="@string/reboot_default_value"
-            android:paddingBottom="10dp"
             android:textSize="18sp"/>
 
     </LinearLayout>
 
-    <Button
-        android:id="@+id/reboot_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/btn_start_test"
-        android:enabled="true"/>
 
-    <TextView
-        android:id="@+id/reboot_test_result"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="18sp"/>
-
-</LinearLayout>
+</ScrollView>

@@ -98,7 +98,7 @@ public class CallTestService extends AutoTestService {
                     failedCount++;
                     //todo 在等待接听超时后挂断电话
                     if (telephonyManager != null && !isCallStateIdle()) {
-                        //telephonyManager.endCall();
+                        telephonyManager.endCall();
                     }
                     if (mHandler != null && waitTimeOutCalculate != null) {
                         mHandler.removeCallbacks(waitTimeOutCalculate);
@@ -109,7 +109,7 @@ public class CallTestService extends AutoTestService {
                 case MSG_ID_DURATION_TIMEOUT:
                     //todo 在通话时长达到之后，挂断电话
                     if (telephonyManager != null && !isCallStateIdle()) {
-                        //telephonyManager.endCall();
+                        telephonyManager.endCall();
                     }
                     if (mHandler != null && durationTimeOutCalculate != null) {
                         mHandler.removeCallbacks(durationTimeOutCalculate);
