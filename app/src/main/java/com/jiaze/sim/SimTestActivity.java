@@ -48,9 +48,11 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
+            Log.d(TAG, "handleMessage: get the msg.what = " + msg.what);
             switch (msg.what){
                 case UPDATE_SIM_STATE:
                     tvSimState.setText(simTestBinder.getSimState());
+                    Log.d(TAG, "handleMessage: get sim State : " + simTestBinder.getSimState());
                     break;
                 case MSG_ID_TEST_FINISHED:
                     btnStart.setText(getString(R.string.btn_start_test));
@@ -61,40 +63,7 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
                     if (TextUtils.isEmpty(resultPath)){
                         Log.d(TAG, "handleMessage: the result dir isn't exist : " + resultPath);
                     }
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            BufferedReader bufferedReader = null;
-                            FileReader reader = null;
-                            try {
-                                reader = new FileReader(new File(resultPath));
-                                bufferedReader = new BufferedReader(reader);
-                                StringBuilder builder = new StringBuilder();
-                                String line;
-                                while ((line = bufferedReader.readLine()) != null){
-                                    builder.append(line);
-                                    builder.append("\r\n");
-                                }
-                                getResult.obj = builder.toString();
-                                getResult.sendToTarget();
-                            } catch (FileNotFoundException e) {
-                                Log.d(TAG, "run: read the FileReader Failed");
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                Log.d(TAG, "run: readLine error");
-                                e.printStackTrace();
-                            }finally {
-                                if (bufferedReader != null){
-                                    try {
-                                        bufferedReader.close();
-                                    } catch (IOException e) {
-                                        Log.d(TAG, "run: close the Reader buffer");
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-                        }
-                    }).start();
+                    Constant.showTestResult(resultPath, getResult);
                     break;
 
                 case MSG_ID_GOT_TEST_RESULT:
@@ -110,6 +79,7 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
         public void onServiceConnected(ComponentName name, IBinder service) {
             simTestBinder = (SimTestService.SimTestBinder) service;
             Log.d(TAG, "onServiceConnected: Bind the SimTestService Succeed");
+            simTestBinder.isRegister(true);
             btnStart.setEnabled(true);
             if (simTestBinder.isInTesting()){
                 btnStart.setText(getString(R.string.btn_stop_test));
@@ -147,7 +117,6 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
         simTestFinishBroadcastReceiver = new SimTestFinishBroadcastReceiver();
         registerReceiver(simTestFinishBroadcastReceiver, intentFilter);
         Log.d(TAG, "onCreate: register the SimTestFinishBroadcastReceiver");
-
     }
 
     private void bindSimTestService(){
@@ -237,6 +206,7 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        simTestBinder.isRegister(false);
         if (connection != null){
             unbindService(connection);
         }

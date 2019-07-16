@@ -2,12 +2,15 @@ package com.jiaze.common;
 
 import android.content.Context;
 import android.os.Environment;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -118,6 +121,43 @@ public class Constant {
             }
         }
         return properties;
+    }
+
+    public static void showTestResult(final String resultPath, final Message getResult){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                BufferedReader bufferedReader = null;
+                FileReader reader = null;
+                try {
+                    reader = new FileReader(new File(resultPath));
+                    bufferedReader = new BufferedReader(reader);
+                    StringBuilder builder = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null){
+                        builder.append(line);
+                        builder.append("\r\n");
+                    }
+                    getResult.obj = builder.toString();
+                    getResult.sendToTarget();
+                } catch (FileNotFoundException e) {
+                    Log.d(TAG, "run: read the FileReader Failed");
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    Log.d(TAG, "run: readLine error");
+                    e.printStackTrace();
+                }finally {
+                    if (bufferedReader != null){
+                        try {
+                            bufferedReader.close();
+                        } catch (IOException e) {
+                            Log.d(TAG, "run: close the Reader buffer");
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }).start();
     }
 
 }

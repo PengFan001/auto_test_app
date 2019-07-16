@@ -5,9 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.PowerManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -86,15 +84,18 @@ public class SimTestService extends Service {
     class SimTestBinder extends Binder{
         public void startTest(Bundle bundle){
             isTesting = true;
-            resetIsValue();
+            isReboot = false;
+            isStop = false;
             simTestTime = bundle.getInt(getString(R.string.key_sim_test_time));
             storeSimTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
-            Log.d(TAG, "getTestParameter: Create the Reboot Test Result Dir: " + storeSimTestResultDir);
+            Log.d(TAG, "getTestParameter: Create the Sim Test Result Dir: " + storeSimTestResultDir);
             runLogical();
         }
 
         public void stopTest(){
             simTestTime = 0;
+            resetIsValue();
+            resetTestValue();
         }
 
         public String getSimState(){
@@ -105,8 +106,8 @@ public class SimTestService extends Service {
             return isTesting;
         }
 
-        public void isRegisterBroadcast(boolean registerResult){
-            isRegister = registerResult;
+        public void isRegister(boolean registered){
+            isRegister = registered;
         }
     }
 
@@ -188,6 +189,32 @@ public class SimTestService extends Service {
             isStop = true;
             resetTestValue();
             showResultActivity(SimTestActivity.class);
+
+            //receiver the broadcast register broadcast , the send the result path
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "run: isRegister = " + isRegister);
+                    while (!isRegister){
+                        try {
+                            Thread.sleep(1000);
+                            Log.d(TAG, "run: wait the registered broadcast ");
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        if (isRegister){
+                            Intent broadcastIntent = new Intent("com.jiaze.action.SIM_TEST_FINISHED");
+                            broadcastIntent.putExtra(getString(R.string.key_result), storeSimTestResultDir + "/" + "testResult");
+                            sendBroadcast(broadcastIntent);
+                            Log.d(TAG, "showResultActivity: Send the showResult broadcast");
+                            Log.d(TAG, "run: stop waiting register broadcast");
+                            break;
+                        }
+                    }
+
+                }
+            }).start();
         }
     }
 
@@ -330,14 +357,6 @@ public class SimTestService extends Service {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(getString(R.string.key_result), storeSimTestResultDir + "/" + "testResult");
         startActivity(intent);
-
-        //todo wait some time send the broadcast
-
-
-        Intent broadcastIntent = new Intent("com.jiaze.action.SIM_TEST_FINISHED");
-        broadcastIntent.putExtra(getString(R.string.key_result), storeSimTestResultDir + "/" + "testResult");
-        sendBroadcast(broadcastIntent);
-        Log.d(TAG, "showResultActivity: Send the showResult broadcast");
     }
 
     private void resetTestValue(){
@@ -352,8 +371,8 @@ public class SimTestService extends Service {
 
     private void resetIsValue(){
         isReboot = false;
-        isRegister = false;
         isStop = false;
+        isRegister = false;
     }
 
     @Override
