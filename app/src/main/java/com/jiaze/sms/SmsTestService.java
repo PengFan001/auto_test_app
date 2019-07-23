@@ -60,9 +60,17 @@ public class SmsTestService extends AutoTestService {
                     break;
 
                 case MSG_ID_SMS_SENT_FAILURE:
+                    failedCount++;
+                    Log.d(TAG, "handleMessage: send the sms failure, failedCount = " + failedCount);
+                    if (mHandler != null && waitTimeoutTask != null){
+                        mHandler.removeCallbacks(waitTimeoutTask);
+                    }
+                    runNextTime = true;
+                    break;
+
                 case MSG_ID_WAIT_RESULT_TIMEOUT:
                     failedCount++;
-                    Log.d(TAG, "handleMessage: sent the sms failure, failedCount = " + failedCount);
+                    Log.d(TAG, "handleMessage: send the sms timeout, failedCount = " + failedCount);
                     if (mHandler != null && waitTimeoutTask != null){
                         mHandler.removeCallbacks(waitTimeoutTask);
                     }
@@ -151,11 +159,14 @@ public class SmsTestService extends AutoTestService {
                         break;
 
                     case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                    case SmsManager.RESULT_ERROR_RADIO_OFF:
-                    case SmsManager.RESULT_ERROR_NULL_PDU:
-                    default:
                         Log.d(TAG, "onReceive: phoneNumber = " + phoneNumber + "send the message failure");
                         mHandler.sendEmptyMessage(MSG_ID_SMS_SENT_FAILURE);
+                        break;
+
+                    case SmsManager.RESULT_ERROR_RADIO_OFF:
+                        break;
+
+                    case SmsManager.RESULT_ERROR_NULL_PDU:
                         break;
                 }
             }catch (Exception e){
