@@ -33,6 +33,11 @@ public class Constant {
     public static final int EDIT_ID_DURATION_TIME = 3;
     public static final int BUTTON_START_ID = 4;
     public static final int TEXTVIEW_RESULT_ID = 5;
+    public static final int SMS_ID_PHONE = 6;
+    public static final int SMS_ID_TEST_TIME = 7;
+    public static final int SMS_ID_WAIT_TIME = 8;
+    public static final int SMS_ID_SMS_STRING = 9;
+
 
     public static final String SIM_STATE_ABSENT = "无卡";
     public static final String SIM_STATE_UNKNOWN = "未知状态";

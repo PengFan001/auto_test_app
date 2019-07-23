@@ -21,6 +21,11 @@
             android:launchMode="singleTask">
         </activity>
         <activity
+            android:name="com.jiaze.sms.SmsTestActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        </activity>
+        <activity
             android:name="com.jiaze.airmode.AirModeTestActivity"
             android:launchMode="singleTask"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
@@ -46,6 +51,10 @@
         <service
             android:name="com.jiaze.call.CallTestService"
             android:enabled="true" />
+        <service
+            android:name="com.jiaze.sms.SmsTestService"
+            android:enabled="true">
+        </service>
         <service
             android:name="com.jiaze.reboot.RebootTestService"
             android:enabled="true" />

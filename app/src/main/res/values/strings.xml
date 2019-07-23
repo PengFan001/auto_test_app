@@ -56,6 +56,8 @@
     <string name="param_test_times">测试次数</string>
     <string name="param_duration_time">通话时长</string>
     <string name="param_wait_time">等待时间</string>
+    <string name="param_wait_sms_result_time">等待短信发送结果时间</string>
+    <string name="param_sms_str">短信内容</string>
 
     <string name="key_result">result</string>
     <string name="key_phone">phone</string>
@@ -80,6 +82,8 @@
     <string name="key_reboot_failed_time">reboot_failed</string>
     <string name="key_reboot_run_time">reboot_run_time</string>
     <string name="key_is_reboot_testing">is_reboot_testing</string>
+    <string name="key_wait_sms_result_time">wait_sms_result_time</string>
+    <string name="key_sms_string">sms_string</string>
 
     <string name="reboot_times">重启次数: </string>
     <string name="reboot_default_value">1</string>

@@ -2,6 +2,7 @@ package com.jiaze.common;
 
 import android.content.Context;
 import android.text.InputType;
+import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,7 +51,10 @@ public class TableContainer {
             etParamInput.setInputType(InputType.TYPE_CLASS_NUMBER);
         }else if (Constant.EnumDataType.DATA_TYPE_PHONE.getType().equals(type)){
             etParamInput.setInputType(InputType.TYPE_CLASS_PHONE);
+        }else if (Constant.EnumDataType.DATA_TYPE_ALL.getType().equals(type)){
+            etParamInput.setInputType(InputType.TYPE_CLASS_TEXT);
         }
+
         etParamInput.setId(editTextControlId);
         etParamInput.setWidth(400);
         mChildCtlId.put(editTextControlId, paramKey);

@@ -12,6 +12,7 @@ import com.jiaze.common.Constant;
 import com.jiaze.network.NetworkTestActivity;
 import com.jiaze.reboot.RebootTestActivity;
 import com.jiaze.sim.SimTestActivity;
+import com.jiaze.sms.SmsTestActivity;
 
 public class MainActivity extends PreferenceActivity {
 
@@ -35,7 +36,7 @@ public class MainActivity extends PreferenceActivity {
         }else if(preference.getKey().equals(Constant.PRE_KEY_AIR_MODE)){
             intent.setClass(this, AirModeTestActivity.class);
         }else if(preference.getKey().equals(Constant.PRE_KEY_SMS)){
-            //todo add the Sms Activity
+            intent.setClass(this, SmsTestActivity.class);
         }else if(preference.getKey().equals(Constant.PRE_KEY_PPS)){
             //todo add the PPS Activity
         }
