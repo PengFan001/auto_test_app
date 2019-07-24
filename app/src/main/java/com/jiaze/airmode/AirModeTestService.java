@@ -1,11 +1,12 @@
 package com.jiaze.airmode;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -45,12 +46,16 @@ public class AirModeTestService extends Service {
     private boolean isTesting = false;
     private static boolean isRunNextTime = false;
     private String storeAirModeTestResultDir;
+    private PowerManager powerManager;
+    private PowerManager.WakeLock mWakeLock;
     private AirModeTestBinder airModeTestBinder = new AirModeTestBinder();
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate: Air Mode Test Service is start");
+        powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         resetTestValue();
     }
 
@@ -65,13 +70,11 @@ public class AirModeTestService extends Service {
             airModeTestTime = bundle.getInt(getString(R.string.key_air_mode_test_time));
             storeAirModeTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the Air Mode Test Resulr Dir : " + storeAirModeTestResultDir);
-            //todo run the test logical
-            runLogical();
+            new AirModeTestThread().start();
         }
 
         public void stopTest(){
-            airModeTestTime = 0;
-            resetTestValue();
+            isTesting = false;
         }
 
         public String getAirModeState(){
@@ -84,10 +87,32 @@ public class AirModeTestService extends Service {
         }
     }
 
+    class AirModeTestThread extends Thread{
+        AirModeTestThread(){
+            super();
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            Log.d(TAG, "run: start air mode Test");
+            mWakeLock.acquire();
+            isTesting = true;
+            runLogical();
+            if (mWakeLock != null && mWakeLock.isHeld()){
+                mWakeLock.release();
+            }
+            isTesting = false;
+            resetTestValue();
+            Log.d(TAG, "run: finished the test, then will show you the AirMode Test result");
+            showResultActivity(AirModeTestActivity.class);
+        }
+    }
+
     private void runLogical(){
-        while (airModeTestTime > 0){
+
+        for (; airModeTestTime > 0 && isTesting; airModeTestTime--){
             totalRunTime++;
-            airModeTestTime = airModeTestTime - 1;
             Log.d(TAG, "runLogical: air Mode testTime reduce 1, rest test time = " + airModeTestTime);
             Log.d(TAG, "run: start test the air mode close and open ");
             readAirModeState();
@@ -147,12 +172,7 @@ public class AirModeTestService extends Service {
                 }
             }
         }
-
-        isTesting = false;
         saveAirModeTestResult();
-        resetTestValue();
-        showResultActivity(AirModeTestActivity.class);
-        Log.d(TAG, "runLogical: finished the AirMode Test, then will show you the test Result");
     }
 
     private void sendAirModeChangeState(String airMode){
