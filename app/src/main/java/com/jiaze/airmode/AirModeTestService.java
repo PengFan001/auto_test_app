@@ -214,16 +214,12 @@ public class AirModeTestService extends Service {
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_air_mode_open_failed_time) + openFailedTimes);
         testResultBuilder.append("\r\n");
-//        testResultBuilder.append("\r\n" + getString(R.string.text_air_mode_open_success_rate) + (openSuccessTimes / openTimes) * 100 + "%");
-//        testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_air_mode_close_time) + closeTimes);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_air_mode_close_success_time) + closeSuccessTimes);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_air_mode_close_failed_time) + closeFailedTimes);
         testResultBuilder.append("\r\n");
-//        testResultBuilder.append("\r\n" + getString(R.string.text_air_mode_close_success_rate) + (closeSuccessTimes / closeTimes) * 100 + "%");
-//        testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeAirModeTestResultDir);
 
         BufferedWriter bufferedWriter = null;

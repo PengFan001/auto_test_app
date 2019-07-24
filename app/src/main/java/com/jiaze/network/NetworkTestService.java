@@ -118,6 +118,7 @@ public class NetworkTestService extends Service {
         }
 
         public void stopTest(){
+            Log.d(TAG, "stopTest: stop the Test");
             networkTestTime = 0;
             resetTestValue();
         }
@@ -271,7 +272,7 @@ public class NetworkTestService extends Service {
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_emergency_time) + emergencyTime);
         testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" + getString(R.string.text_result) + storeNetworkTestResultDir);
+        testResultBuilder.append("\r\n" + getString(R.string.key_test_result_path) + storeNetworkTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;

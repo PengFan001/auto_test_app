@@ -50,6 +50,13 @@
     <string name="text_emergency_only">仅限紧急呼叫</string>
     <string name="text_reboot_success_time">开机正常次数:</string>
     <string name="text_reboot_failed_time">开机异常次数:</string>
+    <string name="text_ps_state">PS激活状态:</string>
+    <string name="text_net_connecting">激活中</string>
+    <string name="text_net_connected">已激活</string>
+    <string name="text_net_disconnect">未激活</string>
+    <string name="text_net_suspend">网络迟缓</string>
+    <string name="text_switch_succeed_time">切换成功次数:</string>
+    <string name="text_switch_failed_time">切换失败次数:</string>
 
 
     <string name="param_phone">手机号</string>
@@ -84,6 +91,7 @@
     <string name="key_is_reboot_testing">is_reboot_testing</string>
     <string name="key_wait_sms_result_time">wait_sms_result_time</string>
     <string name="key_sms_string">sms_string</string>
+    <string name="key_ps_test_time">ps_test_time</string>
 
     <string name="reboot_times">重启次数: </string>
     <string name="reboot_default_value">1</string>
