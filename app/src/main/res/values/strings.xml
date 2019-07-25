@@ -7,7 +7,7 @@
     <string name="title_call">语音通话测试</string>
     <string name="title_sms">短信收发测试</string>
     <string name="title_air_mode">飞行模式切换测试</string>
-    <string name="title_pps">PPS业务测试</string>
+    <string name="title_pps">PS业务测试</string>
 
     <string name="btn_start_test">开始测试</string>
     <string name="btn_stop_test">停止测试</string>
@@ -92,10 +92,13 @@
     <string name="key_wait_sms_result_time">wait_sms_result_time</string>
     <string name="key_sms_string">sms_string</string>
     <string name="key_ps_test_time">ps_test_time</string>
+    <string name="key_icon">icon</string>
+    <string name="key_name">name</string>
 
     <string name="reboot_times">重启次数: </string>
     <string name="reboot_default_value">1</string>
 
     <string name="air_mode_open">已开启</string>
     <string name="air_mode_close">已关闭</string>
+    <string name="text_test_title">测试标题</string>
 </resources>

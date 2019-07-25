@@ -1,47 +1,97 @@
 package com.jiaze.autotestapp;
 
+import android.app.Activity;
 import android.content.Intent;
-import android.preference.Preference;
-import android.preference.PreferenceActivity;
-import android.preference.PreferenceScreen;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.GridView;
+import android.widget.SimpleAdapter;
 
 import com.jiaze.airmode.AirModeTestActivity;
 import com.jiaze.call.CallTestActivity;
-import com.jiaze.common.Constant;
 import com.jiaze.network.NetworkTestActivity;
 import com.jiaze.ps.PsTestActivity;
 import com.jiaze.reboot.RebootTestActivity;
 import com.jiaze.sim.SimTestActivity;
 import com.jiaze.sms.SmsTestActivity;
 
-public class MainActivity extends PreferenceActivity {
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class MainActivity extends Activity {
+
+    private static final String TAG = "MainActivity";
+    private GridView mGridView;
+    private List<Map<String, Object>> gridItems;
+
+    private int[] mAppIcons = {
+            R.mipmap.icon_kaiguanji, R.mipmap.con_sim, R.mipmap.icon_ruwang, R.mipmap.icon_yuyingtonghua,
+            R.mipmap.icon_feixingmoshi, R.mipmap.icon_message, R.mipmap.icon_psyewu
+    };
+
+    private String[] mAppNames = new String[7];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        addPreferencesFromResource(R.xml.auto_test_main_activity);
+        setContentView(R.layout.activity_main);
+        mGridView = (GridView) findViewById(R.id.gridView);
+        initGridViewData();
+        SimpleAdapter simpleAdapter = new SimpleAdapter(this, gridItems, R.layout.gridview_item,
+                new String[]{getString(R.string.key_icon), getString(R.string.key_name)},
+                new int[]{R.id.icon_image, R.id.name_tv});
+
+        mGridView.setAdapter(simpleAdapter);
+
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent();
+                if (mAppNames[position].equals(getString(R.string.title_boot_and_shutdown))){
+                    intent.setClass(parent.getContext(), RebootTestActivity.class);
+                }else if (mAppNames[position].equals(getString(R.string.title_sim))) {
+                    intent.setClass(parent.getContext(), SimTestActivity.class);
+                }else if (mAppNames[position].equals(getString(R.string.title_net))) {
+                    intent.setClass(parent.getContext(), NetworkTestActivity.class);
+                }else if (mAppNames[position].equals(getString(R.string.title_call))) {
+                    intent.setClass(parent.getContext(), CallTestActivity.class);
+                }else if (mAppNames[position].equals(getString(R.string.title_air_mode))) {
+                    intent.setClass(parent.getContext(), AirModeTestActivity.class);
+                }else if (mAppNames[position].equals(getString(R.string.title_sms))) {
+                    intent.setClass(parent.getContext(), SmsTestActivity.class);
+                }else if (mAppNames[position].equals(getString(R.string.title_pps))) {
+                    intent.setClass(parent.getContext(), PsTestActivity.class);
+                }
+
+                if (intent != null){
+                    startActivity(intent);
+                }else {
+                    Log.d(TAG, "onItemClick: the intent init is exception");
+                }
+            }
+        });
     }
 
-    @Override
-    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
-        Intent intent = new Intent();
-        if (preference.getKey().equals(Constant.PRE_KEY_BOOT_OR_SHUTDOWN)){
-            intent.setClass(this, RebootTestActivity.class);
-        }else if (preference.getKey().equals(Constant.PRE_KEY_SIM)){
-            intent.setClass(this, SimTestActivity.class);
-        }else if (preference.getKey().equals(Constant.PRE_KEY_NET)){
-            intent.setClass(this, NetworkTestActivity.class);
-        }else if (preference.getKey().equals(Constant.PRE_KEY_CALL)){
-            intent.setClass(this, CallTestActivity.class);
-        }else if(preference.getKey().equals(Constant.PRE_KEY_AIR_MODE)){
-            intent.setClass(this, AirModeTestActivity.class);
-        }else if(preference.getKey().equals(Constant.PRE_KEY_SMS)){
-            intent.setClass(this, SmsTestActivity.class);
-        }else if(preference.getKey().equals(Constant.PRE_KEY_PPS)){
-            intent.setClass(this, PsTestActivity.class);
+    private void initGridViewData(){
+        gridItems = new ArrayList<Map<String, Object>>();
+
+        mAppNames[0] = getString(R.string.title_boot_and_shutdown);
+        mAppNames[1] = getString(R.string.title_sim);
+        mAppNames[2] = getString(R.string.title_net);
+        mAppNames[3] = getString(R.string.title_call);
+        mAppNames[4] = getString(R.string.title_air_mode);
+        mAppNames[5] = getString(R.string.title_sms);
+        mAppNames[6] = getString(R.string.title_pps);
+
+        for (int i = 0; i < mAppIcons.length; i++){
+            Map<String, Object> gridItem = new HashMap<String, Object>();
+            gridItem.put(getString(R.string.key_icon), mAppIcons[i]);
+            gridItem.put(getString(R.string.key_name), mAppNames[i]);
+            gridItems.add(gridItem);
         }
-        startActivity(intent);
-        return true;
     }
 }

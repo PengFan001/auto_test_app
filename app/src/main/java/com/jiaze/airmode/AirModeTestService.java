@@ -66,7 +66,6 @@ public class AirModeTestService extends Service {
 
     class AirModeTestBinder extends Binder{
         public void startTest(Bundle bundle){
-            isTesting = true;
             airModeTestTime = bundle.getInt(getString(R.string.key_air_mode_test_time));
             storeAirModeTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the Air Mode Test Resulr Dir : " + storeAirModeTestResultDir);
