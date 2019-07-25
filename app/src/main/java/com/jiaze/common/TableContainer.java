@@ -21,7 +21,7 @@ import java.util.Hashtable;
 public class TableContainer {
     private Context mContext;
     private TableLayout mTableLayout;
-    private ScrollView mContainerLayout;
+    private LinearLayout mContainerLayout;
     private Hashtable<Integer, String> mChildCtlId;
     private String mTitle;
 
@@ -29,7 +29,7 @@ public class TableContainer {
         mContext = context;
         mTitle = Constant.PARAMS_NAME;
         mChildCtlId = new Hashtable<Integer, String>();
-        mContainerLayout = (ScrollView) LayoutInflater.from(context).inflate(R.layout.test_activity, null);
+        mContainerLayout = (LinearLayout) LayoutInflater.from(context).inflate(R.layout.test_activity, null);
         mTableLayout = (TableLayout) mContainerLayout.findViewById(R.id.test_table_layout);
     }
 
@@ -38,6 +38,7 @@ public class TableContainer {
         TableRow tableRow = new TableRow(mContext);
         TextView tvParamName = new TextView(mContext);
         tvParamName.setText(paramName + ":");
+        tvParamName.setTextColor(mContext.getResources().getColor(R.color.default_text_color));
         tvParamName.setTextSize(18);
         tableRow.addView(tvParamName);
 
@@ -56,7 +57,7 @@ public class TableContainer {
         }
 
         etParamInput.setId(editTextControlId);
-        etParamInput.setWidth(400);
+        etParamInput.setWidth(300);
         mChildCtlId.put(editTextControlId, paramKey);
         tableRow.addView(etParamInput);
 
@@ -70,7 +71,10 @@ public class TableContainer {
     public Button createButton(String btnName, int btnControlId, String btnKey, TableRow tableRow){
         Button button = new Button(mContext);
         button.setText(btnName);
+        button.setTextSize(18);
         button.setId(btnControlId);
+        button.setTextColor(mContext.getResources().getColor(R.color.white));
+        button.setBackground(mContext.getResources().getDrawable(R.mipmap.btn_starttest));
         tableRow.addView(button);
         mChildCtlId.put(btnControlId, btnKey);
         return button;
@@ -106,11 +110,11 @@ public class TableContainer {
         this.mTableLayout = mTableLayout;
     }
 
-    public ScrollView getmContainerLayout() {
+    public LinearLayout getmContainerLayout() {
         return mContainerLayout;
     }
 
-    public void setmContainerLayout(ScrollView mContainerLayout) {
+    public void setmContainerLayout(LinearLayout mContainerLayout) {
         this.mContainerLayout = mContainerLayout;
     }
 

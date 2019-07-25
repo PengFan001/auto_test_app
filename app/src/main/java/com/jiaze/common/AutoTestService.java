@@ -139,8 +139,8 @@ public abstract class AutoTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_failed_times) +  failedCount);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_succeed_rate) + (successCount / totalRunTimes) * 100 + "%");
-        testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeTestResultDir);
+//        testResultBuilder.append("\r\n");
+//        testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;
