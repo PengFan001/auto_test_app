@@ -1,69 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="horizontal">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        tools:context="com.jiaze.sim.SimTestActivity"
+        android:layout_weight="1"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:orientation="horizontal">
+
             <TextView
                 android:id="@+id/title_sim_state"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="23sp"
-                android:text="@string/text_sim_state"/>
+                android:layout_height="match_parent"
+                android:textColor="@color/default_text_color"
+                android:text="@string/text_sim_state"
+                android:textSize="18sp"
+                android:gravity="center"
+                android:paddingLeft="50dp"/>
 
             <TextView
                 android:id="@+id/sim_state"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="23sp"
+                android:layout_height="match_parent"
+                android:textColor="@color/default_text_color"
+                android:textSize="18sp"
                 android:text="@string/text_unknown"
+                android:gravity="center"
                 android:layout_marginLeft="20dp"/>
+
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
+            android:layout_marginTop="20dp"
             android:orientation="horizontal">
+
             <TextView
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="23sp"
-                android:text="@string/text_test_times"/>
+                android:layout_height="match_parent"
+                android:text="@string/text_test_times"
+                android:paddingLeft="50dp"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:textColor="@color/default_text_color"/>
 
             <EditText
                 android:id="@+id/sim_test_time"
                 android:layout_width="80dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginLeft="20dp"
                 android:text="@string/reboot_default_value"/>
+
         </LinearLayout>
 
         <Button
             android:id="@+id/sim_start_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="253dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="50dp"
             android:text="@string/btn_start_test"
-            android:textSize="18sp"/>
-
-        <TextView
-            android:id="@+id/sim_test_result"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"/>
+            android:background="@mipmap/btn_starttest"
+            android:textSize="18sp"
+            android:textColor="@color/white"/>
 
     </LinearLayout>
 
-</ScrollView>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/sim_test_result"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"/>
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </LinearLayout>
+
+</LinearLayout>

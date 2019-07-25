@@ -328,8 +328,8 @@ public class SimTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_sim_state_puk_required) + pukRequiredTimes);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_sim_state_ready) + readyTimes);
-        testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeSimTestResultDir);
+//        testResultBuilder.append("\r\n");
+//        testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeSimTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;

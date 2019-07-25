@@ -284,8 +284,8 @@ public class RebootTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_reboot_success_time) + rebootSuccessTime);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_reboot_failed_time) + rebootFailedTime);
-        testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeRebootTestResultDir);
+//        testResultBuilder.append("\r\n");
+//        testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeRebootTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;

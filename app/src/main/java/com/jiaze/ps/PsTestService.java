@@ -319,8 +319,8 @@ public class PsTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_switch_succeed_time) + successTime);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_switch_failed_time) + failTime);
-        testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" + getString(R.string.key_test_result_path) + storePsTestResultDir);
+//        testResultBuilder.append("\r\n");
+//        testResultBuilder.append("\r\n" + getString(R.string.key_test_result_path) + storePsTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;

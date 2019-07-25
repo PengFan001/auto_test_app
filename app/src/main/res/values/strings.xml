@@ -38,7 +38,7 @@
     <string name="text_air_mode_close_success_time">关闭成功次数:</string>
     <string name="text_air_mode_close_failed_time">关闭失败次数:</string>
     <string name="text_air_mode_close_success_rate">关闭成功率:</string>
-    <string name="text_network_state">当前网络状态:</string>
+    <string name="text_network_state">当前入网状态:</string>
     <string name="text_service_state">入网状态:</string>
     <string name="text_in_service_time">正常次数:</string>
     <string name="text_out_of_service_time">未入网次数:</string>

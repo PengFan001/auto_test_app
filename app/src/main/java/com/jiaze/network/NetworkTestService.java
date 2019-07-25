@@ -161,7 +161,7 @@ public class NetworkTestService extends Service {
             Log.d(TAG, "runLogical: totalRunTimes = " + totalRunTimes);
             runNextTime = false;
             Log.d(TAG, "runLogical: 10 seconds later will run next time");
-            mHandler.postDelayed(getServiceStateTask, 30 * 1000);
+            mHandler.postDelayed(getServiceStateTask, 120 * 1000);
             Log.d(TAG, "runLogical: is runNextTime = " + runNextTime);
             while (!runNextTime){
                 try {
@@ -271,8 +271,8 @@ public class NetworkTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_power_off_time) + powerOffTime);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_emergency_time) + emergencyTime);
-        testResultBuilder.append("\r\n");
-        testResultBuilder.append("\r\n" + getString(R.string.key_test_result_path) + storeNetworkTestResultDir);
+//        testResultBuilder.append("\r\n");
+//        testResultBuilder.append("\r\n" + getString(R.string.key_test_result_path) + storeNetworkTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;
