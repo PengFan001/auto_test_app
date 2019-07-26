@@ -1,15 +1,17 @@
 package com.jiaze.reboot;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
 
+import com.jiaze.at.AtSender;
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.Constant;
 
@@ -35,29 +37,70 @@ public class RebootTestService extends Service {
     private static final String REBOOT_TEST_PARAM_SAVE_PATH = "RebootTestParams";
     private static final String TEST_PARAM = "RebootTest";
     private static final String TAG = "RebootTestService";
+    private static final int SEND_JUDEGE_BOOT_MESSAGE = 1;
     private int rebootTestTime = 0;
     private int totalRunTimes = 0;
     private int rebootSuccessTime = 0;
     private int rebootFailedTime = 0;
     private boolean isTesting = false;
     private boolean runNextTime = false;
+    private boolean isSave = false;
     private static boolean isReboot = false;
     private static boolean isStop = false;
     private static boolean isRegister = false;
     private PowerManager powerManager;
     private String storeRebootTestResultDir;
+    private String command = "AT+CFUN?\r\n";
     private RebootTestBinder rebootTestBinder = new RebootTestBinder();
+    private AtSender atSender;
+    Handler mHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            Log.d(TAG, "handleMessage: get the message, msg.what = " + msg.what);
+            switch (msg.what){
+                case SEND_JUDEGE_BOOT_MESSAGE:
+                    Log.d(TAG, "handleMessage: SEND_JUDEGE_BOOT_MESSAGE, msg.arg1 = " + msg.arg1);
+                    if (msg.arg1 == 0){
+                        rebootFailedTime++;
+                        Log.d(TAG, "handleMessage: the device reboot failed, rebootFailedTime = " + rebootFailedTime);
+                    }else {
+                        String[] lines = (String[]) msg.obj;
+                        for (String s : lines){
+                            Log.d(TAG, "handleMessage: s = " + s);
+                            if (s.contains("+CFUN")){
+                                rebootSuccessTime++;
+                                Log.d(TAG, "handleMessage: the device reboot success, rebootSuccessTime = " + rebootSuccessTime);
+                                return false;
+                            }
+                        }
+
+                        rebootFailedTime++;
+                        Log.d(TAG, "handleMessage: the device reboot failed, rebootFailedTime = " + rebootFailedTime);
+                    }
+                    break;
+
+                default:
+                    atSender.handleMessage(msg);
+                    break;
+
+            }
+            return false;
+        }
+    });
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate: the RebootTestService is start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        atSender = new AtSender(this, mHandler);
+        isSave = false;
         getTestParameter();
         if (isTesting){
             getTmpTestResult();
-            rebootSuccessTime++;
-            rebootFailedTime = totalRunTimes - rebootSuccessTime;
+            Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
+            atSender.sendATCommand(command, message, false);
+            Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
             if (rebootTestTime > 0){
                 isReboot = false;
                 isStop = false;
@@ -103,16 +146,6 @@ public class RebootTestService extends Service {
         }
 
     }
-
-//    public class FinishedBootBroadcastReceiver extends BroadcastReceiver{
-//
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            Log.d(TAG, "onReceive: receiver the boot broadcast, boot is finished");
-//            //rebootSuccessTime++;
-//            Log.d(TAG, "onReceive: rebootSuccessTime + 1, rebootSuccessTime = " + rebootSuccessTime);
-//        }
-//    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -209,6 +242,7 @@ public class RebootTestService extends Service {
 
         while (rebootTestTime > 0){
             totalRunTimes++;
+            Log.d(TAG, "runLogical: totalRunTimes = " + totalRunTimes);
             runNextTime = false;
             rebootTestTime = rebootTestTime - 1;
             Log.d(TAG, "runLogical: rebootTestTime reduce 1, rebootTestTime = " + rebootTestTime);
@@ -318,6 +352,7 @@ public class RebootTestService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        atSender.destory();
     }
 
 }

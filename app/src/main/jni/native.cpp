@@ -47,7 +47,7 @@ static jobject JniObject                    = NULL;
 
 jmethodID  recvRespPacketCbId               = NULL;
 jmethodID  recvUnsolPacketCbId              = NULL;
-static const char *classPathName            = "com/xt/keytosurvive/AtSender";
+static const char *classPathName            = "com/jiaze/at/AtSender";
 
 static int sSolFd = -1;
 static int sUnsolFd = -1;
