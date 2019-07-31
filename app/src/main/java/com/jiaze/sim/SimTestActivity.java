@@ -54,6 +54,7 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
                     break;
                 case MSG_ID_TEST_FINISHED:
                     btnStart.setText(getString(R.string.btn_start_test));
+                    tvSimState.setText(simTestBinder.getSimState());
                     final String resultPath = (String) msg.obj;
                     Log.d(TAG, "handleMessage: finish the test, load the testResult from resultPath: " + resultPath);
                     final Message getResult = mHandler.obtainMessage();

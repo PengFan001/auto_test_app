@@ -45,6 +45,7 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
             switch (msg.what){
                 case MSG_ID_TEST_FINISHED:
                     btnStart.setText(getString(R.string.btn_start_test));
+                    tvServiceState.setText(networkTestBinder.getServiceState());
                     final String resultPath = (String) msg.obj;
                     Log.d(TAG, "handleMessage: finish the test, load the testResult from resultPath: " + resultPath);
                     final Message getResult = mHandler.obtainMessage();

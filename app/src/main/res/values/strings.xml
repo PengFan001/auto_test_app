@@ -58,7 +58,6 @@
     <string name="text_switch_succeed_time">切换成功次数:</string>
     <string name="text_switch_failed_time">切换失败次数:</string>
 
-
     <string name="param_phone">手机号</string>
     <string name="param_test_times">测试次数</string>
     <string name="param_duration_time">通话时长</string>
@@ -89,6 +88,7 @@
     <string name="key_reboot_failed_time">reboot_failed</string>
     <string name="key_reboot_run_time">reboot_run_time</string>
     <string name="key_is_reboot_testing">is_reboot_testing</string>
+    <string name="key_is_sim_testing">is_sim_testing</string>
     <string name="key_wait_sms_result_time">wait_sms_result_time</string>
     <string name="key_sms_string">sms_string</string>
     <string name="key_ps_test_time">ps_test_time</string>

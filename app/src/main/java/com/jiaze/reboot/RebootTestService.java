@@ -62,6 +62,7 @@ public class RebootTestService extends Service {
                     Log.d(TAG, "handleMessage: SEND_JUDEGE_BOOT_MESSAGE, msg.arg1 = " + msg.arg1);
                     if (msg.arg1 == 0){
                         rebootFailedTime++;
+                        continueTest();
                         Log.d(TAG, "handleMessage: the device reboot failed, rebootFailedTime = " + rebootFailedTime);
                     }else {
                         String[] lines = (String[]) msg.obj;
@@ -70,11 +71,13 @@ public class RebootTestService extends Service {
                             if (s.contains("+CFUN")){
                                 rebootSuccessTime++;
                                 Log.d(TAG, "handleMessage: the device reboot success, rebootSuccessTime = " + rebootSuccessTime);
+                                continueTest();
                                 return false;
                             }
                         }
 
                         rebootFailedTime++;
+                        continueTest();
                         Log.d(TAG, "handleMessage: the device reboot failed, rebootFailedTime = " + rebootFailedTime);
                     }
                     break;
@@ -101,48 +104,6 @@ public class RebootTestService extends Service {
             Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
             atSender.sendATCommand(command, message, false);
             Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
-            if (rebootTestTime > 0){
-                isReboot = false;
-                isStop = false;
-                try {
-                    Thread.sleep(10 * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                runLogical();
-            }else {
-                saveRebootTestResult();
-                isTesting = false;
-                isStop = true;
-                resetTestValue();
-                saveTestParamsAndTmpResult();
-                showResultActivity(RebootTestActivity.class);
-                Log.d(TAG, "onCreate: the test is finished, the will show you the test Result");
-                //receiver the broadcast register broadcast , the send the result path
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d(TAG, "run: isRegister = " + isRegister);
-                        while (!isRegister){
-                            try {
-                                Thread.sleep(1000);
-                                Log.d(TAG, "run: wait the registered broadcast ");
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-
-                            if (isRegister){
-                                Intent broadcastIntent = new Intent("com.jiaze.action.REBOOT_TEST_FINISHED");
-                                broadcastIntent.putExtra(getString(R.string.key_result), storeRebootTestResultDir + "/" + "testResult");
-                                sendBroadcast(broadcastIntent);
-                                Log.d(TAG, "showResultActivity: Send the showResult broadcast");
-                                Log.d(TAG, "run: stop waiting register broadcast");
-                                break;
-                            }
-                        }
-                    }
-                }).start();
-            }
         }
 
     }
@@ -151,6 +112,51 @@ public class RebootTestService extends Service {
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "onBind: binder the RebootTestBinder, you can get the function by this Binder");
         return rebootTestBinder;
+    }
+
+    private void continueTest(){
+        if (rebootTestTime > 0){
+            isReboot = false;
+            isStop = false;
+            try {
+                Thread.sleep(10 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            runLogical();
+        }else {
+            saveRebootTestResult();
+            isTesting = false;
+            isStop = true;
+            resetTestValue();
+            saveTestParamsAndTmpResult();
+            showResultActivity(RebootTestActivity.class);
+            Log.d(TAG, "onCreate: the test is finished, the will show you the test Result");
+            //receiver the broadcast register broadcast , the send the result path
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "run: isRegister = " + isRegister);
+                    while (!isRegister){
+                        try {
+                            Thread.sleep(1000);
+                            Log.d(TAG, "run: wait the registered broadcast ");
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        if (isRegister){
+                            Intent broadcastIntent = new Intent("com.jiaze.action.REBOOT_TEST_FINISHED");
+                            broadcastIntent.putExtra(getString(R.string.key_result), storeRebootTestResultDir + "/" + "testResult");
+                            sendBroadcast(broadcastIntent);
+                            Log.d(TAG, "showResultActivity: Send the showResult broadcast");
+                            Log.d(TAG, "run: stop waiting register broadcast");
+                            break;
+                        }
+                    }
+                }
+            }).start();
+        }
     }
 
     private void showResultActivity(Class<?> resultActivity){

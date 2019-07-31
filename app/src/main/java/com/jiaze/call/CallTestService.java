@@ -39,9 +39,9 @@ public class CallTestService extends AutoTestService {
     private static final String TEST_PARAM = "CallTest";
     public static final String TAG = "CallTestService";
 
-    public static final int MSG_ID_CALL_OFF_HOOK = 1;
-    public static final int MSG_ID_CALL_IDLE = 2;
-    public static final int MSG_ID_CALL_RINGING = 3;
+    public static final int MSG_ID_CALL_OFF_HOOK = 2;
+    public static final int MSG_ID_CALL_IDLE = 0;
+    public static final int MSG_ID_CALL_RINGING = 1;
     public static final int MSG_ID_WAIT_TIMEOUT = 4;
     public static final int MSG_ID_DURATION_TIMEOUT = 5;
 
@@ -56,7 +56,7 @@ public class CallTestService extends AutoTestService {
     Runnable waitTimeOutCalculate = new Runnable() {
         @Override
         public void run() {
-            Log.d(TAG, "==========calculate the call wait Time========");
+            Log.d(TAG, "==========the call wait time out, will end the call========");
             //todo 打印相关的log
             mHandler.sendEmptyMessage(MSG_ID_WAIT_TIMEOUT);
         }
@@ -66,7 +66,7 @@ public class CallTestService extends AutoTestService {
     Runnable durationTimeOutCalculate = new Runnable() {
         @Override
         public void run() {
-            Log.d(TAG, "==========calculate the call duration Time========");
+            Log.d(TAG, "==========the call duration time out, will end the call========");
             //todo 打印相关的log
             mHandler.sendEmptyMessage(MSG_ID_DURATION_TIMEOUT);
         }
@@ -80,19 +80,22 @@ public class CallTestService extends AutoTestService {
                     successCount++;
                     if (mHandler != null && waitTimeOutCalculate != null) {
                         mHandler.removeCallbacks(waitTimeOutCalculate);
+                        Log.d(TAG, "handleMessage: MSG_ID_CALL_OFF_HOOK : remove the waitTimeOutCalculate");
                     }
-                    Log.d(TAG, "======dispatchMessage: 呼叫被接听，开始通话时长计时，成功次数SuccessTime加一:" + successCount);
+                    Log.d(TAG, "======dispatchMessage: the phone is Calling, start the calculate the duration time，SuccessTime + 1:" + successCount);
                     mHandler.postDelayed(durationTimeOutCalculate, durationTimeOutTimes * 1000);
                     break;
                 case MSG_ID_CALL_IDLE:
                     runNextTime = true;
                     if (mHandler != null && waitTimeOutCalculate != null) {
                         mHandler.removeCallbacks(waitTimeOutCalculate);
+                        Log.d(TAG, "handleMessage: MSG_ID_CALL_IDLE : remove the waitTimeOutCalculate");
                     }
-                    Log.d(TAG, "=======dispatchMessage: 空闲状态，没有通话活动" + runNextTime);
+                    Log.d(TAG, "=======dispatchMessage: the call is end or not call, we will runNextTimes = " + runNextTime);
                     break;
                 case MSG_ID_CALL_RINGING:
-                    Log.d(TAG, "handleMessage: Call RINGing 响铃、 第三方来电等待");
+                    Log.d(TAG, "handleMessage: Call RINGING 响铃、 第三方来电等待");
+                    Toast.makeText(getApplicationContext(), "A Call Coming", Toast.LENGTH_SHORT).show();
                     break;
                 case MSG_ID_WAIT_TIMEOUT:
                     failedCount++;
@@ -102,6 +105,7 @@ public class CallTestService extends AutoTestService {
                     }
                     if (mHandler != null && waitTimeOutCalculate != null) {
                         mHandler.removeCallbacks(waitTimeOutCalculate);
+                        Log.d(TAG, "handleMessage: MSG_ID_WAIT_TIMEOUT : remove the waitTimeOutCalculate");
                     }
                     runNextTime = true;
                     Log.d(TAG, "=======dispatchMessage: 等待接听超时, 开始下一次呼叫 runNextTime: " + runNextTime);
@@ -113,6 +117,7 @@ public class CallTestService extends AutoTestService {
                     }
                     if (mHandler != null && durationTimeOutCalculate != null) {
                         mHandler.removeCallbacks(durationTimeOutCalculate);
+                        Log.d(TAG, "handleMessage: MSG_ID_DURATION_TIMEOUT : remove the durationTimeOutCalculate");
                     }
                     Log.d(TAG, "=======dispatchMessage: 通话时间超时, 开始下一次呼叫");
                     break;
@@ -155,10 +160,19 @@ public class CallTestService extends AutoTestService {
     protected void runTestLogic() {
         testTimes = runTimes;
         for (; runTimes > 0 && isInTesting; runTimes--) {
+            Log.d(TAG, "runTestLogic: wait 3 second to call the last time");
+            try {
+                Thread.sleep(3 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             totalRunTimes++;
+            Log.d(TAG, "runTestLogic: Call test totalRunTimes = " + totalRunTimes);
             startCallPhone(phone);
-            runNextTime = false;
             mHandler.postDelayed(waitTimeOutCalculate, waitTimeOutTimes * 1000);
+            Log.d(TAG, "runTestLogic: Call the Phone");
+            runNextTime = false;
+            Log.d(TAG, "runTestLogic: start calculate the wait time");
             while (!runNextTime) {
                 try {
                     Thread.sleep(200);
