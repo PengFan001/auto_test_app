@@ -17,16 +17,19 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.jiaze.ps.PsTestActivity"
+            android:name="com.jiaze.reboot.ModuleRebootActivity"
             android:launchMode="singleTask">
         </activity>
         <activity
-            android:name="com.jiaze.network.NetworkTestActivity"
+            android:name="com.jiaze.ps.PsTestActivity"
             android:launchMode="singleTask"></activity>
+        <activity
+            android:name="com.jiaze.network.NetworkTestActivity"
+            android:launchMode="singleTask" />
         <activity
             android:name="com.jiaze.sms.SmsTestActivity"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name="com.jiaze.airmode.AirModeTestActivity"
             android:launchMode="singleTask"
@@ -55,10 +58,10 @@
             android:enabled="true" />
         <service
             android:name="com.jiaze.sms.SmsTestService"
-            android:enabled="true"></service>
+            android:enabled="true" />
         <service
             android:name="com.jiaze.ps.PsTestService"
-            android:enabled="true"></service>
+            android:enabled="true" />
         <service
             android:name="com.jiaze.reboot.RebootTestService"
             android:enabled="true" />
@@ -70,7 +73,11 @@
             android:enabled="true" />
         <service
             android:name="com.jiaze.network.NetworkTestService"
-            android:enabled="true"></service>
+            android:enabled="true" />
+        <service
+            android:name="com.jiaze.reboot.ModuleRebootService"
+            android:enabled="true">
+        </service>
 
         <receiver android:name="com.jiaze.common.BootRebootServiceReceiver">
             <intent-filter>

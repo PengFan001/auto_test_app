@@ -13,6 +13,7 @@ import com.jiaze.airmode.AirModeTestActivity;
 import com.jiaze.call.CallTestActivity;
 import com.jiaze.network.NetworkTestActivity;
 import com.jiaze.ps.PsTestActivity;
+import com.jiaze.reboot.ModuleRebootActivity;
 import com.jiaze.reboot.RebootTestActivity;
 import com.jiaze.sim.SimTestActivity;
 import com.jiaze.sms.SmsTestActivity;
@@ -30,10 +31,10 @@ public class MainActivity extends Activity {
 
     private int[] mAppIcons = {
             R.mipmap.icon_kaiguanji, R.mipmap.con_sim, R.mipmap.icon_ruwang, R.mipmap.icon_yuyingtonghua,
-            R.mipmap.icon_feixingmoshi, R.mipmap.icon_message, R.mipmap.icon_psyewu
+            R.mipmap.icon_feixingmoshi, R.mipmap.icon_message, R.mipmap.icon_psyewu, R.mipmap.icon_ceshi
     };
 
-    private String[] mAppNames = new String[7];
+    private String[] mAppNames = new String[8];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +66,8 @@ public class MainActivity extends Activity {
                     intent.setClass(parent.getContext(), SmsTestActivity.class);
                 }else if (mAppNames[position].equals(getString(R.string.title_pps))) {
                     intent.setClass(parent.getContext(), PsTestActivity.class);
+                }else if (mAppNames[position].equals(getString(R.string.title_module_reboot))){
+                    intent.setClass(parent.getContext(), ModuleRebootActivity.class);
                 }
 
                 if (intent != null){
@@ -86,6 +89,7 @@ public class MainActivity extends Activity {
         mAppNames[4] = getString(R.string.title_air_mode);
         mAppNames[5] = getString(R.string.title_sms);
         mAppNames[6] = getString(R.string.title_pps);
+        mAppNames[7] = getString(R.string.title_module_reboot);
 
         for (int i = 0; i < mAppIcons.length; i++){
             Map<String, Object> gridItem = new HashMap<String, Object>();

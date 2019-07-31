@@ -58,6 +58,7 @@ public class TableContainer {
 
         etParamInput.setId(editTextControlId);
         etParamInput.setWidth(300);
+        etParamInput.setSingleLine(true);
         mChildCtlId.put(editTextControlId, paramKey);
         tableRow.addView(etParamInput);
 

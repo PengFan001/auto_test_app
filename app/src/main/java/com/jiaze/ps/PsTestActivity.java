@@ -46,6 +46,7 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
             switch (msg.what){
                 case MSG_ID_TEST_FINISHED:
                     btnStart.setText(getString(R.string.btn_start_test));
+                    tvPsState.setText(psTestBinder.getPsState());
                     final String resultPath = (String) msg.obj;
                     Log.d(TAG, "handleMessage: finish the test, load the testResult from resultPath: " + resultPath);
                     final Message getResult = mHandler.obtainMessage();

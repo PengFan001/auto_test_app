@@ -52,11 +52,9 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
         public boolean handleMessage(Message msg) {
             Log.d(TAG, "handleMessage: get the message msg.what = " + msg.what);
             switch (msg.what){
-                case UPDATE_AIR_MODE_STATE:
-                    tvAirModeState.setText(airModeTestBinder.getAirModeState());
-                    break;
                 case MSG_ID_TEST_FINISHED:
                     btnStart.setText(getString(R.string.btn_start_test));
+                    tvAirModeState.setText(airModeTestBinder.getAirModeState());
                     final String resultPath = (String) msg.obj;
                     Log.d(TAG, "handleMessage: finish the test, load the testResult from resultPath: " + resultPath);
                     final Message getResult = mHandler.obtainMessage();
@@ -197,7 +195,6 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
                     saveTestParams();
                     airModeTestBinder.startTest(getTestParameter());
                     Log.d(TAG, "onClick: send the update UI message");
-                    mHandler.sendEmptyMessage(UPDATE_AIR_MODE_STATE);
                     btnStart.setText(getString(R.string.btn_stop_test));
                 }else {
                     airModeTestBinder.stopTest();

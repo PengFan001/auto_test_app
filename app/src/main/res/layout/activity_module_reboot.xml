@@ -17,17 +17,17 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/title_sim_state"
+                android:id="@+id/title_module_state"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:textColor="@color/default_text_color"
-                android:text="@string/text_sim_state"
+                android:text="@string/text_module_state"
                 android:textSize="18sp"
                 android:gravity="center"
                 android:paddingLeft="50dp"/>
 
             <TextView
-                android:id="@+id/sim_state"
+                android:id="@+id/module_state"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:textColor="@color/default_text_color"
@@ -41,10 +41,11 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_marginTop="20dp">
 
             <TextView
+                android:id="@+id/module_reboot_title"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="@string/text_test_times"
@@ -54,18 +55,18 @@
                 android:textColor="@color/default_text_color"/>
 
             <EditText
-                android:id="@+id/sim_test_time"
+                android:id="@+id/module_reboot_times"
                 android:layout_width="80dp"
                 android:layout_height="match_parent"
                 android:layout_marginLeft="20dp"
                 android:text="@string/reboot_default_value"
-                android:inputType="number"
-                android:singleLine="true"/>
+                android:singleLine="true"
+                android:inputType="number"/>
 
         </LinearLayout>
 
         <Button
-            android:id="@+id/sim_start_btn"
+            android:id="@+id/module_reboot_btn"
             android:layout_width="253dp"
             android:layout_height="50dp"
             android:layout_marginTop="20dp"
@@ -91,7 +92,7 @@
                 android:layout_height="match_parent">
 
                 <TextView
-                    android:id="@+id/sim_test_result"
+                    android:id="@+id/module_reboot_test_result"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="18sp"/>

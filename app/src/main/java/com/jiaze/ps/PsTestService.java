@@ -95,9 +95,9 @@ public class PsTestService extends Service {
     class PsTestBinder extends Binder{
         public void startTest(Bundle bundle){
             psTestTimes = bundle.getInt(getString(R.string.key_ps_test_time), 1);
+            Log.d(TAG, "startTest: psTestTimes = " + psTestTimes);
             storePsTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the storePsTestResultDir success : " + storePsTestResultDir);
-            //todo get the test time and add the runLogical
             new PsTestThread().start();
         }
 
@@ -196,7 +196,7 @@ public class PsTestService extends Service {
             Log.d(TAG, "runLogical: totalRunTimes = " + totalRunTimes);
             int currentNetworkState = telephonyManager.getDataState();
             if (currentNetworkState == TelephonyManager.DATA_CONNECTED){
-                //todo if current network state is connect, we close it
+                // if current network state is connect, we close it
                 Log.d(TAG, "runLogical: current network state is connect, we close it");
                 connectivityManager.setMobileDataEnabled(false);
                 try {
@@ -219,7 +219,7 @@ public class PsTestService extends Service {
                 }
                 
             }else if (currentNetworkState == TelephonyManager.DATA_DISCONNECTED){
-                //todo if current network state is disconnect, we open it
+                // if current network state is disconnect, we open it
                 Log.d(TAG, "runLogical: current network state is disconnect, we open it");
                 connectivityManager.setMobileDataEnabled(true);
                 mHandler.postDelayed(connectingTimeout, 10 * 1000);
@@ -245,7 +245,7 @@ public class PsTestService extends Service {
                     }
                 }
             }else if (currentNetworkState == TelephonyManager.DATA_CONNECTING){
-                //todo if current network state is connecting, we wait sometimes, the test
+                // if current network state is connecting, we wait sometimes, the test
                 mHandler.postDelayed(connectingTimeout, 10 * 1000);
                 while (!runNextTime){
                     try {
@@ -256,7 +256,7 @@ public class PsTestService extends Service {
                 }
                 Log.d(TAG, "runLogical: data connecting time out, runNextTime");
             }else if (currentNetworkState == TelephonyManager.DATA_SUSPENDED){
-                //todo if current network state is suspend, we close it
+                // if current network state is suspend, we close it
                 Log.d(TAG, "runLogical: current network state is connect, we close it");
                 connectivityManager.setMobileDataEnabled(false);
                 try {
@@ -319,8 +319,6 @@ public class PsTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_switch_succeed_time) + successTime);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_switch_failed_time) + failTime);
-//        testResultBuilder.append("\r\n");
-//        testResultBuilder.append("\r\n" + getString(R.string.key_test_result_path) + storePsTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;

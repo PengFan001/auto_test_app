@@ -120,7 +120,6 @@ public class NetworkTestService extends Service {
         public void stopTest(){
             Log.d(TAG, "stopTest: stop the Test");
             networkTestTime = 0;
-            resetTestValue();
         }
 
         public boolean isInTesting(){
@@ -296,6 +295,7 @@ public class NetworkTestService extends Service {
         }
 
     }
+
 
     private void showResultActivity(Class<?> resultActivity){
         Intent intent = new Intent();

@@ -58,7 +58,9 @@
                 android:layout_width="80dp"
                 android:layout_height="match_parent"
                 android:layout_marginLeft="20dp"
-                android:text="@string/reboot_default_value"/>
+                android:text="@string/reboot_default_value"
+                android:singleLine="true"
+                android:inputType="number"/>
 
         </LinearLayout>
 
