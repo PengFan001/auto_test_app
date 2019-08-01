@@ -44,7 +44,6 @@ public class RebootTestService extends Service {
     private int rebootFailedTime = 0;
     private boolean isTesting = false;
     private boolean runNextTime = false;
-    private boolean isSave = false;
     private static boolean isReboot = false;
     private static boolean isStop = false;
     private static boolean isRegister = false;
@@ -97,13 +96,18 @@ public class RebootTestService extends Service {
         Log.d(TAG, "onCreate: the RebootTestService is start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         atSender = new AtSender(this, mHandler);
-        isSave = false;
         getTestParameter();
         if (isTesting){
-            getTmpTestResult();
             Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
-            atSender.sendATCommand(command, message, false);
-            Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
+            int sendResult = atSender.sendATCommand(command, message, false);
+            if (sendResult == -1){
+                Log.d(TAG, "onCreate: open the device dev/STTYEMS42 failer, The Test was suspend, please Check the device module");
+                isTesting = false;
+                resetTestValue();
+                saveTestParamsAndTmpResult();
+            }else {
+                Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
+            }
         }
 
     }
@@ -115,48 +119,13 @@ public class RebootTestService extends Service {
     }
 
     private void continueTest(){
-        if (rebootTestTime > 0){
-            isReboot = false;
-            isStop = false;
-            try {
-                Thread.sleep(10 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            runLogical();
-        }else {
-            saveRebootTestResult();
-            isTesting = false;
-            isStop = true;
-            resetTestValue();
-            saveTestParamsAndTmpResult();
-            showResultActivity(RebootTestActivity.class);
-            Log.d(TAG, "onCreate: the test is finished, the will show you the test Result");
-            //receiver the broadcast register broadcast , the send the result path
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(TAG, "run: isRegister = " + isRegister);
-                    while (!isRegister){
-                        try {
-                            Thread.sleep(1000);
-                            Log.d(TAG, "run: wait the registered broadcast ");
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                        if (isRegister){
-                            Intent broadcastIntent = new Intent("com.jiaze.action.REBOOT_TEST_FINISHED");
-                            broadcastIntent.putExtra(getString(R.string.key_result), storeRebootTestResultDir + "/" + "testResult");
-                            sendBroadcast(broadcastIntent);
-                            Log.d(TAG, "showResultActivity: Send the showResult broadcast");
-                            Log.d(TAG, "run: stop waiting register broadcast");
-                            break;
-                        }
-                    }
-                }
-            }).start();
+        try {
+            Thread.sleep(3 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+
+        new RebootTestThread().start();
     }
 
     private void showResultActivity(Class<?> resultActivity){
@@ -170,21 +139,15 @@ public class RebootTestService extends Service {
     //RebootTestService 提供的服务均写在这个里面
     class RebootTestBinder extends Binder{
         public void startTest(Bundle bundle){
-            isTesting = true;
             isStop = false;
-            isReboot = false;
             rebootTestTime = bundle.getInt(getString(R.string.key_reboot_test_time));
             storeRebootTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the Reboot Test Result Save Path : " + storeRebootTestResultDir);
-            //todo add the test logical
-            runLogical();
+            new RebootTestThread().start();
         }
 
         public void stopTest(){
-            rebootTestTime = 0;
             isTesting = false;
-            resetTestValue();
-            saveTestParamsAndTmpResult();
         }
 
         public boolean isInTesting(){
@@ -196,21 +159,34 @@ public class RebootTestService extends Service {
         }
     }
 
+    class RebootTestThread extends Thread{
+        RebootTestThread(){
+            super();
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            isTesting = true;
+            runLogical();
+            isTesting = false;
+            showResultActivity(RebootTestActivity.class);
+            Log.d(TAG, "run: finished the test, then will show you test result");
+            resetTestValue();
+            saveTestParamsAndTmpResult();
+        }
+    }
+
     private void getTestParameter(){
         Properties properties = Constant.loadTestParameter(this, REBOOT_TEST_PARAM_SAVE_PATH);
         rebootTestTime = Integer.parseInt(properties.getProperty(getString(R.string.key_reboot_test_time), "0"));
         isTesting = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_reboot_testing), "false"));
-        Log.d(TAG, "getTestParameter: get the reboot test times" + rebootTestTime);
-        Log.d(TAG, "getTestParameter: get the reboot test isTesting" + isTesting);
-    }
-
-    private void getTmpTestResult(){
-        Properties properties = Constant.loadTestParameter(this, REBOOT_TEST_PARAM_SAVE_PATH);
-        totalRunTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_reboot_run_time)));
-        rebootSuccessTime = Integer.parseInt(properties.getProperty(getString(R.string.key_reboot_success_time)));
-        rebootFailedTime = Integer.parseInt(properties.getProperty(getString(R.string.key_reboot_failed_time)));
+        totalRunTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_reboot_run_time), "0"));
+        rebootSuccessTime = Integer.parseInt(properties.getProperty(getString(R.string.key_reboot_success_time), "0"));
+        rebootFailedTime = Integer.parseInt(properties.getProperty(getString(R.string.key_reboot_failed_time), "0"));
         storeRebootTestResultDir = properties.getProperty(getString(R.string.key_test_result_path));
-        isTesting = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_reboot_testing)));
+        Log.d(TAG, "getTestParameter: rebootTestTime = " + rebootTestTime + "      isTesting = " + isTesting);
+        Log.d(TAG, "getTestParameter: totalRunTimes = " + totalRunTimes + "       rebootSuccessTime = " + rebootSuccessTime + "       rebootFailedTime = " + rebootFailedTime);
     }
 
     private void runLogical(){
@@ -246,7 +222,7 @@ public class RebootTestService extends Service {
             }
         }).start();
 
-        while (rebootTestTime > 0){
+        while (rebootTestTime > 0 && isTesting){
             totalRunTimes++;
             Log.d(TAG, "runLogical: totalRunTimes = " + totalRunTimes);
             runNextTime = false;
@@ -263,6 +239,33 @@ public class RebootTestService extends Service {
                 }
             }
         }
+
+        isStop = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: isRegister = " + isRegister);
+                while (!isRegister){
+                    try {
+                        Thread.sleep(1000);
+                        Log.d(TAG, "run: wait the registered broadcast ");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (isRegister){
+                        Intent broadcastIntent = new Intent("com.jiaze.action.REBOOT_TEST_FINISHED");
+                        broadcastIntent.putExtra(getString(R.string.key_result), storeRebootTestResultDir + "/" + "testResult");
+                        sendBroadcast(broadcastIntent);
+                        Log.d(TAG, "showResultActivity: Send the showResult broadcast");
+                        Log.d(TAG, "run: stop waiting register broadcast");
+                        break;
+                    }
+                }
+            }
+        }).start();
+
+        saveRebootTestResult();
     }
 
     private void saveTestParamsAndTmpResult(){
@@ -287,7 +290,7 @@ public class RebootTestService extends Service {
             properties.setProperty(getString(R.string.key_reboot_failed_time), String.valueOf(rebootFailedTime));
             properties.setProperty(getString(R.string.key_reboot_run_time), String.valueOf(totalRunTimes));
             properties.setProperty(getString(R.string.key_is_reboot_testing), String.valueOf(isTesting));
-            properties.store(outputStream, "finished one time sim test");
+            properties.store(outputStream, "finished one time reboot test");
             if (outputStream != null){
                 outputStream.close();
             }
@@ -324,8 +327,6 @@ public class RebootTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_reboot_success_time) + rebootSuccessTime);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_reboot_failed_time) + rebootFailedTime);
-//        testResultBuilder.append("\r\n");
-//        testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeRebootTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.jiaze.network.NetworkTestService;
 import com.jiaze.reboot.RebootTestService;
 import com.jiaze.sim.SimTestService;
 
@@ -27,5 +28,8 @@ public class BootRebootServiceReceiver extends BroadcastReceiver {
         Intent simServiceIntent = new Intent(context, SimTestService.class);
         context.startService(simServiceIntent);
         Log.d(TAG, "onReceive: receiver the start SimTestService broadcast, start the simTestService");
+        Intent networkServiceIntent = new Intent(context, NetworkTestService.class);
+        context.startService(networkServiceIntent);
+        Log.d(TAG, "onReceive: receiver the start NetworkService broadcast, start the networkTestService");
     }
 }

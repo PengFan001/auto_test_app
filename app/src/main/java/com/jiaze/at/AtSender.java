@@ -58,11 +58,11 @@ public class AtSender {
        openAtDevice();
    }
 
-   public void sendATCommand(String command, Message message, boolean clear){
+   public int sendATCommand(String command, Message message, boolean clear){
         synchronized (mCommandList){
             if (command == null){
                 Log.d(TAG, "sendATCommand: command is null, send the AT command error");
-                return;
+                return -1;
             }
 
             message.obj = command;
@@ -73,6 +73,7 @@ public class AtSender {
             int result = jni_send_at_command(command);
             Log.d(TAG, "sendATCommand: command = " + command);
             Log.d(TAG, "sendATCommand: SendATCommand Result = " + result);
+            return result;
         }
    }
 

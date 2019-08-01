@@ -91,6 +91,13 @@
     <string name="key_sim_run_times">sim_run_times</string>
     <string name="key_air_mode_test_time">air_mode_test_time</string>
     <string name="key_network_test_time">network_test_time</string>
+    <string name="key_network_is_testing">net_work_is_testing</string>
+    <string name="key_network_in_service_time">in_service_time</string>
+    <string name="key_network_out_service_time">out_service_time</string>
+    <string name="key_network_power_off_time">power_off_time</string>
+    <string name="key_network_emergency_time">emergency_time</string>
+    <string name="key_network_total_run_time">total_run_time</string>
+    <string name="key_network_run_next_time">run_next_time</string>
     <string name="key_reboot_success_time">reboot_success</string>
     <string name="key_reboot_failed_time">reboot_failed</string>
     <string name="key_reboot_run_time">reboot_run_time</string>

@@ -141,7 +141,6 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         }else {
             etRebootTimes.setText(testTime);
         }
-        etRebootTimes.setText(testTime);
         etRebootTimes.requestFocus();
         etRebootTimes.setSelection(etRebootTimes.getText().length());
         btnTest.setOnClickListener(this);
@@ -202,12 +201,12 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (connection != null){
-            unbindService(connection);
-        }
-
         if (rebootTestFinishBroadcastReceiver != null){
             unregisterReceiver(rebootTestFinishBroadcastReceiver);
+            rebootTestBinder.isRegister(false);
+        }
+        if (connection != null){
+            unbindService(connection);
         }
     }
 }

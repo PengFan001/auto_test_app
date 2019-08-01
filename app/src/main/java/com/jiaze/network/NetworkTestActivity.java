@@ -127,7 +127,11 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
         etTestTime = (EditText) findViewById(R.id.network_test_time);
         tvTestResult = (TextView) findViewById(R.id.network_test_result);
         btnStart = (Button) findViewById(R.id.network_start_btn);
-        etTestTime.setText(networkTestTime);
+        if (Integer.parseInt(networkTestTime) == 0){
+            etTestTime.setText(getString(R.string.reboot_default_value));
+        }else {
+            etTestTime.setText(networkTestTime);
+        }
         etTestTime.requestFocus();
         etTestTime.setSelection(etTestTime.getText().length());
         btnStart.setOnClickListener(this);
