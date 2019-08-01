@@ -359,4 +359,12 @@ public class PsTestService extends Service {
         startActivity(intent);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mWakeLock.isHeld()){
+            mWakeLock.release();
+        }
+    }
+
 }

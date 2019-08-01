@@ -106,9 +106,6 @@ public class SimTestService extends Service {
 
     class SimTestBinder extends Binder{
         public void startTest(Bundle bundle){
-            isTesting = true;
-            isReboot = false;
-            isStop = false;
             simTestTime = bundle.getInt(getString(R.string.key_sim_test_time));
             storeSimTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the Sim Test Result Dir: " + storeSimTestResultDir);
@@ -125,7 +122,6 @@ public class SimTestService extends Service {
         }
 
         public String getSimState(){
-            readSimState();
             return simState;
         }
 

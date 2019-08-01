@@ -50,6 +50,7 @@ public class NetworkTestService extends Service {
     private static int emergencyTime = 0;
     private static boolean runNextTime = false;
     private static boolean isTesting = false;
+    private static boolean isRegistered = false;
     private TelephonyManager telephonyManager;
     private PowerManager.WakeLock mWakeLock;
     private PowerManager powerManager;
@@ -100,7 +101,6 @@ public class NetworkTestService extends Service {
         telephonyManager.listen(myPhoneStateListener, PhoneStateListener.LISTEN_SERVICE_STATE);
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-        resetTestValue();
     }
 
     @Override
@@ -130,6 +130,9 @@ public class NetworkTestService extends Service {
             return myPhoneStateListener.getServiceState();
         }
 
+        public void isRegistered(boolean isRegister){
+            isRegistered = isRegister;
+        }
     }
 
     class NetworkTestThread extends Thread{
@@ -159,7 +162,7 @@ public class NetworkTestService extends Service {
             totalRunTimes++;
             Log.d(TAG, "runLogical: totalRunTimes = " + totalRunTimes);
             runNextTime = false;
-            Log.d(TAG, "runLogical: 10 seconds later will run next time");
+            Log.d(TAG, "runLogical: 120 seconds later will run next time");
             mHandler.postDelayed(getServiceStateTask, 120 * 1000);
             Log.d(TAG, "runLogical: is runNextTime = " + runNextTime);
             while (!runNextTime){
@@ -188,6 +191,28 @@ public class NetworkTestService extends Service {
                     break;
             }
         }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: The show test Result Broadcast isRegister = " + isRegistered);
+                while (!isRegistered){
+                    try {
+                        Thread.sleep(1 * 1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (isRegistered){
+                        Intent intent = new Intent("com.jiaze.action.NETWORK_TEST_FINISHED");
+                        intent.putExtra(getString(R.string.key_result), storeNetworkTestResultDir + "/" + "testResult");
+                        sendBroadcast(intent);
+                        Log.d(TAG, "run: send the network test finished broadcast");
+                        break;
+                    }
+                }
+            }
+        }).start();
 
         try {
             Thread.sleep(500);
@@ -270,8 +295,6 @@ public class NetworkTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_power_off_time) + powerOffTime);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_emergency_time) + emergencyTime);
-//        testResultBuilder.append("\r\n");
-//        testResultBuilder.append("\r\n" + getString(R.string.key_test_result_path) + storeNetworkTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;
@@ -295,7 +318,6 @@ public class NetworkTestService extends Service {
         }
 
     }
-
 
     private void showResultActivity(Class<?> resultActivity){
         Intent intent = new Intent();

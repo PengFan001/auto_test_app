@@ -56,7 +56,6 @@ public class AirModeTestService extends Service {
         Log.d(TAG, "onCreate: Air Mode Test Service is start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-        resetTestValue();
     }
 
     @Override
@@ -285,5 +284,8 @@ public class AirModeTestService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (mWakeLock.isHeld()){
+            mWakeLock.release();
+        }
     }
 }

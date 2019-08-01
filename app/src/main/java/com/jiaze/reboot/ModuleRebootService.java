@@ -19,8 +19,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.HttpRetryException;
-import java.nio.Buffer;
 
 /**
  * =========================================
@@ -61,7 +59,6 @@ public class ModuleRebootService extends Service {
         Log.d(TAG, "onCreate: the Module Reboot Test Service is Start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-        resetValue();
     }
 
     class ModuleRebootBinder extends Binder{
@@ -303,5 +300,8 @@ public class ModuleRebootService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (mWakeLock.isHeld()){
+            mWakeLock.release();
+        }
     }
 }

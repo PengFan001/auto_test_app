@@ -212,11 +212,12 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (connection != null){
-            unbindService(connection);
-        }
         if (simTestFinishBroadcastReceiver != null){
             unregisterReceiver(simTestFinishBroadcastReceiver);
+            simTestBinder.isRegister(false);
+        }
+        if (connection != null){
+            unbindService(connection);
         }
     }
 }
