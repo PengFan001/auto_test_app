@@ -45,6 +45,7 @@
     <string name="text_in_service_time">正常次数:</string>
     <string name="text_out_of_service_time">未入网次数:</string>
     <string name="text_power_off_time">射频已关闭次数:</string>
+    <string name="text_test_module">测试模式</string>
     <string name="text_emergency_time">仅限紧急呼叫次数:</string>
     <string name="text_in_service">已入网</string>
     <string name="text_out_of_service">未入网</string>
@@ -61,6 +62,8 @@
     <string name="text_switch_failed_time">切换失败次数:</string>
     <string name="text_up_power">已上电</string>
     <string name="text_down_power">已下电</string>
+    <string name="text_test_title">测试标题</string>
+    <string name="text_network_test_module">测试模式:</string>
 
 
     <string name="param_phone">手机号</string>
@@ -91,6 +94,7 @@
     <string name="key_sim_run_times">sim_run_times</string>
     <string name="key_air_mode_test_time">air_mode_test_time</string>
     <string name="key_network_test_time">network_test_time</string>
+    <string name="key_network_test_module">network_test_module</string>
     <string name="key_network_is_testing">net_work_is_testing</string>
     <string name="key_network_in_service_time">in_service_time</string>
     <string name="key_network_out_service_time">out_service_time</string>
@@ -115,5 +119,6 @@
 
     <string name="air_mode_open">已开启</string>
     <string name="air_mode_close">已关闭</string>
-    <string name="text_test_title">测试标题</string>
+    <string name="text_reboot_device">重启终端</string>
+    <string name="text_reboot_radio">开关Radio</string>
 </resources>

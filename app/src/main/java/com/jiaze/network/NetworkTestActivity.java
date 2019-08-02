@@ -16,6 +16,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.jiaze.autotestapp.R;
@@ -39,6 +41,8 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
     private EditText etTestTime;
     private TextView tvTestResult;
     private Button btnStart;
+    private RadioGroup rgTestModule;
+    private RadioButton rbtnChecked;
     private NetworkTestService.NetworkTestBinder networkTestBinder;
     private IntentFilter intentFilter;
     private NetworkTestFinishedBroadcast networkTestFinishedBroadcast;
@@ -108,6 +112,13 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_network_test);
         initUI();
+        rgTestModule.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                rbtnChecked = (RadioButton) findViewById(checkedId);
+                Log.d(TAG, "onCheckedChanged: get the checked module = " + rbtnChecked.getText().toString());
+            }
+        });
         intentFilter = new IntentFilter("com.jiaze.action.NETWORK_TEST_FINISHED");
         networkTestFinishedBroadcast = new NetworkTestFinishedBroadcast();
         registerReceiver(networkTestFinishedBroadcast, intentFilter);
@@ -124,6 +135,8 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
         Properties properties = Constant.loadTestParameter(this, NETWORK_TEST_PARAMS_SAVE_PATH);
         String networkTestTime = properties.getProperty(getString(R.string.key_network_test_time), "1");
         tvServiceState = (TextView) findViewById(R.id.service_state);
+        rgTestModule = (RadioGroup) findViewById(R.id.network_test_module);
+        rbtnChecked = (RadioButton) findViewById(R.id.reboot_device);
         etTestTime = (EditText) findViewById(R.id.network_test_time);
         tvTestResult = (TextView) findViewById(R.id.network_test_result);
         btnStart = (Button) findViewById(R.id.network_start_btn);
@@ -141,6 +154,7 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
     private Bundle getTestParameter(){
         Bundle bundle = new Bundle();
         bundle.putInt(getString(R.string.key_network_test_time), Integer.parseInt(etTestTime.getText().toString()));
+        bundle.putString(getString(R.string.key_network_test_module), rbtnChecked.getText().toString());
         return bundle;
     }
 

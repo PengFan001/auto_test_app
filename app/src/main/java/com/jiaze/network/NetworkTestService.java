@@ -44,9 +44,12 @@ public class NetworkTestService extends Service {
     private static final int EMERGENCY_ONLY = 2;
     private static final int POWER_OFF = 3;
     private static final int FINISHED_ONE_TIME_TEST = 4;
+    private static final int REBOOT_RADIO_TIIME_OUT = 5;
+    private static final int REBOOT_RADIO_SUCCESS = 6;
 
     private int networkTestTime = 0;
     private String serviceState = null;
+    private String testModule = null;
     private int totalRunTimes = 0;
     private int inServiceTime = 0;
     private int outServiceTime = 0;
@@ -58,6 +61,8 @@ public class NetworkTestService extends Service {
     private boolean isStopCheck = false;
     private boolean isReboot = false;
     private boolean isStop = false;
+    private boolean isStart = false;
+    private boolean isRebootTimeout = false;
     private TelephonyManager telephonyManager;
     private PowerManager.WakeLock mWakeLock;
     private PowerManager powerManager;
@@ -69,35 +74,55 @@ public class NetworkTestService extends Service {
         public boolean handleMessage(Message msg) {
             Log.d(TAG, "handleMessage: get the message, msg.what = " + msg.what);
             switch (msg.what){
+                case REBOOT_RADIO_SUCCESS:
+                    Log.d(TAG, "handleMessage: reboot radio success, start check network service state");
+                    isStart = true;
+                    if (mHandler != null && rebootRadioTimeoutTask != null){
+                        mHandler.removeCallbacks(rebootRadioTimeoutTask);
+                    }
+                    break;
+
                 case FINISHED_ONE_TIME_TEST:
                     isStopCheck = true;
                     if (mHandler != null && getServiceStateTask != null){
                         mHandler.removeCallbacks(getServiceStateTask);
                     }
                     break;
+
                 case IN_SERVICE:
                     inServiceTime++;
                     Log.d(TAG, "handleMessage: inServiceTime + 1: " + inServiceTime);
                     serviceState = getString(R.string.text_in_service);
                     continueTest();
                     break;
+
                 case OUT_OF_SERVICE:
                     outServiceTime++;
                     Log.d(TAG, "handleMessage: outServiceTime + 1:" + outServiceTime);
                     serviceState = getString(R.string.text_out_of_service);
                     continueTest();
                     break;
+
                 case EMERGENCY_ONLY:
                     emergencyTime++;
                     Log.d(TAG, "handleMessage: emergencyTime + 1:" + emergencyTime);
                     serviceState = getString(R.string.text_emergency_only);
                     continueTest();
                     break;
+
                 case POWER_OFF:
                     powerOffTime++;
                     Log.d(TAG, "handleMessage: powerOffTime + 1:" + powerOffTime);
                     serviceState = getString(R.string.text_power_off);
                     continueTest();
+                    break;
+
+                case REBOOT_RADIO_TIIME_OUT:
+                    Log.d(TAG, "handleMessage: Rboot Radio timeout");
+                    isRebootTimeout = true;
+                    if (mHandler != null && rebootRadioTimeoutTask != null){
+                        mHandler.removeCallbacks(rebootRadioTimeoutTask);
+                    }
                     break;
             }
             return false;
@@ -116,7 +141,7 @@ public class NetworkTestService extends Service {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if (isTesting){
+                if (isTesting && testModule.equals(getString(R.string.text_reboot_device))){
                     Log.d(TAG, "onCreate: continue the last test, check the device network State");
                     Log.d(TAG, "runLogical: 120 seconds later will run next time");
                     try {
@@ -162,7 +187,7 @@ public class NetworkTestService extends Service {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-         new NetworkTestThread().start();
+         new NetworkTestThreadRebootDevice().start();
     }
 
     @Override
@@ -174,9 +199,17 @@ public class NetworkTestService extends Service {
         public void startTest(Bundle bundle){
             isStop = false;
             networkTestTime = bundle.getInt(getString(R.string.key_network_test_time));
+            testModule = bundle.getString(getString(R.string.key_network_test_module));
+            Log.d(TAG, "startTest: get the test module = " + testModule);
             storeNetworkTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the storeNetworkTestResultDir success : " + storeNetworkTestResultDir);
-            new NetworkTestThread().start();
+            if (testModule.equals(getString(R.string.text_reboot_device))){
+                Log.d(TAG, "startTest: test module is reboot device");
+                new NetworkTestThreadRebootDevice().start();
+            }else if (testModule.equals(getString(R.string.text_reboot_radio))){
+                Log.d(TAG, "startTest: test module is reboot radio");
+                new NetworkTestThreadRebootRadio().start();
+            }
         }
 
         public void stopTest(){
@@ -197,9 +230,9 @@ public class NetworkTestService extends Service {
         }
     }
 
-    class NetworkTestThread extends Thread{
+    class NetworkTestThreadRebootDevice extends Thread{
 
-        NetworkTestThread(){
+        NetworkTestThreadRebootDevice(){
             super();
         }
 
@@ -208,7 +241,7 @@ public class NetworkTestService extends Service {
             super.run();
             mWakeLock.acquire();
             isTesting = true;
-            runLogical();
+            runLogicalRebootDevice();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();
             }
@@ -220,9 +253,30 @@ public class NetworkTestService extends Service {
         }
     }
 
-    //todo update the runLogical
-    private void runLogical(){
-        Log.d(TAG, "runLogical: start run test logical");
+    class NetworkTestThreadRebootRadio extends Thread{
+        NetworkTestThreadRebootRadio(){
+            super();
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            mWakeLock.acquire();
+            isTesting = true;
+            runLogicalRebootRadio();
+            if (mWakeLock != null && mWakeLock.isHeld()){
+                mWakeLock.release();
+            }
+            isTesting = false;
+            showResultActivity(NetworkTestActivity.class);
+            Log.d(TAG, "run: finished the test, then will show you the test result");
+            resetTestValue();
+            saveTmpTestResult();
+        }
+    }
+
+    private void runLogicalRebootDevice(){
+        Log.d(TAG, "runLogical: start run test logical of reboot device");
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -306,76 +360,131 @@ public class NetworkTestService extends Service {
         saveNetworkTestResult();
     }
 
-//    private void runLogical(){
-//        for (;networkTestTime > 0 && isTesting; networkTestTime--){
-//            totalRunTimes++;
-//            Log.d(TAG, "runLogical: totalRunTimes = " + totalRunTimes);
-//            runNextTime = false;
-//            Log.d(TAG, "runLogical: 120 seconds later will run next time");
-//            mHandler.postDelayed(getServiceStateTask, 120 * 1000);
-//            Log.d(TAG, "runLogical: is isStopCheck = " + isStopCheck);
-//            while (!isStopCheck){
-//                try {
-//                    Thread.sleep(200);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            switch (myPhoneStateListener.getNetworkState()){
-//                case ServiceState.STATE_IN_SERVICE:
-//                    Log.d(TAG, "runLogical: serviceState = " + myPhoneStateListener.getNetworkState());
-//                    mHandler.sendEmptyMessage(IN_SERVICE);
-//                    break;
-//                case ServiceState.STATE_OUT_OF_SERVICE:
-//                    Log.d(TAG, "runLogical: serviceState = " + myPhoneStateListener.getNetworkState());
-//                    mHandler.sendEmptyMessage(OUT_OF_SERVICE);
-//                    break;
-//                case ServiceState.STATE_EMERGENCY_ONLY:
-//                    Log.d(TAG, "runLogical: serviceState = " + myPhoneStateListener.getNetworkState());
-//                    mHandler.sendEmptyMessage(EMERGENCY_ONLY);
-//                    break;
-//                case ServiceState.STATE_POWER_OFF:
-//                    Log.d(TAG, "runLogical: serviceState = " + myPhoneStateListener.getNetworkState());
-//                    mHandler.sendEmptyMessage(POWER_OFF);
-//                    break;
-//            }
-//        }
-//
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                Log.d(TAG, "run: The show test Result Broadcast isRegister = " + isRegistered);
-//                while (!isRegistered){
-//                    try {
-//                        Thread.sleep(1 * 1000);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                    if (isRegistered){
-//                        Intent intent = new Intent("com.jiaze.action.NETWORK_TEST_FINISHED");
-//                        intent.putExtra(getString(R.string.key_result), storeNetworkTestResultDir + "/" + "testResult");
-//                        sendBroadcast(intent);
-//                        Log.d(TAG, "run: send the network test finished broadcast");
-//                        break;
-//                    }
-//                }
-//            }
-//        }).start();
-//
-//        try {
-//            Thread.sleep(500);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        saveNetworkTestResult();
-//    }
+    private void runLogicalRebootRadio(){
+        Log.d(TAG, "runLogicalRebootRadio: start run the test logical of reboot radio");
+        for (; networkTestTime > 0 && isTesting; networkTestTime--){
+            totalRunTimes++;
+            isStart = false;
+            isRebootTimeout = false;
+            Log.d(TAG, "runLogicalRebootRadio: totalRunTimes = " + totalRunTimes);
+            mHandler.postDelayed(rebootRadioTimeoutTask, 90 * 1000);
+            telephonyManager.setRadioPower(false);
+            while (telephonyManager.isRadioOn()){
+                try {
+                    Thread.sleep(3 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                Log.d(TAG, "runLogicalRebootRadio: try to close the radio power");
+                telephonyManager.setRadioPower(false);
+            }
+
+            while (!telephonyManager.isRadioOn()){
+                try {
+                    Thread.sleep(3 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                Log.d(TAG, "runLogicalRebootRadio: try to open the radio power");
+                telephonyManager.setRadioPower(true);
+            }
+
+            Log.d(TAG, "runLogicalRebootRadio: send the start test message");
+            mHandler.sendEmptyMessage(REBOOT_RADIO_SUCCESS);
+            
+            while (!isStart){
+                try {
+                    Thread.sleep(500);
+                    Log.d(TAG, "runLogicalRebootRadio: wait the radio reboot");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if (isRebootTimeout){
+                    Log.d(TAG, "runLogicalRebootRadio: reboot radio timeout");
+                    break;
+                }
+            }
+
+            if (isRebootTimeout){
+                Log.d(TAG, "runLogicalRebootRadio: reboot radio timeout, failTestTime + 1, start next time test");
+                continue;
+            }
+
+            mHandler.postDelayed(getServiceStateTask, 120 * 1000);
+            Log.d(TAG, "runLogical: is isStopCheck = " + isStopCheck);
+            while (!isStopCheck){
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            switch (myPhoneStateListener.getNetworkState()){
+                case ServiceState.STATE_IN_SERVICE:
+                    inServiceTime++;
+                    Log.d(TAG, "runLogical: serviceState = STATE_IN_SERVICE, inServiceTime + 1 = " + inServiceTime);
+                    break;
+                case ServiceState.STATE_OUT_OF_SERVICE:
+                    outServiceTime++;
+                    Log.d(TAG, "runLogical: serviceState = STATE_OUT_OF_SERVICE, outServiceTime + 1 = " + outServiceTime);
+                    break;
+                case ServiceState.STATE_EMERGENCY_ONLY:
+                    emergencyTime++;
+                    Log.d(TAG, "runLogical: serviceState = STATE_EMERGENCY_ONLY, emergencyTime + 1 = " + emergencyTime);
+                    break;
+                case ServiceState.STATE_POWER_OFF:
+                    powerOffTime++;
+                    Log.d(TAG, "runLogical: serviceState = STATE_POWER_OFF, powerOffTime + 1 = " + powerOffTime);
+                    break;
+            }
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: The show test Result Broadcast isRegister = " + isRegistered);
+                while (!isRegistered){
+                    try {
+                        Thread.sleep(1 * 1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (isRegistered){
+                        Intent intent = new Intent("com.jiaze.action.NETWORK_TEST_FINISHED");
+                        intent.putExtra(getString(R.string.key_result), storeNetworkTestResultDir + "/" + "testResult");
+                        sendBroadcast(intent);
+                        Log.d(TAG, "run: send the network test finished broadcast");
+                        break;
+                    }
+                }
+            }
+        }).start();
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        saveNetworkTestResult();
+    }
 
     Runnable getServiceStateTask = new Runnable() {
         @Override
         public void run() {
             Log.d(TAG, "run: get the service state : ");
             mHandler.sendEmptyMessage(FINISHED_ONE_TIME_TEST);
+        }
+    };
+
+    Runnable rebootRadioTimeoutTask = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "run: reboot radio timeout");
+            mHandler.sendEmptyMessage(REBOOT_RADIO_TIIME_OUT);
         }
     };
 
@@ -444,6 +553,8 @@ public class NetworkTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_power_off_time) + powerOffTime);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_emergency_time) + emergencyTime);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_test_module) + testModule);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;
@@ -451,7 +562,7 @@ public class NetworkTestService extends Service {
             fileWriter= new FileWriter(file);
             bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write(testResultBuilder.toString());
-            Log.d(TAG, "saveNetworkTestResult: Save the Network test Result File Failed");
+            Log.d(TAG, "saveNetworkTestResult: Save the Network test Result File Succeed");
         } catch (IOException e) {
             Log.d(TAG, "saveNetworkTestResult: Save the Network test Result File Failed");
             e.printStackTrace();
@@ -487,7 +598,8 @@ public class NetworkTestService extends Service {
         runNextTime = Boolean.getBoolean(properties.getProperty(getString(R.string.key_network_run_next_time), "false"));
         totalRunTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_network_total_run_time), "0"));
         storeNetworkTestResultDir = properties.getProperty(getString(R.string.key_test_result_path), null);
-        Log.d(TAG, "getTestParameter: networkTestTime = " + networkTestTime + "    isTesting = " + isTesting + "      runNextTime = " + runNextTime);
+        testModule = properties.getProperty(getString(R.string.key_network_test_module), null);
+        Log.d(TAG, "getTestParameter: networkTestTime = " + networkTestTime + "    isTesting = " + isTesting + "      testModule = " + testModule);
         Log.d(TAG, "getTestParameter: totalRunTimes = " + totalRunTimes + "     inServiceTime = " + inServiceTime + "     outServiceTime = " + outServiceTime + "      powerOffTime = " + powerOffTime + "      emergencyTime = " + emergencyTime);
     }
 
@@ -516,6 +628,7 @@ public class NetworkTestService extends Service {
             properties.setProperty(getString(R.string.key_test_result_path), storeNetworkTestResultDir);
             properties.setProperty(getString(R.string.key_network_run_next_time), String.valueOf(runNextTime));
             properties.setProperty(getString(R.string.key_network_total_run_time), String.valueOf(totalRunTimes));
+            properties.setProperty(getString(R.string.key_network_test_module), getString(R.string.text_reboot_device));
             properties.store(outputStream, "save the network test tmp test result");
             if (outputStream != null){
                 outputStream.close();
@@ -537,6 +650,7 @@ public class NetworkTestService extends Service {
         outServiceTime = 0;
         emergencyTime = 0;
         powerOffTime = 0;
+        testModule = null;
     }
 
     @Override

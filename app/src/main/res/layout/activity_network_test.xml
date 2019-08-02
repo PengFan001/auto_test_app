@@ -41,6 +41,52 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/text_network_test_module"
+                android:paddingLeft="50dp"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:textColor="@color/default_text_color"/>
+
+            <RadioGroup
+                android:id="@+id/network_test_module"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="10dp"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/reboot_device"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/text_reboot_device"
+                    android:textSize="18sp"
+                    android:textColor="@color/default_text_color"
+                    android:checked="true"/>
+
+                <RadioButton
+                    android:id="@+id/reboot_radio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/text_reboot_radio"
+                    android:textSize="18sp"
+                    android:textColor="@color/default_text_color"
+                    android:layout_marginLeft="10dp"/>
+
+            </RadioGroup>
+            
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
             android:layout_marginTop="20dp"
             android:orientation="horizontal">
 

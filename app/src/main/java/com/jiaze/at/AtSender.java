@@ -109,6 +109,7 @@ public class AtSender {
             String[] lines = response.split("\\|");
             if (!mCommandList.isEmpty()){
                 Message message = mCommandList.removeFirst();
+                Log.d(TAG, "processResponse: message.what = " + message.what);
                 if (message == null){
                     Log.d(TAG, "processResponse: error, message = null");
                     return;
@@ -163,6 +164,11 @@ public class AtSender {
                 Log.d(TAG, "handleMessage: MESSAGE_RECEIVED_UNSOL");
                 processUnsol((String) msg.obj);
                 break;
+
+            case MESSAGE_DISABLE_UNSOL_COMPLETE:
+                Log.d(TAG, "handleMessage: [disable unsol] complete result:" + msg.arg1);
+                break;
+
             default:
                 break;
         }

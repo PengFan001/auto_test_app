@@ -95,9 +95,9 @@ public class RebootTestService extends Service {
         super.onCreate();
         Log.d(TAG, "onCreate: the RebootTestService is start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        atSender = new AtSender(this, mHandler);
         getTestParameter();
         if (isTesting){
+            atSender = new AtSender(this, mHandler);
             Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
             int sendResult = atSender.sendATCommand(command, message, false);
             if (sendResult == -1){
@@ -359,7 +359,9 @@ public class RebootTestService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        atSender.destory();
+        if (atSender != null){
+            atSender.destory();
+        }
     }
 
 }

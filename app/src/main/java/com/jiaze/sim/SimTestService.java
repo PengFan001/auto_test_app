@@ -62,41 +62,15 @@ public class SimTestService extends Service {
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        resetIsValue();
         getTestParams();
         if (isTesting){
-            if (simTestTime > 0){
-                Log.d(TAG, "onCreate: continue the last test");
-                getTmpTestResult();
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                new SimTestThread().start();
-            }else {
-                isTesting = false;
-                isStop = true;
-                saveSimTestResult();
-                showResultActivity(SimTestActivity.class);
-                Log.d(TAG, "onCreate: finished the test, then will show you the test result");
-                resetTestValue();
-                saveTestParamsAndTmpResult();
+            try {
+                Thread.sleep(10 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            new SimTestThread().start();
         }
-
-//        if (simTestTime > 0){
-//            Log.d(TAG, "onCreate: continue the last test");
-//            getTmpTestResult();
-//            try {
-//                Thread.sleep(10000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//            runLogical();
-//        }else {
-//            Log.d(TAG, "onCreate: need't to continue the last test");
-//        }
     }
 
     @Override
@@ -106,19 +80,15 @@ public class SimTestService extends Service {
 
     class SimTestBinder extends Binder{
         public void startTest(Bundle bundle){
+            isStop = false;
             simTestTime = bundle.getInt(getString(R.string.key_sim_test_time));
             storeSimTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the Sim Test Result Dir: " + storeSimTestResultDir);
             new SimTestThread().start();
-//            runLogical();
         }
 
         public void stopTest(){
-            simTestTime = 0;
             isTesting = false;
-            resetIsValue();
-            resetTestValue();
-            saveTestParamsAndTmpResult();
         }
 
         public String getSimState(){
@@ -137,20 +107,18 @@ public class SimTestService extends Service {
     private void getTestParams(){
         Properties properties = Constant.loadTestParameter(this, SIM_TEST_PARAM_SAVE_PATH);
         simTestTime = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_test_time), "0"));
-        isTesting = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_sim_testing)));
-        Log.d(TAG, "getTestParams: get the sim test times" + simTestTime);
-    }
-
-    private void getTmpTestResult(){
-        Properties properties = Constant.loadTestParameter(this, SIM_TEST_PARAM_SAVE_PATH);
-        totalRunTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_run_times)));
-        absentTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_absent_times)));
-        unknownTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_unknown_times)));
-        readyTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_ready_times)));
-        pinRequiredTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_pin_times)));
-        pukRequiredTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_puk_times)));
-        netWorkLockTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_netWork_times)));
+        isTesting = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_sim_testing), "false"));
+        totalRunTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_run_times), "0"));
+        absentTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_absent_times),"0"));
+        unknownTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_unknown_times), "0"));
+        readyTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_ready_times), "0"));
+        pinRequiredTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_pin_times), "0"));
+        pukRequiredTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_puk_times), "0"));
+        netWorkLockTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_netWork_times), "0"));
         storeSimTestResultDir = properties.getProperty(getString(R.string.key_test_result_path));
+        Log.d(TAG, "getTestParams: simTestTime = " + simTestTime + "     isTesting = " + isTesting + "     totalRunTimes = "+ totalRunTimes);
+        Log.d(TAG, "getTestParams: absentTimes = " + absentTimes + "     unknownTimes = " + unknownTimes + "     readyTimes = " + readyTimes);
+        Log.d(TAG, "getTestParams: pinRequiredTimes = " + pinRequiredTimes + "     pukRequiredTimes = " + pukRequiredTimes + "    netWorkLockTimes = " + netWorkLockTimes);
     }
 
     class SimTestThread extends Thread{
@@ -164,8 +132,6 @@ public class SimTestService extends Service {
             Log.d(TAG, "run: start the simTest");
             mWakeLock.acquire();
             isTesting = true;
-            isStop = false;
-            //todo add the runLogical;
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();
@@ -418,12 +384,6 @@ public class SimTestService extends Service {
         pukRequiredTimes = 0;
         netWorkLockTimes = 0;
         unknownTimes = 0;
-    }
-
-    private void resetIsValue(){
-        isReboot = false;
-        isStop = false;
-        isRegister = false;
     }
 
     @Override
