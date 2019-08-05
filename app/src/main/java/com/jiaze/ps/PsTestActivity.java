@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.Constant;
@@ -136,9 +137,13 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
         switch (view.getId()){
             case R.id.ps_start_btn:
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
-                    saveTestParams();
-                    psTestBinder.startTest(getTestParameter());
-                    btnStart.setText(getString(R.string.btn_stop_test));
+                    if (saveTestParams() == 0){
+                        saveTestParams();
+                        psTestBinder.startTest(getTestParameter());
+                        btnStart.setText(getString(R.string.btn_stop_test));
+                    }else {
+
+                    }
                 }else {
                     psTestBinder.stopTest();
                     btnStart.setText(getString(R.string.btn_start_test));
@@ -146,7 +151,7 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    private void saveTestParams(){
+    private int saveTestParams(){
         String filePath = getFilesDir().getAbsolutePath() + "/" + PS_TEST_PARAMS_SAVE_PATH;
         File paramFile = new File(filePath);
         if (!paramFile.exists()){
@@ -162,6 +167,10 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
         try {
             OutputStream outputStream = new FileOutputStream(paramFile);
             Properties properties = new Properties();
+            if (TextUtils.isEmpty(etTestTime.getText().toString())){
+                Toast.makeText(this, getString(R.string.text_test_not_null),Toast.LENGTH_SHORT).show();
+                return -1;
+            }
             properties.setProperty(getString(R.string.key_ps_test_time), etTestTime.getText().toString());
             properties.store(outputStream, "PsParameter");
             if (outputStream != null){
@@ -170,10 +179,14 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
         } catch (FileNotFoundException e) {
             Log.d(TAG, "saveTestParams: Failed to Create FileOutputStream Create");
             e.printStackTrace();
+            return -2;
         } catch (IOException e) {
             Log.d(TAG, "saveTestParams: Failed to store the properties to the File");
             e.printStackTrace();
+            return -2;
         }
+
+        return 0;
     }
 
     @Override

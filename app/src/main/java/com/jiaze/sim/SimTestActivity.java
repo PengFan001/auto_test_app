@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.Constant;
@@ -148,7 +149,7 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
         return bundle;
     }
 
-    private void saveTestParams(){
+    private int saveTestParams(){
         String filePath = getFilesDir().getAbsolutePath() + "/" + SIM_TEST_PARAM_SAVE_PATH;
         File paramFile = new File(filePath);
         if (!paramFile.exists()){
@@ -163,6 +164,10 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
         try {
             OutputStream outputStream = new FileOutputStream(paramFile);
             Properties properties = new Properties();
+            if (TextUtils.isEmpty(etTestTime.getText().toString())){
+                Toast.makeText(this, getString(R.string.text_test_not_null), Toast.LENGTH_SHORT).show();
+                return -1;
+            }
             properties.setProperty(getString(R.string.key_sim_test_time), etTestTime.getText().toString());
             properties.store(outputStream, "SimParameter");
             if (outputStream != null){
@@ -171,10 +176,14 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
         } catch (FileNotFoundException e) {
             Log.d(TAG, "saveTestParams: Failed to Create FileOutputStream Create");
             e.printStackTrace();
+            return -2;
         } catch (IOException e) {
             Log.d(TAG, "saveTestParams: Failed to store the properties to the File");
             e.printStackTrace();
+            return -2;
         }
+
+        return 0;
     }
 
     @Override
@@ -182,11 +191,14 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
         switch (v.getId()){
             case R.id.sim_start_btn:
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
-                    saveTestParams();
-                    mHandler.sendEmptyMessage(UPDATE_SIM_STATE);
-                    btnStart.setText(getString(R.string.btn_stop_test));
-                    simTestBinder.startTest(getTestParameter());
-                    Log.d(TAG, "onClick: send the update Ui message");
+                    if (saveTestParams() == 0){
+                        mHandler.sendEmptyMessage(UPDATE_SIM_STATE);
+                        btnStart.setText(getString(R.string.btn_stop_test));
+                        simTestBinder.startTest(getTestParameter());
+                        Log.d(TAG, "onClick: send the update Ui message");
+                    }else {
+
+                    }
                 }else {
                     btnStart.setText(getString(R.string.btn_start_test));
                     simTestBinder.stopTest();

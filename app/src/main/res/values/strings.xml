@@ -64,6 +64,11 @@
     <string name="text_down_power">已下电</string>
     <string name="text_test_title">测试标题</string>
     <string name="text_network_test_module">测试模式:</string>
+    <string name="text_test_not_null">测试次数不能为空</string>
+    <string name="text_wait_time_not_null">等待时间不能为空</string>
+    <string name="text_send_content_not_null">发送内容不能为空</string>
+    <string name="text_duration_time_not_null">通话时间不能为空</string>
+    <string name="text_params_error">参数错误</string>
 
 
     <string name="param_phone">手机号</string>

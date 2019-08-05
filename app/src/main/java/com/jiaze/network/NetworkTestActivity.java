@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.Constant;
@@ -158,7 +159,7 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
         return bundle;
     }
 
-    private void saveTestParams(){
+    private int saveTestParams(){
         String filePath = getFilesDir().getAbsolutePath() + "/" + NETWORK_TEST_PARAMS_SAVE_PATH;
         File paramFile = new File(filePath);
         if (!paramFile.exists()){
@@ -173,6 +174,11 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
         try {
             OutputStream outputStream = new FileOutputStream(paramFile);
             Properties properties = new Properties();
+            Log.d(TAG, "saveTestParams: etTestTime = " + etTestTime.getText().toString());
+            if (TextUtils.isEmpty(etTestTime.getText().toString())){
+                Toast.makeText(this, getString(R.string.text_test_not_null), Toast.LENGTH_SHORT).show();
+                return -1;
+            }
             properties.setProperty(getString(R.string.key_network_test_time), etTestTime.getText().toString());
             properties.store(outputStream, "NetWorkParameter");
             if (outputStream != null){
@@ -181,10 +187,14 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
         } catch (FileNotFoundException e) {
             Log.d(TAG, "saveTestParams: Failed to Create FileOutputStream Create");
             e.printStackTrace();
+            return -2;
         } catch (IOException e) {
             Log.d(TAG, "saveTestParams: Failed to store the properties to the File");
             e.printStackTrace();
+            return -2;
         }
+
+        return 0;
     }
 
     @Override
@@ -192,9 +202,14 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
         switch (v.getId()){
             case R.id.network_start_btn:
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
-                    saveTestParams();
-                    networkTestBinder.startTest(getTestParameter());
-                    btnStart.setText(getString(R.string.btn_stop_test));
+                    if (saveTestParams() == 0){
+                        saveTestParams();
+                        networkTestBinder.startTest(getTestParameter());
+                        btnStart.setText(getString(R.string.btn_stop_test));
+                    }else {
+                        Toast.makeText(this, getString(R.string.text_params_error), Toast.LENGTH_SHORT).show();
+                    }
+
                 }else {
                     networkTestBinder.stopTest();
                     btnStart.setText(getString(R.string.btn_start_test));

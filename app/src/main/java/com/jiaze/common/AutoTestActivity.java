@@ -53,7 +53,7 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
     protected AutoTestService mAutoTestService;
 
     protected abstract void initUI();
-    protected abstract void saveTestParams() throws IOException;
+    protected abstract int saveTestParams() throws IOException;
     protected abstract Bundle getTestParams();
     protected abstract Class<?> getServiceClass();
 
@@ -178,13 +178,17 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
         if (v.getId() == Constant.BUTTON_START_ID){
             if (((Button)v).getText().equals(getString(R.string.btn_start_test))){
                 try {
-                    saveTestParams();
+                    if (saveTestParams() == 0){
+                        mAutoTestService.startTest(getTestParams());
+                        ((Button) v).setText(R.string.btn_stop_test);
+                    }else {
+
+                    }
                 } catch (IOException e) {
                     Log.d(TAG, "==========save test params failed=========");
                     e.printStackTrace();
                 }
-                mAutoTestService.startTest(getTestParams());
-                ((Button) v).setText(R.string.btn_stop_test);
+
             }else{
                 mAutoTestService.stopTest();
                 ((Button) v).setText(R.string.btn_start_test);

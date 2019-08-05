@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.Constant;
@@ -108,9 +109,13 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         switch (v.getId()){
             case R.id.reboot_btn:
                 if (btnTest.getText().equals(getString(R.string.btn_start_test))){
-                    saveTestParams();
-                    btnTest.setText(R.string.btn_stop_test);
-                    rebootTestBinder.startTest(getTestParameter());
+                    if (saveTestParams() == 0){
+                        saveTestParams();
+                        btnTest.setText(R.string.btn_stop_test);
+                        rebootTestBinder.startTest(getTestParameter());
+                    }else {
+
+                    }
                 }else {
                     btnTest.setText(R.string.btn_start_test);
                     rebootTestBinder.stopTest();
@@ -148,7 +153,7 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         btnTest.setEnabled(false);
     }
 
-    private void saveTestParams(){
+    private int saveTestParams(){
         String filePath = getFilesDir().getAbsolutePath() + "/" + REBOOT_TEST_PARAM_SAVE_PATH;
         File paramFile = new File(filePath);
         if (!paramFile.exists()){
@@ -162,6 +167,10 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         try {
             OutputStream outputStream = new FileOutputStream(paramFile);
             Properties properties = new Properties();
+            if (TextUtils.isEmpty(etRebootTimes.getText().toString())){
+                Toast.makeText(this, getString(R.string.text_test_not_null), Toast.LENGTH_SHORT).show();
+                return -1;
+            }
             properties.setProperty(getString(R.string.key_reboot_test_time), etRebootTimes.getText().toString());
             properties.setProperty(getString(R.string.key_is_reboot_testing), String.valueOf(false));
             try {
@@ -169,6 +178,7 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
             } catch (IOException e) {
                 Log.d(TAG, "saveTestParams: Failed to store the properties to the File");
                 e.printStackTrace();
+                return -2;
             }
             if (outputStream != null){
                 try {
@@ -176,12 +186,16 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
                 } catch (IOException e) {
                     Log.d(TAG, "saveTestParams: Close OutputStream failed");
                     e.printStackTrace();
+                    return -2;
                 }
             }
         } catch (FileNotFoundException e) {
             Log.d(TAG, "saveTestParams: Create FileOutputStream Failed");
             e.printStackTrace();
+            return -2;
         }
+
+        return 0;
     }
 
     private class RebootTestFinishBroadcastReceiver extends BroadcastReceiver {

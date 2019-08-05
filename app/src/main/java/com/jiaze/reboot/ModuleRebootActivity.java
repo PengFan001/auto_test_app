@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.Constant;
@@ -141,7 +142,7 @@ public class ModuleRebootActivity extends Activity implements View.OnClickListen
         return bundle;
     }
 
-    private void saveTestParams(){
+    private int saveTestParams(){
         String filePath = getFilesDir().getAbsolutePath() + "/" + MODULE_TEST_PARAMS_SAVE_PATH;
         File paramFile = new File(filePath);
         if (!paramFile.exists()){
@@ -157,6 +158,10 @@ public class ModuleRebootActivity extends Activity implements View.OnClickListen
         try {
             OutputStream outputStream = new FileOutputStream(paramFile);
             Properties properties = new Properties();
+            if (TextUtils.isEmpty(etTestTime.getText().toString())){
+                Toast.makeText(this, getString(R.string.text_test_not_null), Toast.LENGTH_SHORT).show();
+                return -1;
+            }
             properties.setProperty(getString(R.string.key_module_test_time), etTestTime.getText().toString());
             properties.store(outputStream, "ModuleRebootParams");
             if (outputStream != null){
@@ -165,11 +170,14 @@ public class ModuleRebootActivity extends Activity implements View.OnClickListen
         } catch (FileNotFoundException e) {
             Log.d(TAG, "saveTestParams: Failed to Create FileOutputStream Create");
             e.printStackTrace();
+            return -2;
         } catch (IOException e) {
             Log.d(TAG, "saveTestParams: Failed to store the properties to the File");
             e.printStackTrace();
+            return -2;
         }
 
+        return 0;
     }
 
     @Override
@@ -177,9 +185,13 @@ public class ModuleRebootActivity extends Activity implements View.OnClickListen
         switch (v.getId()){
             case R.id.module_reboot_btn:
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
-                    saveTestParams();
-                    moduleRebootBinder.startTest(getTestParameter());
-                    btnStart.setText(getString(R.string.btn_stop_test));
+                    if (saveTestParams() == 0){
+                        saveTestParams();
+                        moduleRebootBinder.startTest(getTestParameter());
+                        btnStart.setText(getString(R.string.btn_stop_test));
+                    }else {
+
+                    }
                 }else {
                     moduleRebootBinder.stopTest();
                     btnStart.setText(getString(R.string.btn_start_test));

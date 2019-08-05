@@ -1,11 +1,13 @@
 package com.jiaze.call;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.AutoTestActivity;
@@ -70,7 +72,7 @@ public class CallTestActivity extends AutoTestActivity implements View.OnClickLi
     }
 
     @Override
-    protected void saveTestParams() throws IOException {
+    protected int saveTestParams() throws IOException {
         String filePath = getFilesDir().getAbsolutePath();
         File callParamsFile = new File(filePath + "/" + CALL_TEST_PARAMS_SAVE_PATH);
         if (!callParamsFile.exists()){
@@ -78,6 +80,22 @@ public class CallTestActivity extends AutoTestActivity implements View.OnClickLi
         }
         FileOutputStream fileOutputStream = new FileOutputStream(callParamsFile);
         Properties properties = new Properties();
+        if (TextUtils.isEmpty(etPhone.getText().toString())){
+            Toast.makeText(this, getString(R.string.text_phone_null), Toast.LENGTH_SHORT).show();
+            return -1;
+        }
+        if (TextUtils.isEmpty(etPhone.getText().toString())){
+            Toast.makeText(this, getString(R.string.text_test_not_null), Toast.LENGTH_SHORT).show();
+            return -1;
+        }
+        if (TextUtils.isEmpty(etWaitTime.getText().toString())){
+            Toast.makeText(this, getString(R.string.text_wait_time_not_null), Toast.LENGTH_SHORT).show();
+            return -1;
+        }
+        if (TextUtils.isEmpty(etDurationTime.getText().toString())){
+            Toast.makeText(this, getString(R.string.text_duration_time_not_null),Toast.LENGTH_SHORT).show();
+            return -1;
+        }
         properties.setProperty(getString(R.string.key_phone), etPhone.getText().toString());
         properties.setProperty(getString(R.string.key_test_times), etTestTime.getText().toString());
         properties.setProperty(getString(R.string.key_wait_time), etWaitTime.getText().toString());
@@ -87,7 +105,10 @@ public class CallTestActivity extends AutoTestActivity implements View.OnClickLi
 
         if (fileOutputStream != null){
             fileOutputStream.close();
+            return -2;
         }
+
+        return 0;
     }
 
     @Override

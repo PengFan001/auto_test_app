@@ -1,15 +1,19 @@
 package com.jiaze.sms;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.AutoTestActivity;
 import com.jiaze.common.Constant;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -68,7 +72,7 @@ public class SmsTestActivity extends AutoTestActivity implements View.OnClickLis
     }
 
     @Override
-    protected void saveTestParams() throws IOException {
+    protected int saveTestParams() throws IOException {
         String filePath = getFilesDir().getAbsolutePath();
         File smsParamsFile = new File(filePath + "/" + SMS_TEST_PARAMS_SAVE_PATH);
         if (!smsParamsFile.exists()){
@@ -77,6 +81,22 @@ public class SmsTestActivity extends AutoTestActivity implements View.OnClickLis
 
         FileOutputStream fileOutputStream = new FileOutputStream(smsParamsFile);
         Properties properties = new Properties();
+        if (TextUtils.isEmpty(etPhone.getText().toString())){
+            Toast.makeText(this, getString(R.string.text_phone_null), Toast.LENGTH_SHORT).show();
+            return -1;
+        }
+        if (TextUtils.isEmpty(etTestTime.getText().toString())){
+            Toast.makeText(this, getString(R.string.text_test_not_null), Toast.LENGTH_SHORT).show();
+            return -1;
+        }
+        if (TextUtils.isEmpty(etWaitResultTime.getText().toString())){
+            Toast.makeText(this, getString(R.string.text_wait_time_not_null), Toast.LENGTH_SHORT).show();
+            return -1;
+        }
+        if (TextUtils.isEmpty(etSmsStr.getText().toString())){
+            Toast.makeText(this, getString(R.string.text_send_content_not_null), Toast.LENGTH_SHORT).show();
+            return -1;
+        }
         properties.setProperty(getString(R.string.key_phone), etPhone.getText().toString());
         properties.setProperty(getString(R.string.key_test_times), etTestTime.getText().toString());
         properties.setProperty(getString(R.string.key_wait_sms_result_time), etWaitResultTime.getText().toString());
@@ -85,7 +105,10 @@ public class SmsTestActivity extends AutoTestActivity implements View.OnClickLis
         properties.store(fileOutputStream, PARAM_DESC);
         if (fileOutputStream != null){
             fileOutputStream.close();
+            return -2;
         }
+
+        return 0;
     }
 
     @Override

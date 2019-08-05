@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.Constant;
@@ -160,7 +161,7 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
         return bundle;
     }
 
-    private void saveTestParams(){
+    private int saveTestParams(){
         String filePath =  getFilesDir().getAbsolutePath() + "/" + AIR_MODE_TEST_PARAM_SAVE_PATH;
         File paramFile = new File(filePath);
         if (!paramFile.exists()){
@@ -176,15 +177,23 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
         try {
             OutputStream outputStream = new FileOutputStream(paramFile);
             Properties properties = new Properties();
+            if (TextUtils.isEmpty(etTestTimes.getText().toString())){
+                Toast.makeText(this, getString(R.string.text_test_not_null), Toast.LENGTH_SHORT).show();
+                return -1;
+            }
             properties.setProperty(getString(R.string.key_air_mode_test_time), etTestTimes.getText().toString());
             properties.store(outputStream, "AirModeParameter");
         } catch (FileNotFoundException e) {
             Log.d(TAG, "saveTestParams: Failed to Create FileOutputStream Create");
             e.printStackTrace();
+            return -2;
         } catch (IOException e) {
             Log.d(TAG, "saveTestParams: Failed to store the properties to the File");
             e.printStackTrace();
+            return -2;
         }
+
+        return 0;
     }
 
     @Override
@@ -192,10 +201,14 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
         switch (v.getId()){
             case R.id.air_start_btn:
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
-                    saveTestParams();
-                    airModeTestBinder.startTest(getTestParameter());
-                    Log.d(TAG, "onClick: send the update UI message");
-                    btnStart.setText(getString(R.string.btn_stop_test));
+                    if (saveTestParams() == 0){
+                        saveTestParams();
+                        airModeTestBinder.startTest(getTestParameter());
+                        Log.d(TAG, "onClick: send the update UI message");
+                        btnStart.setText(getString(R.string.btn_stop_test));
+                    }else {
+
+                    }
                 }else {
                     airModeTestBinder.stopTest();
                     btnStart.setText(getString(R.string.btn_start_test));
