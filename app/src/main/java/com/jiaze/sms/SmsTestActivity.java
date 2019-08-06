@@ -1,7 +1,9 @@
 package com.jiaze.sms;
 
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -69,6 +71,7 @@ public class SmsTestActivity extends AutoTestActivity implements View.OnClickLis
         etTestTime = (EditText) mTable.getmTableLayout().findViewById(Constant.SMS_ID_TEST_TIME);
         etWaitResultTime = (EditText) mTable.getmContainerLayout().findViewById(Constant.SMS_ID_WAIT_TIME);
         etSmsStr = (EditText) mTable.getmContainerLayout().findViewById(Constant.SMS_ID_SMS_STRING);
+        etSmsStr.addTextChangedListener(mTextWatcher);
 
     }
 
@@ -126,4 +129,30 @@ public class SmsTestActivity extends AutoTestActivity implements View.OnClickLis
     protected Class<?> getServiceClass() {
         return SmsTestService.class;
     }
+
+    private TextWatcher mTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            String s = editable.toString();
+            Log.d(TAG, "afterTextChanged: the byte if s = " + s.getBytes().length);
+            int length = s.getBytes().length;
+            if (length > 140){
+                Log.d(TAG, "afterTextChanged: now is a long sms");
+                Toast.makeText(getApplicationContext(), getString(R.string.text_long_sms), Toast.LENGTH_SHORT).show();
+            }else {
+                Log.d(TAG, "afterTextChanged: now is a short sms");
+                Toast.makeText(getApplicationContext(), getString(R.string.text_short_sms), Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
 }

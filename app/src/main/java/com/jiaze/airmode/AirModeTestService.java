@@ -29,7 +29,7 @@ import java.io.IOException;
 public class AirModeTestService extends Service {
 
     private static final String TAG = "AirModeTestService";
-    private static final String Air_MODE_TEST_PARAM_SAVE_PATH = "AirModeTestParams";
+    private static final String AIR_MODE_TEST_PARAM_SAVE_PATH = "AirModeTestParams";
     private static final String TEST_PARAM = "AirModeTest";
 
     private int airModeTestTime = 0;
@@ -37,6 +37,8 @@ public class AirModeTestService extends Service {
     private int totalRunTime = 0;
     private int openTimes = 0;
     private int closeTimes = 0;
+    private int successTimes = 0;
+    private int failedTimes = 0;
     private int openSuccessTimes = 0;
     private int closeSuccessTimes = 0;
     private int openFailedTimes = 0;
@@ -120,53 +122,95 @@ public class AirModeTestService extends Service {
                  * if air mode was opened, we will try to close it
                  */
                 closeTimes++;
-                Settings.Global.putInt(getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
-                Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-                intent.putExtra("state", true);
-                sendBroadcast(intent);
+                switchAirMode(0);
                 Log.d(TAG, "run: send the close air mode broadcast");
 
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(1 * 1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
                 readAirModeState();
                 Log.d(TAG, "runLogical: the lastState of air Mode : " + lastState + " ===== now state of air Mode : " + state);
-                if (Math.abs(lastState - state) == 1){
+                if (switchAirModeResult()){
                     closeSuccessTimes++;
                     sendAirModeChangeState(airModeState);
-                    Log.d(TAG, "runLogical: close the air mode success, close SuccessTimes = " + closeSuccessTimes);
+                    Log.d(TAG, "runLogical: close the air mode success, then will open it, close SuccessTimes = " + closeSuccessTimes);
+
+                    openTimes++;
+                    lastState = state;
+                    switchAirMode(1);
+                    try {
+                        Thread.sleep(1 * 1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    readAirModeState();
+                    Log.d(TAG, "runLogical: the lastState of air Mode : " + lastState + " ===== now state of air Mode : " + state);
+                    if (switchAirModeResult()){
+                        openSuccessTimes++;
+                        successTimes++;
+                        sendAirModeChangeState(airModeState);
+                        Log.d(TAG, "runLogical: open the air mode success, openSuccessTimes = " + openSuccessTimes + "   air mode switch successTimes = " + successTimes);
+                    }else {
+                        openFailedTimes++;
+                        failedTimes++;
+                        Log.d(TAG, "runLogical: open the air mode failed, openFailedTimes = " + openSuccessTimes);
+                    }
+
                 }else {
                     closeFailedTimes++;
-                    Log.d(TAG, "runLogical: close the air mode failed, close FailedTimes = " + closeFailedTimes);
+                    failedTimes++;
+                    Log.d(TAG, "runLogical: close the air mode failed, close FailedTimes = " + closeFailedTimes + "    and air mode switch failed, failedTimes = " + failedTimes);
                 }
             }else {
                 /**
                  * if air mode was closed, we will try to open it
                  */
                 openTimes++;
-                Settings.Global.putInt(getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 1);
-                Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-                intent.putExtra("state", true);
-                sendBroadcast(intent);
+                switchAirMode(1);
                 Log.d(TAG, "run: send the open air mode broadcast");
 
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(1 * 1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 readAirModeState();
                 Log.d(TAG, "runLogical: the lastState of air Mode : " + lastState + " ===== now state of air Mode : " + state);
-                if (Math.abs(lastState - state) == 1){
+
+                if (switchAirModeResult()){
                     openSuccessTimes++;
                     sendAirModeChangeState(airModeState);
-                    Log.d(TAG, "runLogical: open the air mode success, open SuccessTimes = " + openSuccessTimes);
+                    Log.d(TAG, "runLogical: open airMode success, then will close it, openSuccessTimes = " + openSuccessTimes);
+
+                    closeTimes++;
+                    lastState = state;
+                    switchAirMode(0);
+                    try {
+                        Thread.sleep(1 * 1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    readAirModeState();
+                    Log.d(TAG, "runLogical: the lastState of air Mode : " + lastState + " ===== now state of air Mode : " + state);
+
+                    if (switchAirModeResult()){
+                        closeSuccessTimes++;
+                        successTimes++;
+                        sendAirModeChangeState(airModeState);
+                        Log.d(TAG, "runLogical: close airMode Success, closeSuccessTimes = " + closeSuccessTimes + "switch AirMode SuccessTimes = " + successTimes);
+                    }else {
+                        closeFailedTimes++;
+                        failedTimes++;
+                        Log.d(TAG, "runLogical: close air mode failed, closeFailedTimes = " + closeFailedTimes + "     and switch airMode failedTimes = " + failedTimes);
+                    }
+
                 }else {
                     openFailedTimes++;
-                    Log.d(TAG, "runLogical: open the air mode failed, open FailedTimes = " + openFailedTimes);
+                    failedTimes++;
+                    Log.d(TAG, "runLogical: open the air mode failed, openFailedTimes = " + openFailedTimes + "     switch air mode failedTimes = " + failedTimes);
                 }
             }
         }
@@ -190,6 +234,25 @@ public class AirModeTestService extends Service {
             return false;
         }else{
             return true;
+        }
+    }
+
+    private void switchAirMode(int value){
+        Settings.Global.putInt(getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, value);
+        Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        intent.putExtra("state", true);
+        sendBroadcast(intent);
+    }
+
+    /**
+     * this function is use to jude the air mode change result, if change succeed return true, else return false;
+     * @return the result of air mode change
+     */
+    private boolean switchAirModeResult(){
+        if (Math.abs(lastState - state) == 1){
+            return true;
+        }else {
+           return false;
         }
     }
 
@@ -226,6 +289,10 @@ public class AirModeTestService extends Service {
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_test_times) + totalRunTime);
         testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_switch_succeed_time) + successTimes);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_switch_failed_time) + failedTimes);
+        testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_air_mode_open_time) + openTimes);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_air_mode_open_success_time) + openSuccessTimes);
@@ -237,8 +304,6 @@ public class AirModeTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_air_mode_close_success_time) + closeSuccessTimes);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_air_mode_close_failed_time) + closeFailedTimes);
-//        testResultBuilder.append("\r\n");
-//        testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeAirModeTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;
@@ -270,6 +335,8 @@ public class AirModeTestService extends Service {
         closeTimes = 0;
         closeSuccessTimes = 0;
         closeFailedTimes = 0;
+        successTimes = 0;
+        failedTimes = 0;
         airModeState = null;
     }
 

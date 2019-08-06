@@ -33,6 +33,8 @@
     <string name="text_air_mode_state">飞行模式状态:</string>
     <string name="text_air_mode_open_time">飞行模式开启次数:</string>
     <string name="text_air_mode_close_time">飞行模式关闭次数:</string>
+    <string name="text_switch_air_mode_success_time">切换成功次数:</string>
+    <string name="text_switch_air_mode_failed_time">切换失败次数:</string>
     <string name="text_air_mode_open_success_time">开启成功次数:</string>
     <string name="text_air_mode_open_failed_time">开启失败次数:</string>
     <string name="text_air_mode_open_success_rate">开启成功率:</string>
@@ -69,6 +71,8 @@
     <string name="text_send_content_not_null">发送内容不能为空</string>
     <string name="text_duration_time_not_null">通话时间不能为空</string>
     <string name="text_params_error">参数错误</string>
+    <string name="text_long_sms">短信内容已是长短信</string>
+    <string name="text_short_sms">短信内容是短短信</string>
 
 
     <string name="param_phone">手机号</string>
