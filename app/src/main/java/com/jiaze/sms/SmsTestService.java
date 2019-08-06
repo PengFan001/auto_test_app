@@ -108,6 +108,7 @@ public class SmsTestService extends AutoTestService {
         startMmsApp();
         for (; (testTimes>totalRunTimes) && isInTesting;){
             totalRunTimes++;
+            Log.d(TAG, "runTestLogic: smsBody = " + smsBody);
             sendOneSms(phoneNumber, smsBody + totalRunTimes);
             runNextTime = false;
             mHandler.postDelayed(waitTimeoutTask, waitTimeout * 1000);
@@ -199,6 +200,7 @@ public class SmsTestService extends AutoTestService {
         waitTimeout = bundle.getInt(getString(R.string.key_wait_sms_result_time), 20);
         phoneNumber = bundle.getString(getString(R.string.key_phone), null);
         smsBody = bundle.getString(getString(R.string.key_sms_string), "Hello World");
+        Log.d(TAG, "initTestParams: smsBody = " + smsBody);
         if (!PhoneNumberUtils.isGlobalPhoneNumber(phoneNumber)){
             Toast.makeText(getApplicationContext(), "Invalid Phone Number", Toast.LENGTH_SHORT).show();
             return -1;

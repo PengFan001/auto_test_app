@@ -2,6 +2,7 @@ package com.jiaze.call;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -84,7 +85,7 @@ public class CallTestActivity extends AutoTestActivity implements View.OnClickLi
             Toast.makeText(this, getString(R.string.text_phone_null), Toast.LENGTH_SHORT).show();
             return -1;
         }
-        if (TextUtils.isEmpty(etPhone.getText().toString())){
+        if (TextUtils.isEmpty(etTestTime.getText().toString())){
             Toast.makeText(this, getString(R.string.text_test_not_null), Toast.LENGTH_SHORT).show();
             return -1;
         }
@@ -105,7 +106,6 @@ public class CallTestActivity extends AutoTestActivity implements View.OnClickLi
 
         if (fileOutputStream != null){
             fileOutputStream.close();
-            return -2;
         }
 
         return 0;

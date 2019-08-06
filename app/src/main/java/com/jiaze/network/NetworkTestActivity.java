@@ -238,7 +238,7 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
         super.onDestroy();
         if (networkTestFinishedBroadcast != null){
             unregisterReceiver(networkTestFinishedBroadcast);
-            networkTestBinder.isRegistered(false);
+            //networkTestBinder.isRegistered(false);
         }
         if (connection != null){
             unbindService(connection);

@@ -178,6 +178,7 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
         if (v.getId() == Constant.BUTTON_START_ID){
             if (((Button)v).getText().equals(getString(R.string.btn_start_test))){
                 try {
+                    Log.d(TAG, "onClick: saveTestParams = " + saveTestParams());
                     if (saveTestParams() == 0){
                         mAutoTestService.startTest(getTestParams());
                         ((Button) v).setText(R.string.btn_stop_test);

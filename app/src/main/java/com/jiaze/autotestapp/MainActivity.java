@@ -71,6 +71,7 @@ public class MainActivity extends Activity {
                 }
 
                 if (intent != null){
+                    Log.d(TAG, "onItemClick: ========start a new activity============");
                     startActivity(intent);
                 }else {
                     Log.d(TAG, "onItemClick: the intent init is exception");

@@ -2,6 +2,7 @@ package com.jiaze.sms;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -105,7 +106,6 @@ public class SmsTestActivity extends AutoTestActivity implements View.OnClickLis
         properties.store(fileOutputStream, PARAM_DESC);
         if (fileOutputStream != null){
             fileOutputStream.close();
-            return -2;
         }
 
         return 0;
@@ -117,6 +117,7 @@ public class SmsTestActivity extends AutoTestActivity implements View.OnClickLis
         bundle.putString(getString(R.string.key_phone), etPhone.getText().toString());
         bundle.putInt(getString(R.string.key_test_times), Integer.parseInt(etTestTime.getText().toString()));
         bundle.putInt(getString(R.string.key_wait_sms_result_time), Integer.parseInt(etWaitResultTime.getText().toString()));
+        Log.d(TAG, "getTestParams: smsBody = " + etSmsStr.getText().toString());
         bundle.putString(getString(R.string.key_sms_string), etSmsStr.getText().toString());
         return bundle;
     }

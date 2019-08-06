@@ -99,6 +99,7 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        Log.d(TAG, "onNewIntent: ============onNewIntent=============");
         if (intent.hasExtra(getString(R.string.key_result))){
             Message msg = mHandler.obtainMessage();
             msg.what = MSG_ID_TEST_FINISHED;
@@ -109,6 +110,7 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate: ===========onCreate=============");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sim_test);
         initUI();
@@ -226,9 +228,9 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
         super.onDestroy();
         if (simTestFinishBroadcastReceiver != null){
             unregisterReceiver(simTestFinishBroadcastReceiver);
-            simTestBinder.isRegister(false);
         }
         if (connection != null){
+            //simTestBinder.isRegister(false);
             unbindService(connection);
         }
     }

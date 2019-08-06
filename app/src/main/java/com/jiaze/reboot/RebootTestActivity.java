@@ -91,8 +91,34 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
     };
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.d(TAG, "onNewIntent: ==========onNewIntent==========");
+        Message msg = mHandler.obtainMessage();
+        msg.what = MSG_ID_TEST_FINISHED;
+        msg.obj = intent.getStringExtra(getString(R.string.key_result));
+        msg.sendToTarget();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.d(TAG, "onSaveInstanceState: Exception Destroy, save the instance");
+        outState.putString(getString(R.string.key_result), tvRebootResult.getText().toString());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.d(TAG, "onRestoreInstanceState: Restore the Instance");
+        String testResult = savedInstanceState.getString(getString(R.string.key_result));
+        tvRebootResult.setText(testResult);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate: ==========onCreate==========");
         setContentView(R.layout.activity_reboot_test);
         initUi();
         intentFilter = new IntentFilter();
@@ -215,9 +241,10 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "onDestroy: ============onDestroy===========");
         if (rebootTestFinishBroadcastReceiver != null){
             unregisterReceiver(rebootTestFinishBroadcastReceiver);
-            rebootTestBinder.isRegister(false);
+            //rebootTestBinder.isRegister(false);
         }
         if (connection != null){
             unbindService(connection);

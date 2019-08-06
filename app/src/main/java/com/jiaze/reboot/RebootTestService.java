@@ -61,8 +61,8 @@ public class RebootTestService extends Service {
                     Log.d(TAG, "handleMessage: SEND_JUDEGE_BOOT_MESSAGE, msg.arg1 = " + msg.arg1);
                     if (msg.arg1 == 0){
                         rebootFailedTime++;
-                        continueTest();
                         Log.d(TAG, "handleMessage: the device reboot failed, rebootFailedTime = " + rebootFailedTime);
+                        continueTest();
                     }else {
                         String[] lines = (String[]) msg.obj;
                         for (String s : lines){
@@ -76,8 +76,8 @@ public class RebootTestService extends Service {
                         }
 
                         rebootFailedTime++;
-                        continueTest();
                         Log.d(TAG, "handleMessage: the device reboot failed, rebootFailedTime = " + rebootFailedTime);
+                        continueTest();
                     }
                     break;
 
@@ -129,10 +129,12 @@ public class RebootTestService extends Service {
     }
 
     private void showResultActivity(Class<?> resultActivity){
+        Log.d(TAG, "showResultActivity: ======");
         Intent intent = new Intent();
         intent.setClass(this, resultActivity);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(getString(R.string.key_result), storeRebootTestResultDir + "/" + "testResult");
+        Log.d(TAG, "showResultActivity: ============Start a New Activity=============");
         startActivity(intent);
     }
 
@@ -170,6 +172,7 @@ public class RebootTestService extends Service {
             isTesting = true;
             runLogical();
             isTesting = false;
+            Log.d(TAG, "run: isTesting = " + isTesting);
             showResultActivity(RebootTestActivity.class);
             Log.d(TAG, "run: finished the test, then will show you test result");
             resetTestValue();
@@ -354,6 +357,8 @@ public class RebootTestService extends Service {
         totalRunTimes = 0;
         rebootSuccessTime = 0;
         rebootFailedTime = 0;
+        isTesting = false;
+        rebootTestTime = 0;
     }
 
     @Override
