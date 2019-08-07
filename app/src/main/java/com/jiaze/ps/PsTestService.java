@@ -47,13 +47,20 @@ public class PsTestService extends Service {
     private int totalRunTimes = 0;
     private int successTime = 0;
     private int failTime = 0;
+    private int openPsTimes = 0;
+    private int closePsTimes = 0;
+    private int openSuccessTimes = 0;
+    private int openFailedTimes = 0;
+    private int closeSuccessTimes = 0;
+    private int closeFailedTimes = 0;
     private int networkState = 0; //默认设置为未连接
     private boolean runNextTime = false;
+    private boolean waitConnect = false;
     private TelephonyManager telephonyManager;
     private ConnectivityManager connectivityManager;
     private PowerManager.WakeLock mWakeLock;
     private PowerManager powerManager;
-    private String psState;
+    private String psState = null;
     private String storePsTestResultDir;
     private PsTestBinder psTestBinder = new PsTestBinder();
 
@@ -63,11 +70,13 @@ public class PsTestService extends Service {
             Log.d(TAG, "handleMessage: get the message, msg.what = " + msg.what);
             switch (msg.what){
                 case CONNECTING_TIMEOUT:
+                    openFailedTimes++;
                     failTime++;
                     if (mHandler != null &&connectingTimeout != null){
                         mHandler.removeCallbacks(connectingTimeout);
                     }
-                    Log.d(TAG, "handleMessage: connecting time out, switch failed. failTime + 1 = " + failTime);
+                    Log.d(TAG, "handleMessage: connecting time out, switch failed. failTime = " + failTime);
+                    waitConnect = true;
                     runNextTime = true;
                     break;
             }
@@ -110,29 +119,6 @@ public class PsTestService extends Service {
         }
 
         public String getPsState(){
-            int state = telephonyManager.getDataState();
-            switch (state){
-                case TelephonyManager.DATA_CONNECTED:
-                    psState = getString(R.string.text_net_connected);
-                    networkState = state;
-                    Log.d(TAG, "onDataConnectionStateChanged: state = " + state + "  psState = " + psState);
-                    break;
-                case TelephonyManager.DATA_CONNECTING:
-                    psState = getString(R.string.text_net_connecting);
-                    networkState = state;
-                    Log.d(TAG, "onDataConnectionStateChanged: state = " + state + "  psState = " + psState);
-                    break;
-                case TelephonyManager.DATA_DISCONNECTED:
-                    psState = getString(R.string.text_net_disconnect);
-                    networkState = state;
-                    Log.d(TAG, "onDataConnectionStateChanged: state = " + state + "  psState = " + psState);
-                    break;
-                case TelephonyManager.DATA_SUSPENDED:
-                    psState = getString(R.string.text_net_suspend);
-                    networkState = state;
-                    Log.d(TAG, "onDataConnectionStateChanged: state = " + state + "  psState = " + psState);
-                    break;
-            }
             return psState;
         }
     }
@@ -194,99 +180,142 @@ public class PsTestService extends Service {
             totalRunTimes++;
             runNextTime = false;
             Log.d(TAG, "runLogical: totalRunTimes = " + totalRunTimes);
-            int currentNetworkState = telephonyManager.getDataState();
-            if (currentNetworkState == TelephonyManager.DATA_CONNECTED){
+            Log.d(TAG, "runLogical: before the test get the current network state = " + networkState + "     " + psState);
+            if (networkState == TelephonyManager.DATA_CONNECTED || networkState == TelephonyManager.DATA_SUSPENDED){
                 // if current network state is connect, we close it
-                Log.d(TAG, "runLogical: current network state is connect, we close it");
-                connectivityManager.setMobileDataEnabled(false);
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (mHandler != null && connectingTimeout != null){
+                    Log.d(TAG, "runLogical: remove the already exist connectingTimeout");
+                    mHandler.removeCallbacks(connectingTimeout);
                 }
+                Log.d(TAG, "runLogical: current network state is connect, we close it");
+                closePs();
                 while(!runNextTime){
-                    int state = telephonyManager.getDataState();
-                    if (state == TelephonyManager.DATA_DISCONNECTED){
-                        successTime++;
-                        Log.d(TAG, "runLogical: close the data success, successTime+1 = " + successTime);
+                    Log.d(TAG, "runLogical: get the networkState = " + networkState);
+                    if (networkState == TelephonyManager.DATA_DISCONNECTED){
+                        closeSuccessTimes++;
+                        sendNetworkStateChange(psState);
+                        Log.d(TAG, "runLogical: close the data success,  closeSuccessTimes= " + closeSuccessTimes + "    then we will open the ps");
+                        waitConnect = false;
+                        openPs();
+                        while (!waitConnect){
+                            if (networkState == TelephonyManager.DATA_CONNECTING || networkState == TelephonyManager.DATA_DISCONNECTED){
+                                try {
+                                    Thread.sleep(3 * 1000);
+                                    Log.d(TAG, "runLogical: wait the data connecting ================= networkState = " + networkState);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }else {
+                                openSuccessTimes++;
+                                sendNetworkStateChange(psState);
+                                successTime++;
+                                Log.d(TAG, "runLogical: open the ps success, openSuccessTimes = " + openSuccessTimes + "     switch successTime = " + successTime);
+                                if (mHandler != null && connectingTimeout != null){
+                                    mHandler.removeCallbacks(connectingTimeout);
+                                }
+                                waitConnect = true;
+                            }
+                        }
+
                         runNextTime = true;
                     }else {
+                        closeFailedTimes++;
                         failTime++;
-                        Log.d(TAG, "runLogical: close the data failed, failTime+1 = " + failTime);
-                        Log.d(TAG, "runLogical: get the state = " + state);
+                        Log.d(TAG, "runLogical: close the data failed, failTime+1 = " + failTime + "    current networkState = " + networkState);
                         runNextTime = true;
                     }
                 }
                 
-            }else if (currentNetworkState == TelephonyManager.DATA_DISCONNECTED){
+            }else if (networkState == TelephonyManager.DATA_DISCONNECTED){
                 // if current network state is disconnect, we open it
+                if (mHandler != null && connectingTimeout != null){
+                    Log.d(TAG, "runLogical: remove the already exist connectingTimeout");
+                    mHandler.removeCallbacks(connectingTimeout);
+                }
                 Log.d(TAG, "runLogical: current network state is disconnect, we open it");
-                connectivityManager.setMobileDataEnabled(true);
-                mHandler.postDelayed(connectingTimeout, 10 * 1000);
+                openPs();
                 while (!runNextTime){
-                    int state = telephonyManager.getDataState();
-                    if (state == TelephonyManager.DATA_CONNECTING){
-                        Log.d(TAG, "runLogical: wait the data connecting =================");
-                    }else if (state == TelephonyManager.DATA_CONNECTED){
-                        successTime++;
-                        Log.d(TAG, "runLogical: open the data success, successTime+1 = " + successTime);
+                    Log.d(TAG, "runLogical: get the network State = " + networkState);
+                    if (networkState == TelephonyManager.DATA_CONNECTING || networkState == TelephonyManager.DATA_DISCONNECTED){
+                        try {
+                            Thread.sleep(3 * 1000);
+                            Log.d(TAG, "runLogical: wait the data connecting ================= networkState = " + networkState);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }else {
+                        openSuccessTimes++;
+                        sendNetworkStateChange(psState);
+                        Log.d(TAG, "runLogical: open the data success, successTime+1 = " + openSuccessTimes + "     then we will close the ps");
                         if (mHandler != null && connectingTimeout != null){
                             mHandler.removeCallbacks(connectingTimeout);
                         }
-                        runNextTime = true;
-                    }else {
-                        failTime++;
-                        Log.d(TAG, "runLogical: open the data failed, failedTime+1 = " + failTime);
-                        Log.d(TAG, "runLogical: state = " + state);
-                        if (mHandler != null && connectingTimeout != null){
-                            mHandler.removeCallbacks(connectingTimeout);
+                        waitConnect = false;
+                        closePs();
+                        while (!waitConnect){
+                            Log.d(TAG, "runLogical: get the networkState = " + networkState);
+                            if (networkState == TelephonyManager.DATA_DISCONNECTED){
+                                closeSuccessTimes++;
+                                sendNetworkStateChange(psState);
+                                successTime++;
+                                Log.d(TAG, "runLogical: close ps success, closeSuccessTimes = " + closeSuccessTimes + "switch ps success, successTime = " + successTime);
+                                waitConnect = true;
+                            }else {
+                                closeFailedTimes++;
+                                failTime++;
+                                Log.d(TAG, "runLogical: close the ps failed, failedTimes = " + closeFailedTimes + "switch ps failed, failedTimes = " + failTime);
+                                waitConnect = true;
+                            }
                         }
                         runNextTime = true;
                     }
                 }
-            }else if (currentNetworkState == TelephonyManager.DATA_CONNECTING){
+            }else if (networkState == TelephonyManager.DATA_CONNECTING){
                 // if current network state is connecting, we wait sometimes, the test
-                mHandler.postDelayed(connectingTimeout, 10 * 1000);
+                mHandler.postDelayed(connectingTimeout, 60 * 1000);
                 while (!runNextTime){
                     try {
                         Thread.sleep(200);
+                        Log.d(TAG, "runLogical: waiting connecting=============, then we will start test");
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
                 Log.d(TAG, "runLogical: data connecting time out, runNextTime");
-            }else if (currentNetworkState == TelephonyManager.DATA_SUSPENDED){
-                // if current network state is suspend, we close it
-                Log.d(TAG, "runLogical: current network state is connect, we close it");
-                connectivityManager.setMobileDataEnabled(false);
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                while(!runNextTime){
-                    int state = telephonyManager.getDataState();
-                    if (state == TelephonyManager.DATA_DISCONNECTED){
-                        successTime++;
-                        Log.d(TAG, "runLogical: close the data success, successTime+1 = " + successTime);
-                        if (mHandler != null && connectingTimeout != null){
-                            mHandler.removeCallbacks(connectingTimeout);
-                        }
-                        runNextTime = true;
-                    }else {
-                        failTime++;
-                        Log.d(TAG, "runLogical: close the data failed, failTime+1 = " + failTime);
-                        Log.d(TAG, "runLogical: get the state = " + state);
-                        if (mHandler != null && connectingTimeout != null){
-                            mHandler.removeCallbacks(connectingTimeout);
-                        }
-                        runNextTime = true;
-                    }
-                }
             }
         }
 
         savePsTestResult();
+    }
+
+    private void openPs(){
+        openPsTimes++;
+        Log.d(TAG, "openPs: open the ps openPsTimes = " + openPsTimes);
+        connectivityManager.setMobileDataEnabled(true);
+        mHandler.postDelayed(connectingTimeout, 60 * 1000);
+        try {
+            Thread.sleep(3 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendNetworkStateChange(String networkState){
+        Intent intent = new Intent("com.jiaze.action.NETWORK_STATE_CHANGED");
+        intent.putExtra("state", networkState);
+        sendBroadcast(intent);
+    }
+
+
+    private void closePs(){
+        closePsTimes++;
+        Log.d(TAG, "closePs: close the ps closePsTimes = " + closePsTimes);
+        connectivityManager.setMobileDataEnabled(false);
+        try {
+            Thread.sleep(3 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     Runnable connectingTimeout = new Runnable() {
@@ -319,6 +348,18 @@ public class PsTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_switch_succeed_time) + successTime);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_switch_failed_time) + failTime);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_open_ps) + openPsTimes);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_open_ps_success_times) + openSuccessTimes);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_open_ps_failed_time) + openFailedTimes);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_close_ps) + closePsTimes);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_close_ps_success_time) + closeSuccessTimes);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_close_ps_failed_time) + closeFailedTimes);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;
@@ -349,6 +390,13 @@ public class PsTestService extends Service {
         successTime = 0;
         failTime = 0;
         totalRunTimes = 0;
+        openPsTimes = 0;
+        closePsTimes = 0;
+        openSuccessTimes = 0;
+        openFailedTimes = 0;
+        closeSuccessTimes = 0;
+        closeFailedTimes = 0;
+        isInTesting = false;
     }
 
     private void showResultActivity(Class<?> resultActivity){

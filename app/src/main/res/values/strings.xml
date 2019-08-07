@@ -73,6 +73,12 @@
     <string name="text_params_error">参数错误</string>
     <string name="text_long_sms">短信内容已是长短信</string>
     <string name="text_short_sms">短信内容是短短信</string>
+    <string name="text_open_ps">激活PS次数:</string>
+    <string name="text_close_ps">关闭PS次数:</string>
+    <string name="text_open_ps_success_times">激活PS成功次数:</string>
+    <string name="text_open_ps_failed_time">激活PS失败次数:</string>
+    <string name="text_close_ps_success_time">关闭PS成功次数:</string>
+    <string name="text_close_ps_failed_time">关闭PS失败次数:</string>
 
 
     <string name="param_phone">手机号</string>

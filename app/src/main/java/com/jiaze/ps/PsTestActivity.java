@@ -1,9 +1,11 @@
 package com.jiaze.ps;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,12 +35,15 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
     private static final String PS_TEST_PARAMS_SAVE_PATH = "PsTestParams";
     private static final int MSG_ID_TEST_FINISHED = 2;
     private static final int MSG_ID_GOT_TEST_RESULT = 3;
+    private static final int PS_NETWORK_STATE_CHANGED = 4;
 
     private TextView tvPsState;
     private EditText etTestTime;
     private TextView tvTestResult;
     private Button btnStart;
     private PsTestService.PsTestBinder psTestBinder;
+    private IntentFilter intentFilter;
+    private PsStateChangedBroadcastReceiver psStateChangedBroadcastReceiver;
 
     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
@@ -61,6 +66,11 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
                 case MSG_ID_GOT_TEST_RESULT:
                     Log.d(TAG, "handleMessage: testResult: " + msg.obj);
                     tvTestResult.setText((String) msg.obj);
+                    break;
+                    
+                case PS_NETWORK_STATE_CHANGED:
+                    Log.d(TAG, "handleMessage: PS_NETWORK_STATE_CHANGED: " + msg.obj);
+                    tvPsState.setText(msg.obj.toString());
                     break;
             }
             return false;
@@ -104,6 +114,10 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ps_test);
         initUI();
+        intentFilter = new IntentFilter("com.jiaze.action.NETWORK_STATE_CHANGED");
+        psStateChangedBroadcastReceiver = new PsStateChangedBroadcastReceiver();
+        registerReceiver(psStateChangedBroadcastReceiver, intentFilter);
+        Log.d(TAG, "onCreate: register the PsStateChangedBroadcastReceiver");
         bindPsTestService();
     }
 
@@ -189,9 +203,28 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
         return 0;
     }
 
+    class PsStateChangedBroadcastReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "onReceive: Receiver the PS State Changed broadcast");
+            if (intent.hasExtra("state")){
+                Message msg = mHandler.obtainMessage();
+                msg.what = PS_NETWORK_STATE_CHANGED;
+                msg.obj = intent.getStringExtra("state");
+                Log.d(TAG, "onReceive: get the air mode state : " + msg.obj.toString());
+                msg.sendToTarget();
+            }
+        }
+    }
+    
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "onDestroy: ==========onDestroy============");
+        if (psStateChangedBroadcastReceiver != null){
+            unregisterReceiver(psStateChangedBroadcastReceiver);
+        }
         if (connection != null){
             unbindService(connection);
         }

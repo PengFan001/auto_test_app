@@ -5,6 +5,7 @@ import android.os.Environment;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.SimpleAdapter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -13,6 +14,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 
 public class Constant {
@@ -76,7 +79,7 @@ public class Constant {
 
 
     public static String createSaveTestResultPath(String testName){
-        String dirName = testName + System.currentTimeMillis();
+        String dirName = testName + getNowDate();
         File testResultPath = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/AutoTest");
         if (!testResultPath.exists()){
             testResultPath.mkdir();
@@ -163,6 +166,13 @@ public class Constant {
                 }
             }
         }).start();
+    }
+
+    public static String getNowDate(){
+        Date currentDate = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dateString = format.format(currentDate);
+        return dateString;
     }
 
 }
