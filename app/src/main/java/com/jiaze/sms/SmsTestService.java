@@ -19,6 +19,8 @@ import com.jiaze.autotestapp.R;
 import com.jiaze.common.AutoTestService;
 import com.jiaze.common.Constant;
 
+import java.util.ArrayList;
+
 
 /**
  * =========================================
@@ -43,7 +45,9 @@ public class SmsTestService extends AutoTestService {
     private String smsBody;
     private SmsManager smsManager;
     private int waitTimeout = 0;
+    private boolean isLongSms = false;
     private SmsSentResultReceiver smsSentResultReceiver = new SmsSentResultReceiver();
+    private SmsDeliverBroadcastReceiver smsDeliverBroadcastReceiver = new SmsDeliverBroadcastReceiver();
 
     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
@@ -94,6 +98,7 @@ public class SmsTestService extends AutoTestService {
         super.onCreate();
         Log.d(TAG, "onCreate: SmsTestService is Start");
         smsManager = SmsManager.getDefault();
+        registerSmsDeliverReceiver();
     }
 
     @Override
@@ -109,7 +114,13 @@ public class SmsTestService extends AutoTestService {
         for (; (testTimes>totalRunTimes) && isInTesting;){
             totalRunTimes++;
             Log.d(TAG, "runTestLogic: smsBody = " + smsBody);
-            sendOneSms(phoneNumber, smsBody + totalRunTimes);
+            if (isLongSms){
+                Log.d(TAG, "runTestLogic: sendOneLongSms, send the long message");
+                sendOneLongSms(phoneNumber, smsBody + totalRunTimes);
+            }else {
+                Log.d(TAG, "runTestLogic: sendOneSms, send the short message");
+                sendOneSms(phoneNumber, smsBody + totalRunTimes);
+            }
             runNextTime = false;
             mHandler.postDelayed(waitTimeoutTask, waitTimeout * 1000);
             while (!runNextTime){
@@ -146,6 +157,29 @@ public class SmsTestService extends AutoTestService {
         smsManager.sendTextMessage(number, null, smsString, sentPI, deliveredPI);
     }
 
+    private void sendOneLongSms(String number, String smsString){
+        Intent itSend = new Intent(SMS_SENT_ACTION);
+        Intent itDeliver = new Intent(SMS_DELIVERED_ACTION);
+
+        /**判断短信是否已经发送了**/
+        PendingIntent sentPI = PendingIntent.getBroadcast(this.getApplicationContext(), 0, itSend, 0);
+
+        /**如果短信被发送端接收了， 通知告诉短信发送端短信已经被接收**/
+        PendingIntent deliveredPI = PendingIntent.getBroadcast(this.getApplicationContext(), 0, itDeliver, 0);
+
+        ArrayList<String> smsArray = smsManager.divideMessage(smsString);
+        ArrayList<PendingIntent> sentIntents = new ArrayList<PendingIntent>();
+        ArrayList<PendingIntent> recIntents = new ArrayList<PendingIntent>();
+
+        for (int i = 0; i < smsArray.size(); i++){
+            sentIntents.add(sentPI);
+            recIntents.add(deliveredPI);
+        }
+
+        /**发送长短信**/
+        smsManager.sendMultipartTextMessage(number, null, smsArray, sentIntents, recIntents);
+    }
+
     class SmsSentResultReceiver extends BroadcastReceiver{
 
         @Override
@@ -177,6 +211,16 @@ public class SmsTestService extends AutoTestService {
         }
     }
 
+    class SmsDeliverBroadcastReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "onReceive: receiver the SmsDeliverBroadcastReceiver, and receiver the message success");
+            Toast.makeText(getApplicationContext(), "Receiver the Message", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
     private void registerSmsResultReceiver(){
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(SMS_SENT_ACTION);
@@ -189,7 +233,20 @@ public class SmsTestService extends AutoTestService {
             Log.d(TAG, "unregisterSmsResultReceiver: unRegister the smsSentResultReceiver");
             unregisterReceiver(smsSentResultReceiver);
         }
-        
+    }
+
+    private void registerSmsDeliverReceiver(){
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(SMS_DELIVERED_ACTION);
+        registerReceiver(smsDeliverBroadcastReceiver, intentFilter);
+        Log.d(TAG, "registerSmsDeliverReceiver: register the smsDeliverBroadcastReceiver");
+    }
+
+    private void unregisterSmsDeliverReceiver(){
+        if (smsDeliverBroadcastReceiver != null){
+            Log.d(TAG, "unregisterSmsDeliverReceiver: unRegister the smsDeliverBroadcastReceiver");
+            unregisterReceiver(smsDeliverBroadcastReceiver);
+        }
     }
 
     @Override
@@ -205,7 +262,20 @@ public class SmsTestService extends AutoTestService {
             Toast.makeText(getApplicationContext(), "Invalid Phone Number", Toast.LENGTH_SHORT).show();
             return -1;
         }
+
+        if (smsBody.getBytes().length > 140){
+            isLongSms = true;
+        }else {
+            isLongSms = false;
+        }
+
         return 0;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterSmsDeliverReceiver();
     }
 
     @Override

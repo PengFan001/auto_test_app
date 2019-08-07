@@ -41,6 +41,12 @@ public class ModuleRebootService extends Service {
     private int totalRunTimes = 0;
     private int successTimes = 0;
     private int failedTimes = 0;
+    private int upTimes = 0;
+    private int downTimes = 0;
+    private int upSuccessTimes = 0;
+    private int upFailedTimes = 0;
+    private int downSuccessTimes = 0;
+    private int downFailedTimes = 0;
     private boolean isInTesting = false;
     private boolean isRunNextTime = false;
     private PowerManager powerManager;
@@ -120,35 +126,58 @@ public class ModuleRebootService extends Service {
             int lastState = getPowerState();
             if (lastState == 0){
                 Log.d(TAG, "runLogical: the module is down power, then we will up power");
+                upTimes++;
                 switchPowerState(getString(R.string.param_up_power));
-                try {
-                    Thread.sleep(3 * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 if (getPowerState() == Integer.parseInt(getString(R.string.param_up_power))){
-                    successTimes++;
+                    upSuccessTimes++;
+                    Log.d(TAG, "runLogical: up the module power success, upSuccessTimes = " + upSuccessTimes + "then we will down power");
                     sendModuleStateChange(moduleRebootBinder.getModuleState());
-                    Log.d(TAG, "runLogical: switch the module power success, successTimes = " + successTimes);
+                    downTimes++;
+                    switchPowerState(getString(R.string.param_down_power));
+
+                    if (getPowerState() == Integer.parseInt(getString(R.string.param_down_power))){
+                        downSuccessTimes++;
+                        sendModuleStateChange(moduleRebootBinder.getModuleState());
+                        successTimes++;
+                        Log.d(TAG, "runLogical: down the power success, downSuccessTimes = " + downSuccessTimes + "  switch the module power success = " + successTimes);
+                    }else {
+                        downFailedTimes++;
+                        failedTimes++;
+                        Log.d(TAG, "runLogical: down the power failed, switch the module power failed, failedTimes = " + failedTimes);
+                    }
+
                 }else {
+                    upFailedTimes++;
                     failedTimes++;
-                    Log.d(TAG, "runLogical: switch the module power failed, failedTimes = " + failedTimes);
+                    Log.d(TAG, "runLogical: up the power failed, switch the module power failed, failedTimes = " + failedTimes);
                 }
             }else if (lastState == 1){
                 Log.d(TAG, "runLogical: the module is up power, then we will down power");
+                downTimes++;
                 switchPowerState(getString(R.string.param_down_power));
-                try {
-                    Thread.sleep(3 * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 if (getPowerState() == Integer.parseInt(getString(R.string.param_down_power))){
-                    successTimes++;
+                    //successTimes++;
+                    downSuccessTimes++;
+                    Log.d(TAG, "runLogical: down the module power success, downSuccessTimes = " + downSuccessTimes + "  then we will up power");
                     sendModuleStateChange(moduleRebootBinder.getModuleState());
-                    Log.d(TAG, "runLogical: switch the module power success, successTimes = " + successTimes);
+
+                    upTimes++;
+                    switchPowerState(getString(R.string.param_up_power));
+                    if (getPowerState() == Integer.parseInt(getString(R.string.param_up_power))){
+                        upSuccessTimes++;
+                        sendModuleStateChange(moduleRebootBinder.getModuleState());
+                        successTimes++;
+                        Log.d(TAG, "runLogical: up the module power success, switch the module power success, successTimes = " + successTimes);
+                    }else {
+                        upFailedTimes++;
+                        failedTimes++;
+                        Log.d(TAG, "runLogical: up the module power failed, switch the module power failed, failedTimes = " + failedTimes);
+                    }
+
                 }else {
+                    downFailedTimes++;
                     failedTimes++;
-                    Log.d(TAG, "runLogical: switch the module power failed, failedTimes = " + failedTimes);
+                    Log.d(TAG, "runLogical: down module power failed, switch the module power failed, failedTimes = " + failedTimes);
                 }
             }else {
                 Log.d(TAG, "runLogical: the module state is error, test failed, please check the power path");
@@ -187,6 +216,11 @@ public class ModuleRebootService extends Service {
             }
         }
 
+        try {
+            Thread.sleep(3 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private int getPowerState(){
@@ -259,6 +293,17 @@ public class ModuleRebootService extends Service {
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_switch_failed_time) + failedTimes);
         testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_module_up_power_times) + upTimes);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_up_power_success_times) + upSuccessTimes);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_up_power_failed_times) + upFailedTimes);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_module_down_power_times) + downTimes);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_down_power_success_times) + downSuccessTimes);
+        testResultBuilder.append("\r\n");
+        testResultBuilder.append("\r\n" + getString(R.string.text_down_power_failed_times) + downFailedTimes);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;
@@ -295,6 +340,12 @@ public class ModuleRebootService extends Service {
         totalRunTimes = 0;
         successTimes = 0;
         failedTimes = 0;
+        upTimes = 0;
+        upSuccessTimes = 0;
+        upFailedTimes = 0;
+        downTimes = 0;
+        downSuccessTimes = 0;
+        downFailedTimes = 0;
     }
 
     @Override

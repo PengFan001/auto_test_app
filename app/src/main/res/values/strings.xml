@@ -79,7 +79,14 @@
     <string name="text_open_ps_failed_time">激活PS失败次数:</string>
     <string name="text_close_ps_success_time">关闭PS成功次数:</string>
     <string name="text_close_ps_failed_time">关闭PS失败次数:</string>
-
+    <string name="text_reboot_radio_success">重启Radio成功，开始入网测试</string>
+    <string name="text_reboot_radio_failed">重启Radio失败，此次测试失败，开始下一次测试</string>
+    <string name="text_module_up_power_times">模块上电次数:</string>
+    <string name="text_module_down_power_times">模块下电次数:</string>
+    <string name="text_up_power_success_times">上电成功次数:</string>
+    <string name="text_up_power_failed_times">上电失败次数:</string>
+    <string name="text_down_power_success_times">下电成功次数:</string>
+    <string name="text_down_power_failed_times">下电失败次数:</string>
 
     <string name="param_phone">手机号</string>
     <string name="param_test_times">测试次数</string>
@@ -128,6 +135,7 @@
     <string name="key_icon">icon</string>
     <string name="key_name">name</string>
     <string name="key_module_test_time">module_test_time</string>
+    <string name="key_sms_type">sms_type</string>
 
     <string name="reboot_times">重启次数: </string>
     <string name="reboot_default_value">1</string>

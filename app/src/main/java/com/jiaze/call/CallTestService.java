@@ -1,27 +1,20 @@
 package com.jiaze.call;
 
-import android.Manifest;
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.drm.DrmStore;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
 import android.telephony.PhoneStateListener;
+import android.telephony.CallStateListener;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
+import com.android.internal.telephony.Call;
 
 import com.jiaze.autotestapp.R;
-import com.jiaze.common.AutoTestActivity;
 import com.jiaze.common.AutoTestService;
 import com.jiaze.common.Constant;
 
@@ -44,13 +37,21 @@ public class CallTestService extends AutoTestService {
     public static final int MSG_ID_CALL_RINGING = 1;
     public static final int MSG_ID_WAIT_TIMEOUT = 4;
     public static final int MSG_ID_DURATION_TIMEOUT = 5;
+//    public static final int MSG_ID_CALL_DIALING = 6; //已拨号
+//    public static final int MSG_ID_CALL_ACTIVE = 7; //进行通话中
 
 
     private TelephonyManager telephonyManager;
+    /**
+     * off_hook_state 表示监听到CALL_OFF_HOOK 状态是，用来区分它是刚打出去的状态还是被接听的状态
+     * off_hook_state = 1； 表示成功拨出号码
+     * off_hook_state = 2； 表示该拨打的号码被接听
+     */
     private int runTimes = 0;
     private int waitTimeOutTimes = 0;
     private int durationTimeOutTimes = 0;
     private String phone;
+
 
     //通话等待计时器
     Runnable waitTimeOutCalculate = new Runnable() {
@@ -76,14 +77,35 @@ public class CallTestService extends AutoTestService {
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
+//                case MSG_ID_CALL_DIALING:
+//                    Log.d(TAG, "handleMessage: MSG_ID_CALL_DIALING, Call the Phone Success");
+//                    successCount++;
+//                    break;
+//
+//                case MSG_ID_CALL_ACTIVE:
+//                    Log.d(TAG, "handleMessage: MSG_ID_CALL_ACTIVE, now is in the comunication");
+//                    if (mHandler != null && waitTimeOutCalculate != null) {
+//                        mHandler.removeCallbacks(waitTimeOutCalculate);
+//                        Log.d(TAG, "handleMessage: MSG_ID_CALL_ACTIVE : remove the waitTimeOutCalculate");
+//                    }
+//                    Log.d(TAG, "======dispatchMessage: the phone is Calling, start the calculate the duration time，SuccessTime + 1:" + successCount);
+//                    mHandler.postDelayed(durationTimeOutCalculate, durationTimeOutTimes * 1000);
+//                    break;
+
                 case MSG_ID_CALL_OFF_HOOK:
-                    successCount++;
-                    if (mHandler != null && waitTimeOutCalculate != null) {
-                        mHandler.removeCallbacks(waitTimeOutCalculate);
-                        Log.d(TAG, "handleMessage: MSG_ID_CALL_OFF_HOOK : remove the waitTimeOutCalculate");
+                    if (isInTesting){
+                        Log.d(TAG, "handleMessage: MSG_ID_CALL_OFF_HOOK, Call the Phone");
+                        successCount++;
+                        if (mHandler != null && waitTimeOutCalculate != null) {
+                            mHandler.removeCallbacks(waitTimeOutCalculate);
+                            Log.d(TAG, "handleMessage: MSG_ID_CALL_OFF_HOOK : remove the waitTimeOutCalculate");
+                        }
+                        Log.d(TAG, "======dispatchMessage: the phone is Calling, start the calculate the duration time，SuccessTime + 1:" + successCount);
+                        mHandler.postDelayed(durationTimeOutCalculate, durationTimeOutTimes * 1000);
+                    }else {
+                        Log.d(TAG, "handleMessage: the coming Call is OFF HOOK");
+                        Toast.makeText(getApplicationContext(), "The have been OFF HOOK", Toast.LENGTH_SHORT).show();
                     }
-                    Log.d(TAG, "======dispatchMessage: the phone is Calling, start the calculate the duration time，SuccessTime + 1:" + successCount);
-                    mHandler.postDelayed(durationTimeOutCalculate, durationTimeOutTimes * 1000);
                     break;
                 case MSG_ID_CALL_IDLE:
                     runNextTime = true;
@@ -144,11 +166,29 @@ public class CallTestService extends AutoTestService {
         }
     };
 
+//    CallStateListener callStateListener = new CallStateListener(){
+//        @Override
+//        public void onCallStateChanged(int callId, int state, String number){
+//            super.onCallStateChanged(callId, state, number);
+//            Log.d(TAG, "onCallStateChanged: get the call state = " + state);
+//            switch (state){
+//                case Call.State.DIALING:
+//                    mHandler.sendEmptyMessage(MSG_ID_CALL_DIALING);
+//                    break;
+//
+//                case Call.State.ACTIVE:
+//                    mHandler.sendEmptyMessage(MSG_ID_CALL_ACTIVE);
+//                    break;
+//            }
+//        }
+//    };
+
     @Override
     public void onCreate() {
         super.onCreate();
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+//        telephonyManager.addCallStateListener(callStateListener);
     }
 
     @Override

@@ -41,6 +41,7 @@ public class SmsTestActivity extends AutoTestActivity implements View.OnClickLis
     private EditText etPhone;
     private EditText etWaitResultTime;
     private EditText etSmsStr;
+    private int inputLength = 0;
 
     @Override
     protected void initUI() {
@@ -143,14 +144,23 @@ public class SmsTestActivity extends AutoTestActivity implements View.OnClickLis
 
         @Override
         public void afterTextChanged(Editable editable) {
+            if (delayRun != null && mHandler!= null){
+                mHandler.removeCallbacks(delayRun);
+            }
             String s = editable.toString();
             Log.d(TAG, "afterTextChanged: the byte if s = " + s.getBytes().length);
-            int length = s.getBytes().length;
-            if (length > 140){
-                Log.d(TAG, "afterTextChanged: now is a long sms");
+            inputLength = s.getBytes().length;
+            mHandler.postDelayed(delayRun, 1600);
+        }
+    };
+
+    Runnable delayRun = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "run: the sms input is finished");
+            if (inputLength > 140){
                 Toast.makeText(getApplicationContext(), getString(R.string.text_long_sms), Toast.LENGTH_SHORT).show();
             }else {
-                Log.d(TAG, "afterTextChanged: now is a short sms");
                 Toast.makeText(getApplicationContext(), getString(R.string.text_short_sms), Toast.LENGTH_SHORT).show();
             }
         }

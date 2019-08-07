@@ -13,6 +13,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.Constant;
@@ -76,6 +77,7 @@ public class NetworkTestService extends Service {
             switch (msg.what){
                 case REBOOT_RADIO_SUCCESS:
                     Log.d(TAG, "handleMessage: reboot radio success, start check network service state");
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_reboot_radio_success), Toast.LENGTH_SHORT).show();
                     isStart = true;
                     if (mHandler != null && rebootRadioTimeoutTask != null){
                         mHandler.removeCallbacks(rebootRadioTimeoutTask);
@@ -120,6 +122,7 @@ public class NetworkTestService extends Service {
                 case REBOOT_RADIO_TIIME_OUT:
                     Log.d(TAG, "handleMessage: Rboot Radio timeout");
                     isRebootTimeout = true;
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_reboot_radio_failed), Toast.LENGTH_SHORT).show();
                     if (mHandler != null && rebootRadioTimeoutTask != null){
                         mHandler.removeCallbacks(rebootRadioTimeoutTask);
                     }
