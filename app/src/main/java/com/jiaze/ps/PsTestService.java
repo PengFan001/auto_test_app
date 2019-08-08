@@ -42,7 +42,7 @@ public class PsTestService extends Service {
     private static final int DATA_SUSPEND = 4;
     private static final int CONNECTING_TIMEOUT = 5;
     
-    private boolean isInTesting = false;
+    private static boolean isInTesting = false;
     private int psTestTimes = 0;
     private int totalRunTimes = 0;
     private int successTime = 0;

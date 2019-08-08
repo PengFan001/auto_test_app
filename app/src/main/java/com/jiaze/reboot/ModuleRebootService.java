@@ -47,7 +47,7 @@ public class ModuleRebootService extends Service {
     private int upFailedTimes = 0;
     private int downSuccessTimes = 0;
     private int downFailedTimes = 0;
-    private boolean isInTesting = false;
+    private static boolean isInTesting = false;
     private boolean isRunNextTime = false;
     private PowerManager powerManager;
     private PowerManager.WakeLock mWakeLock;

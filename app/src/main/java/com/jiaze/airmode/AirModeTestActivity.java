@@ -85,6 +85,7 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
             Log.d(TAG, "onServiceConnected: Bind the AirModeTestService");
             btnStart.setEnabled(true);
             tvAirModeState.setText(airModeTestBinder.getAirModeState());
+            getTestResult();
             if (airModeTestBinder.isInTesting()){
                 btnStart.setText(getString(R.string.btn_stop_test));
             }else {
@@ -102,6 +103,7 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate: ============onCreate=============");
         setContentView(R.layout.activity_air_mode_test);
         initUI();
         bindAirModeTestService();
@@ -133,6 +135,28 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
             msg.what = MSG_ID_TEST_FINISHED;
             msg.obj = intent.getStringExtra(getString(R.string.key_test_result_path));
             msg.sendToTarget();
+        }
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(TAG, "onRestart: ==========onRestart============");
+        Exception exception = new Exception();
+        exception.printStackTrace();
+        Log.d(TAG,Log.getStackTraceString(new Throwable()));
+    }
+
+    private void getTestResult(){
+        Intent intent = getIntent();
+        if (intent.hasExtra(getString(R.string.key_test_result_path))){
+            Log.d(TAG, "getResultPath: get the sim test result and show it");
+            Message msg = mHandler.obtainMessage();
+            msg.what = MSG_ID_TEST_FINISHED;
+            msg.obj = intent.getStringExtra(getString(R.string.key_test_result_path));
+            msg.sendToTarget();
+        }else {
+            Log.d(TAG, "getResultPath: no sim test result need to show");
         }
     }
 
@@ -220,6 +244,10 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "onDestroy: =========onDestroy============");
+//        Exception exception = new Exception();
+//        exception.printStackTrace();
+        Log.d(TAG,Log.getStackTraceString(new Throwable()));
         if (airModeChangeBroadcastReceiver != null){
             unregisterReceiver(airModeChangeBroadcastReceiver);
         }

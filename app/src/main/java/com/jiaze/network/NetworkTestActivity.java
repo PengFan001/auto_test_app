@@ -45,8 +45,8 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
     private RadioGroup rgTestModule;
     private RadioButton rbtnChecked;
     private NetworkTestService.NetworkTestBinder networkTestBinder;
-    private IntentFilter intentFilter;
-    private NetworkTestFinishedBroadcast networkTestFinishedBroadcast;
+//    private IntentFilter intentFilter;
+//    private NetworkTestFinishedBroadcast networkTestFinishedBroadcast;
 
     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
@@ -82,7 +82,8 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
             Log.d(TAG, "onServiceConnected: Bind the NetworkTestService");
             btnStart.setEnabled(true);
             tvServiceState.setText(networkTestBinder.getServiceState());
-            networkTestBinder.isRegistered(true);
+            getTestResult();
+//            networkTestBinder.isRegistered(true);
             if (networkTestBinder.isInTesting()){
                 btnStart.setText(getString(R.string.btn_stop_test));
             }else {
@@ -117,13 +118,14 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 rbtnChecked = (RadioButton) findViewById(checkedId);
+                getSharedPreferences("test_module", MODE_PRIVATE).edit().putString(getString(R.string.key_network_test_module), rbtnChecked.getText().toString()).commit();
                 Log.d(TAG, "onCheckedChanged: get the checked module = " + rbtnChecked.getText().toString());
             }
         });
-        intentFilter = new IntentFilter("com.jiaze.action.NETWORK_TEST_FINISHED");
-        networkTestFinishedBroadcast = new NetworkTestFinishedBroadcast();
-        registerReceiver(networkTestFinishedBroadcast, intentFilter);
-        Log.d(TAG, "onCreate: register the networkTestFinishedBroadcast");
+//        intentFilter = new IntentFilter("com.jiaze.action.NETWORK_TEST_FINISHED");
+//        networkTestFinishedBroadcast = new NetworkTestFinishedBroadcast();
+//        registerReceiver(networkTestFinishedBroadcast, intentFilter);
+//        Log.d(TAG, "onCreate: register the networkTestFinishedBroadcast");
         bindNetworkTestService();
     }
 
@@ -132,12 +134,33 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
 
+    private void getTestResult(){
+        Intent intent = getIntent();
+        if (intent.hasExtra(getString(R.string.key_result))){
+            Log.d(TAG, "getResultPath: get the network test result and show it");
+            Message msg = mHandler.obtainMessage();
+            msg.what = MSG_ID_TEST_FINISHED;
+            msg.obj = intent.getStringExtra(getString(R.string.key_result));
+            msg.sendToTarget();
+        }else {
+            Log.d(TAG, "getResultPath: no network test result need to show");
+        }
+    }
+
     private void initUI(){
         Properties properties = Constant.loadTestParameter(this, NETWORK_TEST_PARAMS_SAVE_PATH);
         String networkTestTime = properties.getProperty(getString(R.string.key_network_test_time), "1");
         tvServiceState = (TextView) findViewById(R.id.service_state);
         rgTestModule = (RadioGroup) findViewById(R.id.network_test_module);
-        rbtnChecked = (RadioButton) findViewById(R.id.reboot_device);
+        String testType = getSharedPreferences("test_module", MODE_PRIVATE).getString(getString(R.string.key_network_test_module), getString(R.string.text_reboot_device));
+        Log.d(TAG, "initUI: get the testType = " + testType);
+        if (testType.equals(getString(R.string.text_reboot_radio))){
+            rbtnChecked = (RadioButton) findViewById(R.id.reboot_radio);
+            rbtnChecked.setChecked(true);
+        }else if (testType.equals(getString(R.string.text_reboot_device))){
+            rbtnChecked = (RadioButton) findViewById(R.id.reboot_device);
+            rbtnChecked.setChecked(true);
+        }
         etTestTime = (EditText) findViewById(R.id.network_test_time);
         tvTestResult = (TextView) findViewById(R.id.network_test_result);
         btnStart = (Button) findViewById(R.id.network_start_btn);
@@ -218,28 +241,28 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
         }
     }
 
-    class NetworkTestFinishedBroadcast extends BroadcastReceiver{
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "onReceive: receiver the network test finished broadcast");
-            if (intent.hasExtra(getString(R.string.key_result))){
-                Message msg = mHandler.obtainMessage();
-                msg.what = MSG_ID_TEST_FINISHED;
-                msg.obj = intent.getStringExtra(getString(R.string.key_result));
-                Log.d(TAG, "onReceive: get the sim test result path : "  + msg.obj.toString());
-                msg.sendToTarget();
-            }
-        }
-    }
+//    class NetworkTestFinishedBroadcast extends BroadcastReceiver{
+//
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            Log.d(TAG, "onReceive: receiver the network test finished broadcast");
+//            if (intent.hasExtra(getString(R.string.key_result))){
+//                Message msg = mHandler.obtainMessage();
+//                msg.what = MSG_ID_TEST_FINISHED;
+//                msg.obj = intent.getStringExtra(getString(R.string.key_result));
+//                Log.d(TAG, "onReceive: get the sim test result path : "  + msg.obj.toString());
+//                msg.sendToTarget();
+//            }
+//        }
+//    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (networkTestFinishedBroadcast != null){
-            unregisterReceiver(networkTestFinishedBroadcast);
-            //networkTestBinder.isRegistered(false);
-        }
+//        if (networkTestFinishedBroadcast != null){
+//            unregisterReceiver(networkTestFinishedBroadcast);
+//            networkTestBinder.isRegistered(false);
+//        }
         if (connection != null){
             unbindService(connection);
         }

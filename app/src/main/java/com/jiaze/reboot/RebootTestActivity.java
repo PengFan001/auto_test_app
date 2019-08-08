@@ -40,8 +40,8 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
     private Button btnTest;
     private TextView tvRebootResult;
     private RebootTestService.RebootTestBinder rebootTestBinder;
-    private IntentFilter intentFilter;
-    private RebootTestFinishBroadcastReceiver rebootTestFinishBroadcastReceiver;
+//    private IntentFilter intentFilter;
+//    private RebootTestFinishBroadcastReceiver rebootTestFinishBroadcastReceiver;
 
     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
@@ -74,7 +74,14 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         public void onServiceConnected(ComponentName name, IBinder service) {
             rebootTestBinder = (RebootTestService.RebootTestBinder) service;
             Log.d(TAG, "onServiceConnected: Bind the RebootTestService Succeed");
-            rebootTestBinder.isRegister(true);
+//            intentFilter = new IntentFilter();
+//            intentFilter.addAction("com.jiaze.action.REBOOT_TEST_FINISHED");
+//            rebootTestFinishBroadcastReceiver = new RebootTestFinishBroadcastReceiver();
+//            registerReceiver(rebootTestFinishBroadcastReceiver, intentFilter);
+//            Log.d(TAG, "onCreate: register the RebootTestFinishBroadcastReceiver");
+//            rebootTestBinder.isRegister(true);
+
+            getTestResult();
             btnTest.setEnabled(true);
             if (rebootTestBinder.isInTesting()){
                 btnTest.setText(getString(R.string.btn_stop_test));
@@ -121,12 +128,20 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         Log.d(TAG, "onCreate: ==========onCreate==========");
         setContentView(R.layout.activity_reboot_test);
         initUi();
-        intentFilter = new IntentFilter();
-        intentFilter.addAction("com.jiaze.action.REBOOT_TEST_FINISHED");
-        rebootTestFinishBroadcastReceiver = new RebootTestFinishBroadcastReceiver();
-        registerReceiver(rebootTestFinishBroadcastReceiver, intentFilter);
-        Log.d(TAG, "onCreate: register the RebootTestFinishBroadcastReceiver");
         bindRebootTestService();
+    }
+
+    private void getTestResult(){
+        Intent intent = getIntent();
+        if (intent.hasExtra(getString(R.string.key_result))){
+            Log.d(TAG, "getResultPath: get the reboot test result and show it");
+            Message msg = mHandler.obtainMessage();
+            msg.what = MSG_ID_TEST_FINISHED;
+            msg.obj = intent.getStringExtra(getString(R.string.key_result));
+            msg.sendToTarget();
+        }else {
+            Log.d(TAG, "getResultPath: no reboot test result need to show");
+        }
     }
 
 
@@ -224,28 +239,28 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         return 0;
     }
 
-    private class RebootTestFinishBroadcastReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "onReceive: receiver the Reboot Test Finished Receiver");
-            if (intent.hasExtra(getString(R.string.key_result))){
-                Message msg = mHandler.obtainMessage();
-                msg.what = MSG_ID_TEST_FINISHED;
-                msg.obj = intent.getStringExtra(getString(R.string.key_result));
-                Log.d(TAG, "onReceive: get the reboot test result path : "  + msg.obj.toString());
-                msg.sendToTarget();
-            }
-        }
-    }
+//    private class RebootTestFinishBroadcastReceiver extends BroadcastReceiver {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            Log.d(TAG, "onReceive: receiver the Reboot Test Finished Receiver");
+//            if (intent.hasExtra(getString(R.string.key_result))){
+//                Message msg = mHandler.obtainMessage();
+//                msg.what = MSG_ID_TEST_FINISHED;
+//                msg.obj = intent.getStringExtra(getString(R.string.key_result));
+//                Log.d(TAG, "onReceive: get the reboot test result path : "  + msg.obj.toString());
+//                msg.sendToTarget();
+//            }
+//        }
+//    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy: ============onDestroy===========");
-        if (rebootTestFinishBroadcastReceiver != null){
-            unregisterReceiver(rebootTestFinishBroadcastReceiver);
-            //rebootTestBinder.isRegister(false);
-        }
+//        if (rebootTestFinishBroadcastReceiver != null){
+//            unregisterReceiver(rebootTestFinishBroadcastReceiver);
+//            rebootTestBinder.isRegister(false);
+//        }
         if (connection != null){
             unbindService(connection);
         }

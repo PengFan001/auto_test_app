@@ -45,7 +45,7 @@ public class AirModeTestService extends Service {
     private int closeFailedTimes = 0;
     private int state = 2;
     private int lastState = 0;
-    private boolean isTesting = false;
+    private static boolean isTesting = false;
     private static boolean isRunNextTime = false;
     private String storeAirModeTestResultDir;
     private PowerManager powerManager;
@@ -96,16 +96,16 @@ public class AirModeTestService extends Service {
         public void run() {
             super.run();
             Log.d(TAG, "run: start air mode Test");
-            mWakeLock.acquire();
+           // mWakeLock.acquire();
             isTesting = true;
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();
             }
             isTesting = false;
-            resetTestValue();
-            Log.d(TAG, "run: finished the test, then will show you the AirMode Test result");
             showResultActivity(AirModeTestActivity.class);
+            Log.d(TAG, "run: finished the test, then will show you the AirMode Test result");
+            resetTestValue();
         }
     }
 

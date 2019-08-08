@@ -46,7 +46,7 @@ public class RebootTestService extends Service {
     private boolean runNextTime = false;
     private static boolean isReboot = false;
     private static boolean isStop = false;
-    private static boolean isRegister = false;
+//    private static boolean isRegister = false;
     private PowerManager powerManager;
     private String storeRebootTestResultDir;
     private String command = "AT+CFUN?\r\n";
@@ -156,9 +156,9 @@ public class RebootTestService extends Service {
             return isTesting;
         }
 
-        public void isRegister(boolean registered){
-            isRegister = registered;
-        }
+//        public void isRegister(boolean registered){
+//            isRegister = registered;
+//        }
     }
 
     class RebootTestThread extends Thread{
@@ -244,29 +244,29 @@ public class RebootTestService extends Service {
         }
 
         isStop = true;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "run: isRegister = " + isRegister);
-                while (!isRegister){
-                    try {
-                        Thread.sleep(1000);
-                        Log.d(TAG, "run: wait the registered broadcast ");
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    if (isRegister){
-                        Intent broadcastIntent = new Intent("com.jiaze.action.REBOOT_TEST_FINISHED");
-                        broadcastIntent.putExtra(getString(R.string.key_result), storeRebootTestResultDir + "/" + "testResult");
-                        sendBroadcast(broadcastIntent);
-                        Log.d(TAG, "showResultActivity: Send the showResult broadcast");
-                        Log.d(TAG, "run: stop waiting register broadcast");
-                        break;
-                    }
-                }
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.d(TAG, "run: isRegister = " + isRegister);
+//                while (!isRegister){
+//                    try {
+//                        Thread.sleep(1000);
+//                        Log.d(TAG, "run: wait the registered broadcast ");
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    if (isRegister){
+//                        Intent broadcastIntent = new Intent("com.jiaze.action.REBOOT_TEST_FINISHED");
+//                        broadcastIntent.putExtra(getString(R.string.key_result), storeRebootTestResultDir + "/" + "testResult");
+//                        sendBroadcast(broadcastIntent);
+//                        Log.d(TAG, "showResultActivity: Send the showResult broadcast");
+//                        Log.d(TAG, "run: stop waiting register broadcast");
+//                        break;
+//                    }
+//                }
+//            }
+//        }).start();
 
         saveRebootTestResult();
     }

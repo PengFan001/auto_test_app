@@ -14,15 +14,15 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
             android:name="com.jiaze.reboot.ModuleRebootActivity"
-            android:launchMode="singleTask">
-        </activity>
+            android:launchMode="singleTask"></activity>
         <activity
             android:name="com.jiaze.ps.PsTestActivity"
-            android:launchMode="singleTask"></activity>
+            android:launchMode="singleTask" />
         <activity
             android:name="com.jiaze.network.NetworkTestActivity"
             android:launchMode="singleTask" />
@@ -76,8 +76,7 @@
             android:enabled="true" />
         <service
             android:name="com.jiaze.reboot.ModuleRebootService"
-            android:enabled="true">
-        </service>
+            android:enabled="true"></service>
 
         <receiver android:name="com.jiaze.common.BootRebootServiceReceiver">
             <intent-filter>

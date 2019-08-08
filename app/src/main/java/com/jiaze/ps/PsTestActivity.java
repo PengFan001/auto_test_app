@@ -84,6 +84,7 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
             Log.d(TAG, "onServiceConnected: Bind the PsTestService");
             btnStart.setEnabled(true);
             tvPsState.setText(psTestBinder.getPsState());
+            getTestResult();
             if (psTestBinder.isInTesting()){
                 btnStart.setText(getString(R.string.btn_stop_test));
             }else {
@@ -119,6 +120,19 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
         registerReceiver(psStateChangedBroadcastReceiver, intentFilter);
         Log.d(TAG, "onCreate: register the PsStateChangedBroadcastReceiver");
         bindPsTestService();
+    }
+
+    private void getTestResult(){
+        Intent intent = getIntent();
+        if (intent.hasExtra(getString(R.string.key_test_result_path))){
+            Log.d(TAG, "getResultPath: get the ps test result and show it");
+            Message msg = mHandler.obtainMessage();
+            msg.what = MSG_ID_TEST_FINISHED;
+            msg.obj = intent.getStringExtra(getString(R.string.key_test_result_path));
+            msg.sendToTarget();
+        }else {
+            Log.d(TAG, "getResultPath: no ps test result need to show");
+        }
     }
 
     private void bindPsTestService(){

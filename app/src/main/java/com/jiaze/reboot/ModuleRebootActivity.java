@@ -82,6 +82,7 @@ public class ModuleRebootActivity extends Activity implements View.OnClickListen
             Log.d(TAG, "onServiceConnected: Bind the ModuleReboot Test Service");
             btnStart.setEnabled(true);
             tvModuleState.setText(moduleRebootBinder.getModuleState());
+            getTestResult();
             if (moduleRebootBinder.isInTesting()){
                 btnStart.setText(getString(R.string.btn_stop_test));
             }else {
@@ -115,6 +116,19 @@ public class ModuleRebootActivity extends Activity implements View.OnClickListen
         registerReceiver(moduleStateBroadcast, intentFilter);
         Log.d(TAG, "onCreate: register the ModuleStateBroadcast");
         bindModuleRebootTestService();
+    }
+
+    private void getTestResult(){
+        Intent intent = getIntent();
+        if (intent.hasExtra(getString(R.string.key_test_result_path))){
+            Log.d(TAG, "getResultPath: get the module reboot test result and show it");
+            Message msg = mHandler.obtainMessage();
+            msg.what = MSG_ID_TEST_FINISHED;
+            msg.obj = intent.getStringExtra(getString(R.string.key_test_result_path));
+            msg.sendToTarget();
+        }else {
+            Log.d(TAG, "getResultPath: no module reboot test result need to show");
+        }
     }
 
     private void bindModuleRebootTestService(){
@@ -209,7 +223,7 @@ public class ModuleRebootActivity extends Activity implements View.OnClickListen
                 Message msg = mHandler.obtainMessage();
                 msg.what = MODULE_STATE_CHANGED;
                 msg.obj = intent.getStringExtra("state");
-                Log.d(TAG, "onReceive: get the air mode state : " + msg.obj.toString());
+                Log.d(TAG, "onReceive: get the mode power state : " + msg.obj.toString());
                 msg.sendToTarget();
             }
         }

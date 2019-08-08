@@ -44,11 +44,11 @@ public class SimTestService extends Service {
     private int pinRequiredTimes = 0;
     private int pukRequiredTimes = 0;
     private int netWorkLockTimes = 0;
-    private boolean runtNextTime = false;
-    private boolean isTesting = false;
+    private static boolean runtNextTime = false;
+    private static boolean isTesting = false;
     private static boolean isReboot = false;
     private static boolean isStop = false;
-    private static boolean isRegister = false;
+    //private static boolean isRegister = false;
     private PowerManager powerManager;
     private PowerManager.WakeLock mWakeLock;
     private TelephonyManager telephonyManager;
@@ -64,11 +64,6 @@ public class SimTestService extends Service {
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         getTestParams();
         if (isTesting){
-            try {
-                Thread.sleep(10 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             new SimTestThread().start();
         }
     }
@@ -99,9 +94,9 @@ public class SimTestService extends Service {
             return isTesting;
         }
 
-        public void isRegister(boolean registered){
-            isRegister = registered;
-        }
+//        public void isRegister(boolean registered){
+//            isRegister = registered;
+//        }
     }
 
     private void getTestParams(){
@@ -132,6 +127,15 @@ public class SimTestService extends Service {
             Log.d(TAG, "run: start the simTest");
             mWakeLock.acquire();
             isTesting = true;
+            if (totalRunTimes >= 1)
+            {
+                Log.d(TAG, "run: reboot the device, wait 10 second");
+                try {
+                    Thread.sleep(10 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();
@@ -199,40 +203,34 @@ public class SimTestService extends Service {
                     e.printStackTrace();
                 }
             }
-            Log.d(TAG, "runLogical: finished the test, then will show you the testResult");
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "run: isRegister = " + isRegister);
-                while (!isRegister){
-                    try {
-                        Thread.sleep(1000);
-                        Log.d(TAG, "run: wait the registered broadcast ");
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    if (isRegister){
-                        Intent broadcastIntent = new Intent("com.jiaze.action.SIM_TEST_FINISHED");
-                        broadcastIntent.putExtra(getString(R.string.key_result), storeSimTestResultDir + "/" + "testResult");
-                        sendBroadcast(broadcastIntent);
-                        Log.d(TAG, "showResultActivity: Send the showResult broadcast");
-                        Log.d(TAG, "run: stop waiting register broadcast");
-                        break;
-                    }
-                }
-
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.d(TAG, "run: isRegister = " + isRegister);
+//                while (!isRegister){
+//                    try {
+//                        Thread.sleep(1000);
+//                        Log.d(TAG, "run: wait the registered broadcast ");
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    if (isRegister){
+//                        Intent broadcastIntent = new Intent("com.jiaze.action.SIM_TEST_FINISHED");
+//                        broadcastIntent.putExtra(getString(R.string.key_result), storeSimTestResultDir + "/" + "testResult");
+//                        sendBroadcast(broadcastIntent);
+//                        Log.d(TAG, "showResultActivity: Send the showResult broadcast");
+//                        Log.d(TAG, "run: stop waiting register broadcast");
+//                        break;
+//                    }
+//                }
+//
+//            }
+//        }).start();
 
         isStop = true;
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         saveSimTestResult();
     }
 

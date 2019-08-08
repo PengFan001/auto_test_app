@@ -57,8 +57,8 @@ public class NetworkTestService extends Service {
     private int powerOffTime = 0;
     private int emergencyTime = 0;
     private boolean runNextTime = false;
-    private boolean isTesting = false;
-    private boolean isRegistered = false;
+    private static boolean isTesting = false;
+//    private static boolean isRegistered = false;
     private boolean isStopCheck = false;
     private boolean isReboot = false;
     private boolean isStop = false;
@@ -228,9 +228,9 @@ public class NetworkTestService extends Service {
             return myPhoneStateListener.getServiceState();
         }
 
-        public void isRegistered(boolean isRegister){
-            isRegistered = isRegister;
-        }
+//        public void isRegistered(boolean isRegister){
+//            isRegistered = isRegister;
+//        }
     }
 
     class NetworkTestThreadRebootDevice extends Thread{
@@ -333,27 +333,28 @@ public class NetworkTestService extends Service {
         }
 
         isStop = true;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "run: The show test Result Broadcast isRegister = " + isRegistered);
-                while (!isRegistered){
-                    try {
-                        Thread.sleep(1 * 1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    if (isRegistered){
-                        Intent intent = new Intent("com.jiaze.action.NETWORK_TEST_FINISHED");
-                        intent.putExtra(getString(R.string.key_result), storeNetworkTestResultDir + "/" + "testResult");
-                        sendBroadcast(intent);
-                        Log.d(TAG, "run: send the network test finished broadcast");
-                        break;
-                    }
-                }
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.d(TAG, "run: The show test Result Broadcast isRegister = " + isRegistered);
+//                while (!isRegistered){
+//                    try {
+//                        Thread.sleep(1 * 1000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    if (isRegistered){
+//                        Intent intent = new Intent("com.jiaze.action.NETWORK_TEST_FINISHED");
+//                        intent.putExtra(getString(R.string.key_result), storeNetworkTestResultDir + "/" + "testResult");
+//                        sendBroadcast(intent);
+//                        Log.d(TAG, "run: send the network test finished broadcast");
+//                        break;
+//                    }
+//                }
+//
+//            }
+//        }).start();
 
         try {
             Thread.sleep(500);
@@ -444,27 +445,28 @@ public class NetworkTestService extends Service {
             }
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "run: The show test Result Broadcast isRegister = " + isRegistered);
-                while (!isRegistered){
-                    try {
-                        Thread.sleep(1 * 1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    if (isRegistered){
-                        Intent intent = new Intent("com.jiaze.action.NETWORK_TEST_FINISHED");
-                        intent.putExtra(getString(R.string.key_result), storeNetworkTestResultDir + "/" + "testResult");
-                        sendBroadcast(intent);
-                        Log.d(TAG, "run: send the network test finished broadcast");
-                        break;
-                    }
-                }
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.d(TAG, "run: The show test Result Broadcast isRegister = " + isRegistered);
+//                while (!isRegistered){
+//                    try {
+//                        Thread.sleep(1 * 1000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    if (isRegistered){
+//                        Intent intent = new Intent("com.jiaze.action.NETWORK_TEST_FINISHED");
+//                        intent.putExtra(getString(R.string.key_result), storeNetworkTestResultDir + "/" + "testResult");
+//                        sendBroadcast(intent);
+//                        Log.d(TAG, "run: send the network test finished broadcast");
+//                        break;
+//                    }
+//                }
+//
+//            }
+//        }).start();
 
         try {
             Thread.sleep(500);
