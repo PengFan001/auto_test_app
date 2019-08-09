@@ -54,14 +54,15 @@ public class PsTestService extends Service {
     private int closeSuccessTimes = 0;
     private int closeFailedTimes = 0;
     private int networkState = 0; //默认设置为未连接
+    private String psState = null;
+    private String storePsTestResultDir;
+    private String ttLogDir;
     private boolean runNextTime = false;
     private boolean waitConnect = false;
     private TelephonyManager telephonyManager;
     private ConnectivityManager connectivityManager;
     private PowerManager.WakeLock mWakeLock;
     private PowerManager powerManager;
-    private String psState = null;
-    private String storePsTestResultDir;
     private PsTestBinder psTestBinder = new PsTestBinder();
 
     Handler mHandler = new Handler(new Handler.Callback() {
@@ -164,11 +165,20 @@ public class PsTestService extends Service {
             Log.d(TAG, "run: start ps Test");
             mWakeLock.acquire();
             isInTesting = true;
+            Constant.openTTLog();
+            Constant.readTTLog();
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();
             }
             isInTesting = false;
+            Constant.closeTTLog();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Constant.zipLog(Constant.getTestResultFileName(storePsTestResultDir));
+                }
+            }).start();
             resetTestValue();
             showResultActivity(PsTestActivity.class);
             Log.d(TAG, "run: finished the test, then will show you the Ps Test Result");
@@ -178,8 +188,8 @@ public class PsTestService extends Service {
     private void runLogical(){
         for (; psTestTimes > 0 && isInTesting; psTestTimes--){
             totalRunTimes++;
-            runNextTime = false;
             Log.d(TAG, "runLogical: totalRunTimes = " + totalRunTimes);
+            runNextTime = false;
             Log.d(TAG, "runLogical: before the test get the current network state = " + networkState + "     " + psState);
             if (networkState == TelephonyManager.DATA_CONNECTED || networkState == TelephonyManager.DATA_SUSPENDED){
                 // if current network state is connect, we close it
@@ -283,6 +293,8 @@ public class PsTestService extends Service {
                 }
                 Log.d(TAG, "runLogical: data connecting time out, runNextTime");
             }
+
+//            Constant.closeTTLog();
         }
 
         savePsTestResult();
