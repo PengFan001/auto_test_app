@@ -35,19 +35,23 @@ public abstract class AutoTestService extends Service {
     protected String storeTestResultDir;
 
     protected boolean runNextTime = false;
-    protected boolean isInTesting = false;
+    protected static boolean isInTesting = false;
+    protected boolean isStartTest = false;
 
+    protected PowerManager powerManager;
     protected PowerManager.WakeLock mWakeLock;
 
     public abstract void stopTest();
     protected abstract void runTestLogic();
     protected abstract int initTestParams(Bundle bundle);
     protected abstract Class<?> getResultActivity();
+    protected abstract void saveTmpTestResult();
+    protected abstract void getTestParams();
 
     @Override
     public void onCreate() {
         super.onCreate();
-        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
     }
 
@@ -74,6 +78,11 @@ public abstract class AutoTestService extends Service {
         if (initTestParams(bundle) < 0){
             return -1;
         }
+
+        isStartTest = true;
+        saveTmpTestResult();
+        Constant.delLog(powerManager);
+
         resetResultValue();
         new TestThread().start();
         return 0;
@@ -83,6 +92,8 @@ public abstract class AutoTestService extends Service {
         totalRunTimes = 0;
         successCount = 0;
         failedCount = 0;
+        isInTesting = false;
+        isStartTest = false;
     }
 
     protected class TestThread extends Thread{
@@ -94,14 +105,24 @@ public abstract class AutoTestService extends Service {
         @Override
         public void run() {
             super.run();
+            try {
+                Thread.sleep(3 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             mWakeLock.acquire();
             isInTesting = true;
+            Constant.openTTLog();
+            Constant.readTTLog(Constant.getTestResultFileName(storeTestResultDir));
             runTestLogic();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();
             }
             isInTesting = false;
+            Constant.closeTTLog();
             startResultActivity(getResultActivity());
+            resetResultValue();
+            saveTmpTestResult();
         }
     }
 

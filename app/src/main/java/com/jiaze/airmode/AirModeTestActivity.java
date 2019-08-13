@@ -204,6 +204,11 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
             if (TextUtils.isEmpty(etTestTimes.getText().toString())){
                 Toast.makeText(this, getString(R.string.text_test_not_null), Toast.LENGTH_SHORT).show();
                 return -1;
+            }else {
+                if (Integer.parseInt(etTestTimes.getText().toString()) == 0){
+                    Toast.makeText(this, getString(R.string.text_test_time_is_zero), Toast.LENGTH_SHORT).show();
+                    return -1;
+                }
             }
             properties.setProperty(getString(R.string.key_air_mode_test_time), etTestTimes.getText().toString());
             properties.store(outputStream, "AirModeParameter");
@@ -245,9 +250,6 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy: =========onDestroy============");
-//        Exception exception = new Exception();
-//        exception.printStackTrace();
-        Log.d(TAG,Log.getStackTraceString(new Throwable()));
         if (airModeChangeBroadcastReceiver != null){
             unregisterReceiver(airModeChangeBroadcastReceiver);
         }

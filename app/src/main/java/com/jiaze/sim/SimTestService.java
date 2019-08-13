@@ -48,7 +48,7 @@ public class SimTestService extends Service {
     private static boolean isTesting = false;
     private static boolean isReboot = false;
     private static boolean isStop = false;
-    //private static boolean isRegister = false;
+    private boolean isStartTest = false;
     private PowerManager powerManager;
     private PowerManager.WakeLock mWakeLock;
     private TelephonyManager telephonyManager;
@@ -63,8 +63,17 @@ public class SimTestService extends Service {
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         getTestParams();
-        if (isTesting){
-            new SimTestThread().start();
+        if (isStartTest){
+            if (isTesting){
+                Log.d(TAG, "onCreate: continue the the last time test, simTestTime = " + simTestTime);
+                new SimTestThread().start();
+            }else {
+                Log.d(TAG, "onCreate: isStartTest is true, start the test");
+                new SimTestThread().start();
+            }
+        }else {
+            Log.d(TAG, "onCreate: isStartTest is false, need not do anything");
+            resetTestValue();
         }
     }
 
@@ -76,14 +85,19 @@ public class SimTestService extends Service {
     class SimTestBinder extends Binder{
         public void startTest(Bundle bundle){
             isStop = false;
+            isStartTest = true;
             simTestTime = bundle.getInt(getString(R.string.key_sim_test_time));
             storeSimTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the Sim Test Result Dir: " + storeSimTestResultDir);
-            new SimTestThread().start();
+            saveTestParamsAndTmpResult();
+            Constant.delLog(powerManager);
+            //new SimTestThread().start();
         }
 
         public void stopTest(){
             isTesting = false;
+            isStartTest = false;
+            saveTestParamsAndTmpResult();
         }
 
         public String getSimState(){
@@ -93,10 +107,6 @@ public class SimTestService extends Service {
         public boolean isInTesting(){
             return isTesting;
         }
-
-//        public void isRegister(boolean registered){
-//            isRegister = registered;
-//        }
     }
 
     private void getTestParams(){
@@ -111,7 +121,8 @@ public class SimTestService extends Service {
         pukRequiredTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_puk_times), "0"));
         netWorkLockTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_sim_netWork_times), "0"));
         storeSimTestResultDir = properties.getProperty(getString(R.string.key_test_result_path));
-        Log.d(TAG, "getTestParams: simTestTime = " + simTestTime + "     isTesting = " + isTesting + "     totalRunTimes = "+ totalRunTimes);
+        isStartTest = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_start_test), "false"));
+        Log.d(TAG, "getTestParams: simTestTime = " + simTestTime + "   isStartTest = " + isStartTest + "     isTesting = " + isTesting + "     totalRunTimes = "+ totalRunTimes);
         Log.d(TAG, "getTestParams: absentTimes = " + absentTimes + "     unknownTimes = " + unknownTimes + "     readyTimes = " + readyTimes);
         Log.d(TAG, "getTestParams: pinRequiredTimes = " + pinRequiredTimes + "     pukRequiredTimes = " + pukRequiredTimes + "    netWorkLockTimes = " + netWorkLockTimes);
     }
@@ -124,23 +135,22 @@ public class SimTestService extends Service {
         @Override
         public void run() {
             super.run();
+            try {
+                Thread.sleep(7 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             Log.d(TAG, "run: start the simTest");
             mWakeLock.acquire();
             isTesting = true;
-            if (totalRunTimes >= 1)
-            {
-                Log.d(TAG, "run: reboot the device, wait 10 second");
-                try {
-                    Thread.sleep(10 * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            Constant.openTTLog();
+            Constant.readTTLog(Constant.getTestResultFileName(storeSimTestResultDir));
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();
             }
             isTesting = false;
+            Constant.closeTTLog();
             showResultActivity(SimTestActivity.class);
             Log.d(TAG, "run: finished the test, then will show you the sim test result");
             resetTestValue();
@@ -205,31 +215,6 @@ public class SimTestService extends Service {
             }
         }
 
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                Log.d(TAG, "run: isRegister = " + isRegister);
-//                while (!isRegister){
-//                    try {
-//                        Thread.sleep(1000);
-//                        Log.d(TAG, "run: wait the registered broadcast ");
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                    if (isRegister){
-//                        Intent broadcastIntent = new Intent("com.jiaze.action.SIM_TEST_FINISHED");
-//                        broadcastIntent.putExtra(getString(R.string.key_result), storeSimTestResultDir + "/" + "testResult");
-//                        sendBroadcast(broadcastIntent);
-//                        Log.d(TAG, "showResultActivity: Send the showResult broadcast");
-//                        Log.d(TAG, "run: stop waiting register broadcast");
-//                        break;
-//                    }
-//                }
-//
-//            }
-//        }).start();
-
         isStop = true;
         saveSimTestResult();
     }
@@ -259,6 +244,7 @@ public class SimTestService extends Service {
             properties.setProperty(getString(R.string.key_sim_netWork_times), String.valueOf(netWorkLockTimes));
             properties.setProperty(getString(R.string.key_is_sim_testing), String.valueOf(isTesting));
             properties.setProperty(getString(R.string.key_sim_run_times), String.valueOf(totalRunTimes));
+            properties.setProperty(getString(R.string.key_is_start_test), String.valueOf(isStartTest));
             properties.store(outputStream, "finished one time sim test");
             if (outputStream != null){
                 outputStream.close();
@@ -382,6 +368,8 @@ public class SimTestService extends Service {
         pukRequiredTimes = 0;
         netWorkLockTimes = 0;
         unknownTimes = 0;
+        isTesting = false;
+        isStartTest = false;
     }
 
     @Override

@@ -40,8 +40,6 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
     private Button btnTest;
     private TextView tvRebootResult;
     private RebootTestService.RebootTestBinder rebootTestBinder;
-//    private IntentFilter intentFilter;
-//    private RebootTestFinishBroadcastReceiver rebootTestFinishBroadcastReceiver;
 
     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
@@ -74,12 +72,6 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         public void onServiceConnected(ComponentName name, IBinder service) {
             rebootTestBinder = (RebootTestService.RebootTestBinder) service;
             Log.d(TAG, "onServiceConnected: Bind the RebootTestService Succeed");
-//            intentFilter = new IntentFilter();
-//            intentFilter.addAction("com.jiaze.action.REBOOT_TEST_FINISHED");
-//            rebootTestFinishBroadcastReceiver = new RebootTestFinishBroadcastReceiver();
-//            registerReceiver(rebootTestFinishBroadcastReceiver, intentFilter);
-//            Log.d(TAG, "onCreate: register the RebootTestFinishBroadcastReceiver");
-//            rebootTestBinder.isRegister(true);
 
             getTestResult();
             btnTest.setEnabled(true);
@@ -211,6 +203,11 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
             if (TextUtils.isEmpty(etRebootTimes.getText().toString())){
                 Toast.makeText(this, getString(R.string.text_test_not_null), Toast.LENGTH_SHORT).show();
                 return -1;
+            }else {
+                if (Integer.parseInt(etRebootTimes.getText().toString()) == 0){
+                    Toast.makeText(this, getString(R.string.text_test_time_is_zero), Toast.LENGTH_SHORT).show();
+                    return -1;
+                }
             }
             properties.setProperty(getString(R.string.key_reboot_test_time), etRebootTimes.getText().toString());
             properties.setProperty(getString(R.string.key_is_reboot_testing), String.valueOf(false));
@@ -239,28 +236,11 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         return 0;
     }
 
-//    private class RebootTestFinishBroadcastReceiver extends BroadcastReceiver {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            Log.d(TAG, "onReceive: receiver the Reboot Test Finished Receiver");
-//            if (intent.hasExtra(getString(R.string.key_result))){
-//                Message msg = mHandler.obtainMessage();
-//                msg.what = MSG_ID_TEST_FINISHED;
-//                msg.obj = intent.getStringExtra(getString(R.string.key_result));
-//                Log.d(TAG, "onReceive: get the reboot test result path : "  + msg.obj.toString());
-//                msg.sendToTarget();
-//            }
-//        }
-//    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy: ============onDestroy===========");
-//        if (rebootTestFinishBroadcastReceiver != null){
-//            unregisterReceiver(rebootTestFinishBroadcastReceiver);
-//            rebootTestBinder.isRegister(false);
-//        }
         if (connection != null){
             unbindService(connection);
         }

@@ -136,11 +136,11 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
 
     private void getTestResult(){
         Intent intent = getIntent();
-        if (intent.hasExtra(getString(R.string.key_result))){
+        if (intent.hasExtra(getString(R.string.key_test_result_path))){
             Log.d(TAG, "getResultPath: get the network test result and show it");
             Message msg = mHandler.obtainMessage();
             msg.what = MSG_ID_TEST_FINISHED;
-            msg.obj = intent.getStringExtra(getString(R.string.key_result));
+            msg.obj = intent.getStringExtra(getString(R.string.key_test_result_path));
             msg.sendToTarget();
         }else {
             Log.d(TAG, "getResultPath: no network test result need to show");
@@ -201,6 +201,11 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
             if (TextUtils.isEmpty(etTestTime.getText().toString())){
                 Toast.makeText(this, getString(R.string.text_test_not_null), Toast.LENGTH_SHORT).show();
                 return -1;
+            }else {
+                if (Integer.parseInt(etTestTime.getText().toString()) == 0){
+                    Toast.makeText(this, getString(R.string.text_test_time_is_zero), Toast.LENGTH_SHORT).show();
+                    return -1;
+                }
             }
             properties.setProperty(getString(R.string.key_network_test_time), etTestTime.getText().toString());
             properties.store(outputStream, "NetWorkParameter");

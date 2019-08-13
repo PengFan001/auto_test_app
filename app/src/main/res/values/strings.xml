@@ -67,6 +67,7 @@
     <string name="text_test_title">测试标题</string>
     <string name="text_network_test_module">测试模式:</string>
     <string name="text_test_not_null">测试次数不能为空</string>
+    <string name="text_test_time_is_zero">测试次数为0，不开始测试</string>
     <string name="text_wait_time_not_null">等待时间不能为空</string>
     <string name="text_send_content_not_null">发送内容不能为空</string>
     <string name="text_duration_time_not_null">通话时间不能为空</string>
@@ -136,6 +137,8 @@
     <string name="key_name">name</string>
     <string name="key_module_test_time">module_test_time</string>
     <string name="key_sms_type">sms_type</string>
+    <string name="key_is_start_test">is_start_test</string>
+    <string name="key_is_testing">is_testing</string>
 
     <string name="reboot_times">重启次数: </string>
     <string name="reboot_default_value">1</string>

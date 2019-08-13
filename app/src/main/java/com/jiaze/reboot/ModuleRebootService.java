@@ -16,9 +16,12 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Properties;
 
 /**
  * =========================================
@@ -49,6 +52,7 @@ public class ModuleRebootService extends Service {
     private int downFailedTimes = 0;
     private static boolean isInTesting = false;
     private boolean isRunNextTime = false;
+    private boolean isStartTest = false;
     private PowerManager powerManager;
     private PowerManager.WakeLock mWakeLock;
     private String storeModuleTestResultDir;
@@ -65,14 +69,24 @@ public class ModuleRebootService extends Service {
         Log.d(TAG, "onCreate: the Module Reboot Test Service is Start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+        getTestParams();
+        if (isStartTest){
+            Log.d(TAG, "onCreate: isStartTest is true, start the test");
+            new ModuleRebootTestThread().start();
+        }else {
+            Log.d(TAG, "onCreate: isStartTest is false, need not do anythings");
+        }
     }
 
     class ModuleRebootBinder extends Binder{
         public void startTest(Bundle bundle){
+            isStartTest = true;
             moduleTestTime = bundle.getInt(getString(R.string.key_module_test_time));
             storeModuleTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the storeModuleTestResultDir = " + storeModuleTestResultDir);
-            new ModuleRebootTestThread().start();
+            saveTmpTestResult();
+            Constant.delLog(powerManager);
+            //new ModuleRebootTestThread().start();
         }
 
         public void stopTest(){
@@ -105,16 +119,25 @@ public class ModuleRebootService extends Service {
         @Override
         public void run() {
             super.run();
+            try {
+                Thread.sleep(5 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             mWakeLock.acquire();
             isInTesting = true;
+            Constant.openTTLog();
+            Constant.readTTLog(Constant.getTestResultFileName(storeModuleTestResultDir));
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();
             }
             isInTesting = false;
+            Constant.closeTTLog();
             showResultActivity(ModuleRebootActivity.class);
             Log.d(TAG, "run: finished the test, then will show you the test result");
             resetValue();
+            saveTmpTestResult();
         }
     }
 
@@ -224,7 +247,7 @@ public class ModuleRebootService extends Service {
     }
 
     private int getPowerState(){
-        Log.d(TAG, "run: reader the power state from the device");
+        Log.d(TAG, "getPowerState: reader the power state from the device");
         int state = -1;
         BufferedReader bufferedReader = null;
         FileReader fileReader = null;
@@ -232,7 +255,7 @@ public class ModuleRebootService extends Service {
         String line;
         File powerStateFile = new File(POWER_STATE_PATH);
         if (!powerStateFile.exists()){
-            Log.d(TAG, "run: the POWER_STATE_PATH is not exist, error");
+            Log.d(TAG, "getPowerState: the POWER_STATE_PATH is not exist, error");
             return state;
         }
         try {
@@ -241,21 +264,21 @@ public class ModuleRebootService extends Service {
             while ((line = bufferedReader.readLine()) != null){
                 builder.append(line);
             }
-            Log.d(TAG, "run: get the spower_key file value = " + builder.toString());
+            Log.d(TAG, "getPowerState: get the spower_key file value = " + builder.toString());
             state = Integer.parseInt(builder.toString());
             Log.d(TAG, "getPowerState: get the module state = " + state);
         } catch (FileNotFoundException e) {
-            Log.d(TAG, "run: read the FileReader Failed");
+            Log.d(TAG, "getPowerState: read the FileReader Failed");
             e.printStackTrace();
         } catch (IOException e) {
-            Log.d(TAG, "run: readLine error");
+            Log.d(TAG, "getPowerState: readLine error");
             e.printStackTrace();
         }finally {
             if (bufferedReader != null){
                 try {
                     bufferedReader.close();
                 } catch (IOException e) {
-                    Log.d(TAG, "run: close the Reader buffer");
+                    Log.d(TAG, "getPowerState: close the Reader buffer");
                     e.printStackTrace();
                 }
             }
@@ -268,6 +291,48 @@ public class ModuleRebootService extends Service {
         Intent intent = new Intent("com.jiaze.action.MODULE_POWER_STATE_CHANGE");
         intent.putExtra("state", state);
         sendBroadcast(intent);
+    }
+
+    private void getTestParams(){
+        Properties properties = Constant.loadTestParameter(this, MODULE_TEST_PARAMS_SAVE_PATH);
+        moduleTestTime = Integer.parseInt(properties.getProperty(getString(R.string.key_module_test_time), "0"));
+        storeModuleTestResultDir = properties.getProperty(getString(R.string.key_test_result_path), null);
+        isStartTest = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_start_test), "false"));
+        Log.d(TAG, "getTestParams: moduleTestTime = " + moduleTestTime + "   isStartTest = " + isStartTest + "    storeModuleTestResultDir = " + storeModuleTestResultDir);
+    }
+
+    private void saveTmpTestResult(){
+        Properties properties = new Properties();
+        String fileDir = getFilesDir().getAbsolutePath() + "/" + MODULE_TEST_PARAMS_SAVE_PATH;
+        File file = new File(fileDir);
+        if (!file.exists()){
+            try {
+                file.createNewFile();
+                Log.d(TAG, "saveTmpTestResult: Create the tmp test Result file success");
+            }catch (IOException e){
+                Log.d(TAG, "saveTmpTestResult: Create the tmp test Result file Failed");
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            OutputStream outputStream = new FileOutputStream(file);
+            properties.setProperty(getString(R.string.key_module_test_time), String.valueOf(moduleTestTime));
+            properties.setProperty(getString(R.string.key_test_result_path), storeModuleTestResultDir);
+            properties.setProperty(getString(R.string.key_is_start_test), String.valueOf(isStartTest));
+            properties.store(outputStream, "save the Module reboot test tmp test result");
+            if (outputStream != null){
+                outputStream.close();
+            }
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "saveTmpTestResult: open module reboot test param file failed ");
+            e.printStackTrace();
+        } catch (IOException e) {
+            Log.d(TAG, "saveTmpTestResult: store the module reboot properties failed");
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "saveTmpTestResult: Succeed save the module reboot test result of PS test");
     }
 
     private void saveModuleTestResult(){
@@ -346,6 +411,8 @@ public class ModuleRebootService extends Service {
         downTimes = 0;
         downSuccessTimes = 0;
         downFailedTimes = 0;
+        isStartTest = false;
+        isInTesting = false;
     }
 
     @Override

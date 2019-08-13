@@ -19,7 +19,13 @@ import com.jiaze.autotestapp.R;
 import com.jiaze.common.AutoTestService;
 import com.jiaze.common.Constant;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Properties;
 
 
 /**
@@ -36,6 +42,7 @@ public class SmsTestService extends AutoTestService {
     private static final String TEST_PARAM = "SmsTest";
     private static final String SMS_SENT_ACTION = "com.jiaze.action.SMS_SENT_ACTION";
     private static final String SMS_DELIVERED_ACTION = "com.jiaze.action.SMS_DELIVERED_ACTION";
+    public static final String SMS_TEST_PARAMS_SAVE_PATH = "SmsTestParams";
 
     public static final int MSG_ID_WAIT_RESULT_TIMEOUT = 1;
     public static final int MSG_ID_SMS_SENT_SUCCESS = 2;
@@ -99,6 +106,13 @@ public class SmsTestService extends AutoTestService {
         Log.d(TAG, "onCreate: SmsTestService is Start");
         smsManager = SmsManager.getDefault();
         registerSmsDeliverReceiver();
+        getTestParams();
+        if (isStartTest){
+            Log.d(TAG, "onCreate: isStartTest is true, start test");
+            new TestThread().start();
+        }else {
+            Log.d(TAG, "onCreate: isStartTest is false, need not do anythings");
+        }
     }
 
     @Override
@@ -281,5 +295,59 @@ public class SmsTestService extends AutoTestService {
     @Override
     protected Class<?> getResultActivity() {
         return SmsTestActivity.class;
+    }
+
+    @Override
+    protected void saveTmpTestResult() {
+        Properties properties = new Properties();
+        String fileDir = getFilesDir().getAbsolutePath() + "/" + SMS_TEST_PARAMS_SAVE_PATH;
+        File file = new File(fileDir);
+        if (!file.exists()){
+            try {
+                file.createNewFile();
+                Log.d(TAG, "saveTmpTestResult: Create the tmp test Result file success");
+            }catch (IOException e){
+                Log.d(TAG, "saveTmpTestResult: Create the tmp test Result file Failed");
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            OutputStream outputStream = new FileOutputStream(file);
+            properties.setProperty(getString(R.string.key_test_times), String.valueOf(testTimes));
+            properties.setProperty(getString(R.string.key_phone), phoneNumber);
+            properties.setProperty(getString(R.string.key_wait_sms_result_time), String.valueOf(waitTimeout));
+            properties.setProperty(getString(R.string.key_sms_string), smsBody);
+            properties.setProperty(getString(R.string.key_is_testing), String.valueOf(isInTesting));
+            properties.setProperty(getString(R.string.key_is_start_test), String.valueOf(isStartTest));
+            properties.setProperty(getString(R.string.key_test_result_path), storeTestResultDir);
+            properties.store(outputStream, "save the sms test tmp test result");
+            if (outputStream != null){
+                outputStream.close();
+            }
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "saveTmpTestResult: open sms test param file failed ");
+            e.printStackTrace();
+        } catch (IOException e) {
+            Log.d(TAG, "saveTmpTestResult: store the sms properties failed");
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "saveTmpTestResult: Succeed save the tmp test result of PS test");
+    }
+
+    @Override
+    protected void getTestParams() {
+        Properties properties = Constant.loadTestParameter(this, SMS_TEST_PARAMS_SAVE_PATH);
+        testTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_test_times), "0"));
+        storeTestResultDir = properties.getProperty(getString(R.string.key_test_result_path), null);
+        isStartTest = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_start_test), "false"));
+        waitTimeout = Integer.parseInt(properties.getProperty(getString(R.string.key_wait_time), "0"));
+        isInTesting = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_testing), "false"));
+        phoneNumber = properties.getProperty(getString(R.string.key_phone));
+        smsBody = properties.getProperty(getString(R.string.key_sms_string));
+        Log.d(TAG, "getTestParams: testTimes = " + testTimes + "   isStartTest = " + isStartTest + "   isInTesting = " + isInTesting);
+        Log.d(TAG, "getTestParams: waitTimeout = " + waitTimeout + "   storeTestResultDir = " + storeTestResultDir + "   phoneNumber = " + phoneNumber);
+        Log.d(TAG, "getTestParams: smsBody = " + smsBody);
     }
 }

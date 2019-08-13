@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
 
     private int[] mAppIcons = {
             R.mipmap.icon_kaiguanji, R.mipmap.con_sim, R.mipmap.icon_ruwang, R.mipmap.icon_yuyingtonghua,
-            R.mipmap.icon_feixingmoshi, R.mipmap.icon_message, R.mipmap.icon_psyewu, R.mipmap.icon_ceshi
+            R.mipmap.icon_feixingmoshi, R.mipmap.icon_message, R.mipmap.icon_psyewu, R.mipmap.icon_ceshi, R.mipmap.icon_tongyong
     };
 
     private String[] mAppNames = new String[8];

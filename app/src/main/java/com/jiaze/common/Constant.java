@@ -19,6 +19,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -346,11 +347,11 @@ public class Constant {
         }
 
         BufferedWriter bufferedWriter = null;
-        FileWriter fileWriter = null;
+        //FileWriter fileWriter = null;
 
         try {
-            fileWriter = new FileWriter(file);
-            bufferedWriter = new BufferedWriter(fileWriter);
+            //fileWriter = new FileWriter(file);
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true)));
             bufferedWriter.write(ttLog);
             Log.d(TAG, "saveTTLog: Save the ttLog Success");
         } catch (IOException e) {
@@ -360,7 +361,7 @@ public class Constant {
             if (bufferedWriter != null){
                 try {
                     bufferedWriter.close();
-                    fileWriter.close();
+                    //fileWriter.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -382,11 +383,11 @@ public class Constant {
         }
 
         BufferedWriter bufferedWriter = null;
-        FileWriter fileWriter = null;
+        //FileWriter fileWriter = null;
 
         try {
-            fileWriter = new FileWriter(file);
-            bufferedWriter = new BufferedWriter(fileWriter);
+            //fileWriter = new FileWriter(file);
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true)));
             bufferedWriter.write(ttLog);
             Log.d(TAG, "saveTTLog: Save the ttLog Success");
         } catch (IOException e) {
@@ -396,7 +397,7 @@ public class Constant {
             if (bufferedWriter != null){
                 try {
                     bufferedWriter.close();
-                    fileWriter.close();
+                    //fileWriter.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -456,7 +457,7 @@ public class Constant {
     /**
      * 将读取到的TT log 存储到data/local/log目录下
      */
-    public static void readTTLog(){
+    public static void readTTLog(final String fileName){
 
         new Thread(new Runnable() {
             @Override
@@ -465,15 +466,12 @@ public class Constant {
                 BufferedReader bufferedReader = null;
                 try {
                     bufferedReader = new BufferedReader(new FileReader(TT_LOG_PORT));
-                    StringBuilder builder = new StringBuilder();
                     String log;
                     while (((log = bufferedReader.readLine()) != null) && isRead){
                         Log.d(TAG, "run: isRead = " + isRead +" ==== log ==== " + log);
-                        builder.append(log);
-                        builder.append("\r\n");
-                        saveTTLog(builder.toString());
+                        saveTTLog(log + "\n");
                     }
-                    Log.d(TAG, "run: save the ttLog Success get the ttLog = " + builder.toString());
+                    zipLog(fileName);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                     Log.d(TAG, "readTTLog: Open the BufferReader Failed");
@@ -497,7 +495,7 @@ public class Constant {
      * 将读到的TT log 存储到你自定义的目录下面
      * @param saveDir 自定义的存储路径
      */
-    public static void readTTLog(final String saveDir){
+    public static void readTTLog(final String saveDir, final String fileName){
 
         new Thread(new Runnable() {
             @Override
@@ -506,15 +504,17 @@ public class Constant {
                 BufferedReader bufferedReader = null;
                 try {
                     bufferedReader = new BufferedReader(new FileReader(TT_LOG_PORT));
-                    StringBuilder builder = new StringBuilder();
+                    //StringBuilder builder = new StringBuilder();
                     String log;
                     while (((log = bufferedReader.readLine()) != null) && isRead){
                         Log.d(TAG, "run: isRead = " + isRead +" ==== log ==== " + log);
-                        builder.append(log);
-                        builder.append("\r\n");
+                        //builder.append(log);
+                        //builder.append("\r\n");
+                        saveTTLog(saveDir, log);
                     }
-                    saveTTLog(saveDir, builder.toString());
-                    Log.d(TAG, "run: save the ttLog Success get the ttLog = " + builder.toString());
+                    //saveTTLog(saveDir, builder.toString());
+                    //Log.d(TAG, "run: save the ttLog Success get the ttLog = " + builder.toString());
+                    zipLog(fileName);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                     Log.d(TAG, "readTTLog: Open the BufferReader Failed");

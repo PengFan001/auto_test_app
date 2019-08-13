@@ -19,8 +19,12 @@ import com.jiaze.common.Constant;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Properties;
 
 /**
  * =========================================
@@ -56,7 +60,7 @@ public class PsTestService extends Service {
     private int networkState = 0; //默认设置为未连接
     private String psState = null;
     private String storePsTestResultDir;
-    private String ttLogDir;
+    private boolean isStartTest = false;
     private boolean runNextTime = false;
     private boolean waitConnect = false;
     private TelephonyManager telephonyManager;
@@ -94,6 +98,13 @@ public class PsTestService extends Service {
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+        getTestParams();
+        if (isStartTest){
+            Log.d(TAG, "onCreate: isStartTest is true, start the test");
+            new PsTestThread().start();
+        }else {
+            Log.d(TAG, "onCreate: isStartTest is false, need not do anything");
+        }
     }
 
     @Override
@@ -104,11 +115,14 @@ public class PsTestService extends Service {
     /**有关PSTestService所提供的服务**/
     class PsTestBinder extends Binder{
         public void startTest(Bundle bundle){
+            isStartTest = true;
             psTestTimes = bundle.getInt(getString(R.string.key_ps_test_time), 1);
             Log.d(TAG, "startTest: psTestTimes = " + psTestTimes);
             storePsTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the storePsTestResultDir success : " + storePsTestResultDir);
-            new PsTestThread().start();
+            saveTmpTestResult();
+            Constant.delLog(powerManager);
+            //new PsTestThread().start();
         }
 
         public void stopTest(){
@@ -162,24 +176,24 @@ public class PsTestService extends Service {
         @Override
         public void run() {
             super.run();
+            try {
+                Thread.sleep(5 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             Log.d(TAG, "run: start ps Test");
             mWakeLock.acquire();
             isInTesting = true;
             Constant.openTTLog();
-            Constant.readTTLog();
+            Constant.readTTLog(Constant.getTestResultFileName(storePsTestResultDir));
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();
             }
             isInTesting = false;
             Constant.closeTTLog();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Constant.zipLog(Constant.getTestResultFileName(storePsTestResultDir));
-                }
-            }).start();
             resetTestValue();
+            saveTmpTestResult();
             showResultActivity(PsTestActivity.class);
             Log.d(TAG, "run: finished the test, then will show you the Ps Test Result");
         }
@@ -397,6 +411,48 @@ public class PsTestService extends Service {
         }
     }
 
+    private void getTestParams(){
+        Properties properties = Constant.loadTestParameter(this, PS_TEST_PARAM_SAVE_PATH);
+        psTestTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_ps_test_time), "0"));
+        storePsTestResultDir = properties.getProperty(getString(R.string.key_test_result_path), null);
+        isStartTest = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_start_test), "false"));
+        Log.d(TAG, "getTestParams: psTestTimes = " + psTestTimes + "   isStartTest = " + isStartTest + "    storePsTestResultDir = " + storePsTestResultDir);
+    }
+
+    private void saveTmpTestResult(){
+        Properties properties = new Properties();
+        String fileDir = getFilesDir().getAbsolutePath() + "/" + PS_TEST_PARAM_SAVE_PATH;
+        File file = new File(fileDir);
+        if (!file.exists()){
+            try {
+                file.createNewFile();
+                Log.d(TAG, "saveTmpTestResult: Create the tmp test Result file success");
+            }catch (IOException e){
+                Log.d(TAG, "saveTmpTestResult: Create the tmp test Result file Failed");
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            OutputStream outputStream = new FileOutputStream(file);
+            properties.setProperty(getString(R.string.key_ps_test_time), String.valueOf(psTestTimes));
+            properties.setProperty(getString(R.string.key_test_result_path), storePsTestResultDir);
+            properties.setProperty(getString(R.string.key_is_start_test), String.valueOf(isStartTest));
+            properties.store(outputStream, "save the ps test tmp test result");
+            if (outputStream != null){
+                outputStream.close();
+            }
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "saveTmpTestResult: open ps test param file failed ");
+            e.printStackTrace();
+        } catch (IOException e) {
+            Log.d(TAG, "saveTmpTestResult: store the ps properties failed");
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "saveTmpTestResult: Succeed save the tmp test result of PS test");
+    }
+
     private void resetTestValue(){
         psTestTimes = 0;
         successTime = 0;
@@ -409,6 +465,7 @@ public class PsTestService extends Service {
         closeSuccessTimes = 0;
         closeFailedTimes = 0;
         isInTesting = false;
+        isStartTest = false;
     }
 
     private void showResultActivity(Class<?> resultActivity){

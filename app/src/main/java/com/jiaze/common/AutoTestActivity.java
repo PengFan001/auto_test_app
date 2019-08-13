@@ -133,11 +133,11 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        bindAutoTestService();
         mTable = new TableContainer(this);
         mTable.getmTableLayout().setOrientation(TableLayout.VERTICAL);
         setContentView(mTable.getmContainerLayout());
         initUI();
+        bindAutoTestService();
     }
 
     private void bindAutoTestService(){
@@ -153,6 +153,7 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
 //            Message isTestingMsg = mHandler.obtainMessage();
 //            isTestingMsg.what = MSG_ID_TEST_FINISHED;
 
+            getTestResult();
             if (mAutoTestService.isInTesting()){
                 btnStart.setText(R.string.btn_stop_test);
             }else {
@@ -166,6 +167,20 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
             mAutoTestService = null;
         }
     };
+
+
+    private void getTestResult(){
+        Intent intent = getIntent();
+        if (intent.hasExtra(getString(R.string.key_result))){
+            Log.d(TAG, "getResultPath: get the test result and show it");
+            Message msg = mHandler.obtainMessage();
+            msg.what = MSG_ID_TEST_FINISHED;
+            msg.obj = intent.getStringExtra(getString(R.string.key_result));
+            msg.sendToTarget();
+        }else {
+            Log.d(TAG, "getResultPath: no test result need to show");
+        }
+    }
 
     @Override
     protected void onDestroy() {
@@ -196,18 +211,4 @@ public abstract class AutoTestActivity extends Activity implements View.OnClickL
             }
         }
     }
-
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//    }
-
-
-//    private void setPermissionAboutApp(){
-//        Toast.makeText(this, "Please get me the grant", Toast.LENGTH_SHORT).show();
-//        Intent grantIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-//        Uri uri = Uri.fromParts("package", getPackageName(), null);
-//        grantIntent.setData(uri);
-//        startActivity(grantIntent);
-//    }
 }

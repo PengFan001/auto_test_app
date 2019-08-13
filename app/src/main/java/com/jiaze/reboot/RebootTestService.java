@@ -46,7 +46,7 @@ public class RebootTestService extends Service {
     private boolean runNextTime = false;
     private static boolean isReboot = false;
     private static boolean isStop = false;
-//    private static boolean isRegister = false;
+    private boolean isStartTest = false;
     private PowerManager powerManager;
     private String storeRebootTestResultDir;
     private String command = "AT+CFUN?\r\n";
@@ -96,20 +96,40 @@ public class RebootTestService extends Service {
         Log.d(TAG, "onCreate: the RebootTestService is start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         getTestParameter();
-        if (isTesting){
+        if (isStartTest){
             atSender = new AtSender(this, mHandler);
-            Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
-            int sendResult = atSender.sendATCommand(command, message, false);
-            if (sendResult == -1){
-                Log.d(TAG, "onCreate: open the device dev/STTYEMS42 failer, The Test was suspend, please Check the device module");
-                isTesting = false;
-                resetTestValue();
-                saveTestParamsAndTmpResult();
-            }else {
-                Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
-            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (isTesting){
+                        try {
+                            Thread.sleep(5 * 1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        Log.d(TAG, "onCreate: continue the last time test, rebootTestTime = " + rebootTestTime);
+                        Constant.openTTLog();
+                        Constant.readTTLog(Constant.getTestResultFileName(storeRebootTestResultDir));
+                        Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
+                        int sendResult = atSender.sendATCommand(command, message, false);
+                        if (sendResult == -1){
+                            Log.d(TAG, "onCreate: open the device dev/STTYEMS42 failed, The Test was suspend, please Check the device module");
+                            isTesting = false;
+                            resetTestValue();
+                            saveTestParamsAndTmpResult();
+                        }else {
+                            Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
+                        }
+                    }else {
+                        Log.d(TAG, "onCreate: isStartTest is true, start the test");
+                        new RebootTestThread().start();
+                    }
+                }
+            }).start();
+        }else {
+            Log.d(TAG, "onCreate: isStartTest is false, need not do anything");
+            resetTestValue();
         }
-
     }
 
     @Override
@@ -120,7 +140,7 @@ public class RebootTestService extends Service {
 
     private void continueTest(){
         try {
-            Thread.sleep(3 * 1000);
+            Thread.sleep(2 * 1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -142,23 +162,25 @@ public class RebootTestService extends Service {
     class RebootTestBinder extends Binder{
         public void startTest(Bundle bundle){
             isStop = false;
+            isStartTest = true;
             rebootTestTime = bundle.getInt(getString(R.string.key_reboot_test_time));
             storeRebootTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the Reboot Test Result Save Path : " + storeRebootTestResultDir);
-            new RebootTestThread().start();
+            saveTestParamsAndTmpResult();
+            Constant.delLog(powerManager);
+            //new RebootTestThread().start();
         }
 
         public void stopTest(){
             isTesting = false;
+            isStartTest = false;
+            saveTestParamsAndTmpResult();
         }
 
         public boolean isInTesting(){
             return isTesting;
         }
 
-//        public void isRegister(boolean registered){
-//            isRegister = registered;
-//        }
     }
 
     class RebootTestThread extends Thread{
@@ -170,8 +192,11 @@ public class RebootTestService extends Service {
         public void run() {
             super.run();
             isTesting = true;
+            Constant.openTTLog();
+            Constant.readTTLog(Constant.getTestResultFileName(storeRebootTestResultDir));
             runLogical();
             isTesting = false;
+            Constant.closeTTLog();
             Log.d(TAG, "run: isTesting = " + isTesting);
             showResultActivity(RebootTestActivity.class);
             Log.d(TAG, "run: finished the test, then will show you test result");
@@ -187,8 +212,9 @@ public class RebootTestService extends Service {
         totalRunTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_reboot_run_time), "0"));
         rebootSuccessTime = Integer.parseInt(properties.getProperty(getString(R.string.key_reboot_success_time), "0"));
         rebootFailedTime = Integer.parseInt(properties.getProperty(getString(R.string.key_reboot_failed_time), "0"));
+        isStartTest = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_start_test), "false"));
         storeRebootTestResultDir = properties.getProperty(getString(R.string.key_test_result_path));
-        Log.d(TAG, "getTestParameter: rebootTestTime = " + rebootTestTime + "      isTesting = " + isTesting);
+        Log.d(TAG, "getTestParameter: rebootTestTime = " + rebootTestTime + "   isStartTest = " + isStartTest + "      isTesting = " + isTesting);
         Log.d(TAG, "getTestParameter: totalRunTimes = " + totalRunTimes + "       rebootSuccessTime = " + rebootSuccessTime + "       rebootFailedTime = " + rebootFailedTime);
     }
 
@@ -244,29 +270,6 @@ public class RebootTestService extends Service {
         }
 
         isStop = true;
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                Log.d(TAG, "run: isRegister = " + isRegister);
-//                while (!isRegister){
-//                    try {
-//                        Thread.sleep(1000);
-//                        Log.d(TAG, "run: wait the registered broadcast ");
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                    if (isRegister){
-//                        Intent broadcastIntent = new Intent("com.jiaze.action.REBOOT_TEST_FINISHED");
-//                        broadcastIntent.putExtra(getString(R.string.key_result), storeRebootTestResultDir + "/" + "testResult");
-//                        sendBroadcast(broadcastIntent);
-//                        Log.d(TAG, "showResultActivity: Send the showResult broadcast");
-//                        Log.d(TAG, "run: stop waiting register broadcast");
-//                        break;
-//                    }
-//                }
-//            }
-//        }).start();
 
         saveRebootTestResult();
     }
@@ -293,6 +296,7 @@ public class RebootTestService extends Service {
             properties.setProperty(getString(R.string.key_reboot_failed_time), String.valueOf(rebootFailedTime));
             properties.setProperty(getString(R.string.key_reboot_run_time), String.valueOf(totalRunTimes));
             properties.setProperty(getString(R.string.key_is_reboot_testing), String.valueOf(isTesting));
+            properties.setProperty(getString(R.string.key_is_start_test), String.valueOf(isStartTest));
             properties.store(outputStream, "finished one time reboot test");
             if (outputStream != null){
                 outputStream.close();
@@ -359,6 +363,7 @@ public class RebootTestService extends Service {
         rebootFailedTime = 0;
         isTesting = false;
         rebootTestTime = 0;
+        isStartTest = false;
     }
 
     @Override

@@ -7,16 +7,21 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.telephony.PhoneStateListener;
-import android.telephony.CallStateListener;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
-import com.android.internal.telephony.Call;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.common.AutoTestService;
 import com.jiaze.common.Constant;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Properties;
 
 
 /**
@@ -31,14 +36,13 @@ public class CallTestService extends AutoTestService {
 
     private static final String TEST_PARAM = "CallTest";
     public static final String TAG = "CallTestService";
+    public static final String CALL_TEST_PARAMS_SAVE_PATH = "CallTestParams";
 
     public static final int MSG_ID_CALL_OFF_HOOK = 2;
     public static final int MSG_ID_CALL_IDLE = 0;
     public static final int MSG_ID_CALL_RINGING = 1;
     public static final int MSG_ID_WAIT_TIMEOUT = 4;
     public static final int MSG_ID_DURATION_TIMEOUT = 5;
-//    public static final int MSG_ID_CALL_DIALING = 6; //已拨号
-//    public static final int MSG_ID_CALL_ACTIVE = 7; //进行通话中
 
 
     private TelephonyManager telephonyManager;
@@ -77,20 +81,6 @@ public class CallTestService extends AutoTestService {
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
-//                case MSG_ID_CALL_DIALING:
-//                    Log.d(TAG, "handleMessage: MSG_ID_CALL_DIALING, Call the Phone Success");
-//                    successCount++;
-//                    break;
-//
-//                case MSG_ID_CALL_ACTIVE:
-//                    Log.d(TAG, "handleMessage: MSG_ID_CALL_ACTIVE, now is in the comunication");
-//                    if (mHandler != null && waitTimeOutCalculate != null) {
-//                        mHandler.removeCallbacks(waitTimeOutCalculate);
-//                        Log.d(TAG, "handleMessage: MSG_ID_CALL_ACTIVE : remove the waitTimeOutCalculate");
-//                    }
-//                    Log.d(TAG, "======dispatchMessage: the phone is Calling, start the calculate the duration time，SuccessTime + 1:" + successCount);
-//                    mHandler.postDelayed(durationTimeOutCalculate, durationTimeOutTimes * 1000);
-//                    break;
 
                 case MSG_ID_CALL_OFF_HOOK:
                     if (isInTesting){
@@ -166,29 +156,18 @@ public class CallTestService extends AutoTestService {
         }
     };
 
-//    CallStateListener callStateListener = new CallStateListener(){
-//        @Override
-//        public void onCallStateChanged(int callId, int state, String number){
-//            super.onCallStateChanged(callId, state, number);
-//            Log.d(TAG, "onCallStateChanged: get the call state = " + state);
-//            switch (state){
-//                case Call.State.DIALING:
-//                    mHandler.sendEmptyMessage(MSG_ID_CALL_DIALING);
-//                    break;
-//
-//                case Call.State.ACTIVE:
-//                    mHandler.sendEmptyMessage(MSG_ID_CALL_ACTIVE);
-//                    break;
-//            }
-//        }
-//    };
-
     @Override
     public void onCreate() {
         super.onCreate();
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
-//        telephonyManager.addCallStateListener(callStateListener);
+        getTestParams();
+        if (isStartTest){
+            Log.d(TAG, "onCreate: isStarttest is true, start the test");
+            new TestThread().start();
+        }else{
+            Log.d(TAG, "onCreate: isStartTest is false, need not do anythings");
+        }
     }
 
     @Override
@@ -257,5 +236,58 @@ public class CallTestService extends AutoTestService {
     @Override
     protected Class<?> getResultActivity() {
         return CallTestActivity.class;
+    }
+
+    @Override
+    protected void saveTmpTestResult() {
+        Properties properties = new Properties();
+        String fileDir = getFilesDir().getAbsolutePath() + "/" + CALL_TEST_PARAMS_SAVE_PATH;
+        File file = new File(fileDir);
+        if (!file.exists()){
+            try {
+                file.createNewFile();
+                Log.d(TAG, "saveTmpTestResult: Create the tmp test Result file success");
+            }catch (IOException e){
+                Log.d(TAG, "saveTmpTestResult: Create the tmp test Result file Failed");
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            OutputStream outputStream = new FileOutputStream(file);
+            properties.setProperty(getString(R.string.key_test_times), String.valueOf(runTimes));
+            properties.setProperty(getString(R.string.key_phone), phone);
+            properties.setProperty(getString(R.string.key_wait_time), String.valueOf(waitTimeOutTimes));
+            properties.setProperty(getString(R.string.key_duration_time), String.valueOf(durationTimeOutTimes));
+            properties.setProperty(getString(R.string.key_is_testing), String.valueOf(isInTesting));
+            properties.setProperty(getString(R.string.key_is_start_test), String.valueOf(isStartTest));
+            properties.setProperty(getString(R.string.key_test_result_path), storeTestResultDir);
+            properties.store(outputStream, "save the call test tmp test result");
+            if (outputStream != null){
+                outputStream.close();
+            }
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "saveTmpTestResult: open call test param file failed ");
+            e.printStackTrace();
+        } catch (IOException e) {
+            Log.d(TAG, "saveTmpTestResult: store the call properties failed");
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "saveTmpTestResult: Succeed save the tmp test result of PS test");
+    }
+
+    @Override
+    protected void getTestParams() {
+        Properties properties = Constant.loadTestParameter(this, CALL_TEST_PARAMS_SAVE_PATH);
+        runTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_test_times), "0"));
+        storeTestResultDir = properties.getProperty(getString(R.string.key_test_result_path), null);
+        isStartTest = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_start_test), "false"));
+        waitTimeOutTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_wait_time), "0"));
+        durationTimeOutTimes = Integer.parseInt(properties.getProperty(getString(R.string.key_duration_time), "0"));
+        isInTesting = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_testing), "false"));
+        phone = properties.getProperty(getString(R.string.key_phone));
+        Log.d(TAG, "getTestParams: testTimes = " + runTimes + "   isStartTest = " + isStartTest + "   isInTesting = " + isInTesting + "    storeTestResultDir = " + storeTestResultDir);
+        Log.d(TAG, "getTestParams: phone = " + phone + "   waitTimeOutTimes = " + waitTimeOutTimes + "    durationTimeOutTimes = " + durationTimeOutTimes);
     }
 }
