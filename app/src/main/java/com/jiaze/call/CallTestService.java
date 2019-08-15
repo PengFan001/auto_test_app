@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -161,13 +162,13 @@ public class CallTestService extends AutoTestService {
         super.onCreate();
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
-        getTestParams();
-        if (isStartTest){
-            Log.d(TAG, "onCreate: isStarttest is true, start the test");
-            new TestThread().start();
-        }else{
-            Log.d(TAG, "onCreate: isStartTest is false, need not do anythings");
-        }
+//        getTestParams();
+//        if (isStartTest){
+//            Log.d(TAG, "onCreate: isStarttest is true, start the test");
+//            new TestThread().start();
+//        }else{
+//            Log.d(TAG, "onCreate: isStartTest is false, need not do anythings");
+//        }
     }
 
     @Override
@@ -199,7 +200,7 @@ public class CallTestService extends AutoTestService {
                     e.printStackTrace();
                 }
             }
-            storeTestResult();
+            storeTestResult(CALL_TEST_RESULT_FILENAME);
             Log.d(TAG, "runTestLogic: =========finished the one test======");
         }
     }
@@ -220,14 +221,17 @@ public class CallTestService extends AutoTestService {
 
     @Override
     protected int initTestParams(Bundle bundle) {
-        storeTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
+
+        boolean isCombinationTest = bundle.getBoolean(getString(R.string.key_is_combination_test), false);
+        if (!isCombinationTest){
+            storeTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
+        }
         Log.d(TAG, "initTestParams: get the testResult dir : " + storeTestResultDir);
         runTimes = bundle.getInt(getString(R.string.key_test_times));
         waitTimeOutTimes = bundle.getInt(getString(R.string.key_wait_time));
         durationTimeOutTimes = bundle.getInt(getString(R.string.key_duration_time));
         phone = bundle.getString(getString(R.string.key_phone));
-        if (TextUtils.isEmpty(phone)){
-            Toast.makeText(this, R.string.text_phone_null, Toast.LENGTH_SHORT).show();
+        if (!PhoneNumberUtils.isGlobalPhoneNumber(phone)){
             return -1;
         }
         return 0;

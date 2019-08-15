@@ -106,13 +106,13 @@ public class SmsTestService extends AutoTestService {
         Log.d(TAG, "onCreate: SmsTestService is Start");
         smsManager = SmsManager.getDefault();
         registerSmsDeliverReceiver();
-        getTestParams();
-        if (isStartTest){
-            Log.d(TAG, "onCreate: isStartTest is true, start test");
-            new TestThread().start();
-        }else {
-            Log.d(TAG, "onCreate: isStartTest is false, need not do anythings");
-        }
+//        getTestParams();
+//        if (isStartTest){
+//            Log.d(TAG, "onCreate: isStartTest is true, start test");
+//            new TestThread().start();
+//        }else {
+//            Log.d(TAG, "onCreate: isStartTest is false, need not do anythings");
+//        }
     }
 
     @Override
@@ -145,7 +145,7 @@ public class SmsTestService extends AutoTestService {
                 }
             }
 
-            storeTestResult();
+            storeTestResult(SMS_TEST_RESULT_FILENAME);
         }
         unregisterSmsResultReceiver();
     }
@@ -265,15 +265,17 @@ public class SmsTestService extends AutoTestService {
 
     @Override
     protected int initTestParams(Bundle bundle) {
-        storeTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
+        boolean isCombinationTest = bundle.getBoolean(getString(R.string.key_is_combination_test), false);
+        if (!isCombinationTest){
+            storeTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
+        }
         Log.d(TAG, "initTestParams: get the testResult dir = " + storeTestResultDir);
         testTimes = bundle.getInt(getString(R.string.key_test_times), 0);
         waitTimeout = bundle.getInt(getString(R.string.key_wait_sms_result_time), 20);
         phoneNumber = bundle.getString(getString(R.string.key_phone), null);
         smsBody = bundle.getString(getString(R.string.key_sms_string), "Hello World");
-        Log.d(TAG, "initTestParams: smsBody = " + smsBody);
+        Log.d(TAG, "initTestParams: phoneNumber = " + phoneNumber + "    smsBody = " + smsBody);
         if (!PhoneNumberUtils.isGlobalPhoneNumber(phoneNumber)){
-            Toast.makeText(getApplicationContext(), "Invalid Phone Number", Toast.LENGTH_SHORT).show();
             return -1;
         }
 

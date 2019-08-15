@@ -143,7 +143,6 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
             case R.id.reboot_btn:
                 if (btnTest.getText().equals(getString(R.string.btn_start_test))){
                     if (saveTestParams() == 0){
-                        saveTestParams();
                         btnTest.setText(R.string.btn_stop_test);
                         rebootTestBinder.startTest(getTestParameter());
                     }else {

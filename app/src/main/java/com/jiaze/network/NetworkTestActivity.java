@@ -45,8 +45,6 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
     private RadioGroup rgTestModule;
     private RadioButton rbtnChecked;
     private NetworkTestService.NetworkTestBinder networkTestBinder;
-//    private IntentFilter intentFilter;
-//    private NetworkTestFinishedBroadcast networkTestFinishedBroadcast;
 
     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
@@ -122,11 +120,7 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
                 Log.d(TAG, "onCheckedChanged: get the checked module = " + rbtnChecked.getText().toString());
             }
         });
-//        intentFilter = new IntentFilter("com.jiaze.action.NETWORK_TEST_FINISHED");
-//        networkTestFinishedBroadcast = new NetworkTestFinishedBroadcast();
-//        registerReceiver(networkTestFinishedBroadcast, intentFilter);
-//        Log.d(TAG, "onCreate: register the networkTestFinishedBroadcast");
-        bindNetworkTestService();
+       bindNetworkTestService();
     }
 
     private void bindNetworkTestService(){
@@ -231,7 +225,6 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
             case R.id.network_start_btn:
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
                     if (saveTestParams() == 0){
-                        saveTestParams();
                         networkTestBinder.startTest(getTestParameter());
                         btnStart.setText(getString(R.string.btn_stop_test));
                     }else {
@@ -246,28 +239,9 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
         }
     }
 
-//    class NetworkTestFinishedBroadcast extends BroadcastReceiver{
-//
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            Log.d(TAG, "onReceive: receiver the network test finished broadcast");
-//            if (intent.hasExtra(getString(R.string.key_result))){
-//                Message msg = mHandler.obtainMessage();
-//                msg.what = MSG_ID_TEST_FINISHED;
-//                msg.obj = intent.getStringExtra(getString(R.string.key_result));
-//                Log.d(TAG, "onReceive: get the sim test result path : "  + msg.obj.toString());
-//                msg.sendToTarget();
-//            }
-//        }
-//    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
-//        if (networkTestFinishedBroadcast != null){
-//            unregisterReceiver(networkTestFinishedBroadcast);
-//            networkTestBinder.isRegistered(false);
-//        }
         if (connection != null){
             unbindService(connection);
         }

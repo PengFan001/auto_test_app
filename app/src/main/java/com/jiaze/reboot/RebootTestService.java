@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.jiaze.at.AtSender;
 import com.jiaze.autotestapp.R;
+import com.jiaze.combination.CombinationTestService;
 import com.jiaze.common.Constant;
 
 import java.io.BufferedWriter;
@@ -96,40 +97,94 @@ public class RebootTestService extends Service {
         Log.d(TAG, "onCreate: the RebootTestService is start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         getTestParameter();
-        if (isStartTest){
+        if (isTesting){
             atSender = new AtSender(this, mHandler);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    if (isTesting){
-                        try {
-                            Thread.sleep(5 * 1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        Log.d(TAG, "onCreate: continue the last time test, rebootTestTime = " + rebootTestTime);
-                        Constant.openTTLog();
-                        Constant.readTTLog(Constant.getTestResultFileName(storeRebootTestResultDir));
-                        Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
-                        int sendResult = atSender.sendATCommand(command, message, false);
-                        if (sendResult == -1){
-                            Log.d(TAG, "onCreate: open the device dev/STTYEMS42 failed, The Test was suspend, please Check the device module");
-                            isTesting = false;
-                            resetTestValue();
-                            saveTestParamsAndTmpResult();
-                        }else {
-                            Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
-                        }
+                    try {
+                        Thread.sleep(5 * 1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    Log.d(TAG, "onCreate: continue the last time test, rebootTestTime = " + rebootTestTime);
+                    Constant.openTTLog();
+                    Constant.readTTLog(Constant.getTestResultFileName(storeRebootTestResultDir));
+                    Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
+                    int sendResult = atSender.sendATCommand(command, message, false);
+                    if (sendResult == -1){
+                        Log.d(TAG, "onCreate: open the device dev/STTYEMS42 failed, The Test was suspend, please Check the device module");
+                        isTesting = false;
+                        Constant.closeTTLog();
+                        resetTestValue();
+                        saveTestParamsAndTmpResult();
                     }else {
-                        Log.d(TAG, "onCreate: isStartTest is true, start the test");
-                        new RebootTestThread().start();
+                        Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
                     }
                 }
             }).start();
         }else {
-            Log.d(TAG, "onCreate: isStartTest is false, need not do anything");
-            resetTestValue();
+            Log.d(TAG, "onCreate: isTesting is false, don't need test");
         }
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                if (isTesting){
+//                    try {
+//                        Thread.sleep(5 * 1000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                    Log.d(TAG, "onCreate: continue the last time test, rebootTestTime = " + rebootTestTime);
+//                    Constant.openTTLog();
+//                    Constant.readTTLog(Constant.getTestResultFileName(storeRebootTestResultDir));
+//                    Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
+//                    int sendResult = atSender.sendATCommand(command, message, false);
+//                    if (sendResult == -1){
+//                        Log.d(TAG, "onCreate: open the device dev/STTYEMS42 failed, The Test was suspend, please Check the device module");
+//                        isTesting = false;
+//                        resetTestValue();
+//                        saveTestParamsAndTmpResult();
+//                    }else {
+//                        Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
+//                    }
+//                }
+//            }
+//        }).start();
+//        if (isStartTest){
+//            atSender = new AtSender(this, mHandler);
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    if (isTesting){
+//                        try {
+//                            Thread.sleep(5 * 1000);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
+//                        Log.d(TAG, "onCreate: continue the last time test, rebootTestTime = " + rebootTestTime);
+//                        Constant.openTTLog();
+//                        Constant.readTTLog(Constant.getTestResultFileName(storeRebootTestResultDir));
+//                        Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
+//                        int sendResult = atSender.sendATCommand(command, message, false);
+//                        if (sendResult == -1){
+//                            Log.d(TAG, "onCreate: open the device dev/STTYEMS42 failed, The Test was suspend, please Check the device module");
+//                            isTesting = false;
+//                            resetTestValue();
+//                            saveTestParamsAndTmpResult();
+//                        }else {
+//                            Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
+//                        }
+//                    }else {
+//                        Log.d(TAG, "onCreate: isStartTest is true, start the test");
+//                        new RebootTestThread().start();
+//                    }
+//                }
+//            }).start();
+//        }else {
+//            Log.d(TAG, "onCreate: isStartTest is false, need not do anything");
+//            resetTestValue();
+//        }
     }
 
     @Override
@@ -153,27 +208,30 @@ public class RebootTestService extends Service {
         Intent intent = new Intent();
         intent.setClass(this, resultActivity);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(getString(R.string.key_result), storeRebootTestResultDir + "/" + "testResult");
+        intent.putExtra(getString(R.string.key_result), storeRebootTestResultDir + "/" + "rebootTestResult");
         Log.d(TAG, "showResultActivity: ============Start a New Activity=============");
         startActivity(intent);
     }
 
     //RebootTestService 提供的服务均写在这个里面
-    class RebootTestBinder extends Binder{
+    public class RebootTestBinder extends Binder{
         public void startTest(Bundle bundle){
             isStop = false;
             isStartTest = true;
             rebootTestTime = bundle.getInt(getString(R.string.key_reboot_test_time));
             storeRebootTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the Reboot Test Result Save Path : " + storeRebootTestResultDir);
-            saveTestParamsAndTmpResult();
-            Constant.delLog(powerManager);
-            //new RebootTestThread().start();
+//            saveTestParamsAndTmpResult();
+//            Constant.delLog(powerManager);
+            new RebootTestThread().start();
         }
 
         public void stopTest(){
+            isReboot = false;
+            isStop = true;
             isTesting = false;
             isStartTest = false;
+            rebootTestTime = 0;
             saveTestParamsAndTmpResult();
         }
 
@@ -313,8 +371,8 @@ public class RebootTestService extends Service {
 
 
     private void saveRebootTestResult(){
-        File file = new File(storeRebootTestResultDir + "/" + "testResult");
-        Log.d(TAG, "saveRebootTestResult: get the storeTestDir: " + storeRebootTestResultDir + "/testResult");
+        File file = new File(storeRebootTestResultDir + "/" + "rebootTestResult");
+        Log.d(TAG, "saveRebootTestResult: get the storeTestDir: " + storeRebootTestResultDir + "/rebootTestResult");
         if (!file.exists()){
             try {
                 file.createNewFile();

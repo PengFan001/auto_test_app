@@ -15,6 +15,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.jiaze.autotestapp.R;
+import com.jiaze.callback.NormalTestCallback;
 import com.jiaze.common.Constant;
 
 import java.io.BufferedWriter;
@@ -45,6 +46,7 @@ public class PsTestService extends Service {
     private static final int DATA_DISCONNECTED = 3;
     private static final int DATA_SUSPEND = 4;
     private static final int CONNECTING_TIMEOUT = 5;
+    private static final int COMBINATION_ONE_TEST_FINISHED = 7;
     
     private static boolean isInTesting = false;
     private int psTestTimes = 0;
@@ -68,6 +70,7 @@ public class PsTestService extends Service {
     private PowerManager.WakeLock mWakeLock;
     private PowerManager powerManager;
     private PsTestBinder psTestBinder = new PsTestBinder();
+    private NormalTestCallback callback;
 
     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
@@ -84,6 +87,13 @@ public class PsTestService extends Service {
                     waitConnect = true;
                     runNextTime = true;
                     break;
+
+                case COMBINATION_ONE_TEST_FINISHED:
+                    callback.testResultCallback(true, successTime, failTime);
+                    Log.d(TAG, "handleMessage: COMBINATION_ONE_TEST_FINISHED, finished one ps Test");
+                    resetTestValue();
+                    saveTmpTestResult();
+                    break;
             }
             return false;
         }
@@ -98,13 +108,13 @@ public class PsTestService extends Service {
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-        getTestParams();
-        if (isStartTest){
-            Log.d(TAG, "onCreate: isStartTest is true, start the test");
-            new PsTestThread().start();
-        }else {
-            Log.d(TAG, "onCreate: isStartTest is false, need not do anything");
-        }
+//        getTestParams();
+//        if (isStartTest){
+//            Log.d(TAG, "onCreate: isStartTest is true, start the test");
+//            new PsTestThread().start();
+//        }else {
+//            Log.d(TAG, "onCreate: isStartTest is false, need not do anything");
+//        }
     }
 
     @Override
@@ -113,16 +123,16 @@ public class PsTestService extends Service {
     }
 
     /**有关PSTestService所提供的服务**/
-    class PsTestBinder extends Binder{
+    public class PsTestBinder extends Binder{
         public void startTest(Bundle bundle){
             isStartTest = true;
             psTestTimes = bundle.getInt(getString(R.string.key_ps_test_time), 1);
             Log.d(TAG, "startTest: psTestTimes = " + psTestTimes);
             storePsTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the storePsTestResultDir success : " + storePsTestResultDir);
-            saveTmpTestResult();
-            Constant.delLog(powerManager);
-            //new PsTestThread().start();
+//            saveTmpTestResult();
+//            Constant.delLog(powerManager);
+            new PsTestThread().start();
         }
 
         public void stopTest(){
@@ -135,6 +145,14 @@ public class PsTestService extends Service {
 
         public String getPsState(){
             return psState;
+        }
+
+        public void startOneTest(String saveDir, NormalTestCallback normalTestCallback){
+            storePsTestResultDir = saveDir;
+            psTestTimes = 1;
+            callback = normalTestCallback;
+            Log.d(TAG, "startOneTest: get the storePsTestResultDir success = " + storePsTestResultDir);
+            new OnePsTestThread().start();
         }
     }
 
@@ -196,6 +214,31 @@ public class PsTestService extends Service {
             saveTmpTestResult();
             showResultActivity(PsTestActivity.class);
             Log.d(TAG, "run: finished the test, then will show you the Ps Test Result");
+        }
+    }
+
+    class OnePsTestThread extends Thread{
+        OnePsTestThread(){
+            super();
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            try {
+                Thread.sleep(3 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Log.d(TAG, "run: start one ps Test");
+            mWakeLock.acquire();
+            isInTesting = true;
+            runLogical();
+            if (mWakeLock != null && mWakeLock.isHeld()){
+                mWakeLock.release();
+            }
+            isInTesting = false;
+            mHandler.sendEmptyMessage(COMBINATION_ONE_TEST_FINISHED);
         }
     }
 
@@ -307,8 +350,6 @@ public class PsTestService extends Service {
                 }
                 Log.d(TAG, "runLogical: data connecting time out, runNextTime");
             }
-
-//            Constant.closeTTLog();
         }
 
         savePsTestResult();
@@ -354,7 +395,7 @@ public class PsTestService extends Service {
     
     private void savePsTestResult(){
         Log.d(TAG, "savePsTestResult: Start save the PsTestResult");
-        File file = new File(storePsTestResultDir + "/" + "testResult");
+        File file = new File(storePsTestResultDir + "/" + "psTestResult");
         Log.d(TAG, "savePsTestResult: get the storePsTestResultDir = " + storePsTestResultDir);
         if (!file.exists()){
             try {
@@ -472,7 +513,7 @@ public class PsTestService extends Service {
         Intent intent = new Intent();
         intent.setClass(this, resultActivity);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(getString(R.string.key_test_result_path), storePsTestResultDir + "/" + "testResult" );
+        intent.putExtra(getString(R.string.key_test_result_path), storePsTestResultDir + "/" + "psTestResult" );
         startActivity(intent);
     }
 

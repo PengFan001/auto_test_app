@@ -5,12 +5,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
+import com.jiaze.call.CallTestActivity;
+import com.jiaze.callback.NormalTestCallback;
+import com.jiaze.sms.SmsTestActivity;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -28,6 +33,9 @@ import java.io.IOException;
 public abstract class AutoTestService extends Service {
 
     private static final String TAG = "AutoTestService";
+    private static final int COMBINATION_ONE_TEST_FINISHED = 7;
+    protected static final String CALL_TEST_RESULT_FILENAME = "callTestResult";
+    protected static final String SMS_TEST_RESULT_FILENAME = "smsTestResult";
     protected int testTimes = 0;
     protected int totalRunTimes = 0;
     protected int successCount = 0;
@@ -40,6 +48,7 @@ public abstract class AutoTestService extends Service {
 
     protected PowerManager powerManager;
     protected PowerManager.WakeLock mWakeLock;
+    private NormalTestCallback callback;
 
     public abstract void stopTest();
     protected abstract void runTestLogic();
@@ -47,6 +56,22 @@ public abstract class AutoTestService extends Service {
     protected abstract Class<?> getResultActivity();
     protected abstract void saveTmpTestResult();
     protected abstract void getTestParams();
+
+    Handler mHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            Log.d(TAG, "handleMessage: get the message, msg.what = " + msg.what);
+            switch (msg.what){
+                case COMBINATION_ONE_TEST_FINISHED:
+                    callback.testResultCallback(true, successCount, failedCount);
+                    Log.d(TAG, "handleMessage: COMBINATION_ONE_TEST_FINISHED, finish one test");
+                    resetResultValue();
+                    saveTmpTestResult();
+                    break;
+            }
+            return false;
+        }
+    });
 
     @Override
     public void onCreate() {
@@ -76,24 +101,60 @@ public abstract class AutoTestService extends Service {
             return -1;
         }
         if (initTestParams(bundle) < 0){
+            Toast.makeText(this, getString(R.string.text_phone_null), Toast.LENGTH_SHORT).show();
             return -1;
         }
 
-        isStartTest = true;
-        saveTmpTestResult();
-        Constant.delLog(powerManager);
+//        isStartTest = true;
+//        saveTmpTestResult();
+//        Constant.delLog(powerManager);
 
         resetResultValue();
         new TestThread().start();
         return 0;
     }
 
+    public void startOneCallTest(String saveDir, String callPhone, int waitTime, int durationTime, NormalTestCallback normalTestCallback){
+        Bundle bundle = new Bundle();
+        storeTestResultDir = saveDir;
+        callback = normalTestCallback;
+        bundle.putString(getString(R.string.key_phone), callPhone);
+        bundle.putInt(getString(R.string.key_wait_time), waitTime);
+        bundle.putInt(getString(R.string.key_duration_time), durationTime);
+        bundle.putInt(getString(R.string.key_test_times), 1);
+        bundle.putBoolean(getString(R.string.key_is_combination_test), true);
+        if (initTestParams(bundle) < 0){
+            Log.d(TAG, "startOneCallTest: Call Test Exception");
+            mHandler.sendEmptyMessage(COMBINATION_ONE_TEST_FINISHED);
+            return;
+        }
+
+        resetResultValue();
+        new TestOneThread().start();
+    }
+
+    public void startOneSmsTest(String saveDir, String smsPhone, int waitResultTime, String smsString, NormalTestCallback normalTestCallback){
+        Bundle bundle = new Bundle();
+        storeTestResultDir = saveDir;
+        callback = normalTestCallback;
+        bundle.putString(getString(R.string.key_phone), smsPhone);
+        bundle.putInt(getString(R.string.key_wait_sms_result_time), waitResultTime);
+        bundle.putString(getString(R.string.key_sms_string), smsString);
+        bundle.putInt(getString(R.string.key_test_times), 1);
+        bundle.putBoolean(getString(R.string.key_is_combination_test), true);
+        if (initTestParams(bundle) < 0){
+            Log.d(TAG, "startOneCallTest: Sms Test Exception");
+            mHandler.sendEmptyMessage(COMBINATION_ONE_TEST_FINISHED);
+            return;
+        }
+        resetResultValue();
+        new TestOneThread().start();
+    }
+
     protected void resetResultValue(){
         totalRunTimes = 0;
         successCount = 0;
         failedCount = 0;
-        isInTesting = false;
-        isStartTest = false;
     }
 
     protected class TestThread extends Thread{
@@ -126,17 +187,47 @@ public abstract class AutoTestService extends Service {
         }
     }
 
+
+    protected class TestOneThread extends Thread{
+
+        public TestOneThread(){
+            super();
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            try {
+                Thread.sleep(2 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            mWakeLock.acquire();
+            isInTesting = true;
+            runTestLogic();
+            if (mWakeLock != null && mWakeLock.isHeld()){
+                mWakeLock.release();
+            }
+            isInTesting = false;
+            mHandler.sendEmptyMessage(COMBINATION_ONE_TEST_FINISHED);
+        }
+    }
+
     protected void startResultActivity(Class<?> resultActivity){
         Intent intent = new Intent();
         intent.setClass(this, resultActivity);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(getString(R.string.key_result), storeTestResultDir + "/" + "testResult");
+        if (resultActivity.equals(CallTestActivity.class)){
+            intent.putExtra(getString(R.string.key_result), storeTestResultDir + "/" + CALL_TEST_RESULT_FILENAME);
+        }else if (resultActivity.equals(SmsTestActivity.class)){
+            intent.putExtra(getString(R.string.key_result), storeTestResultDir + "/" + SMS_TEST_RESULT_FILENAME);
+        }
         startActivity(intent);
     }
 
-    protected void storeTestResult(){
-        File file = new File(storeTestResultDir + "/" + "testResult");
-        Log.d(TAG, "storeTestResult: get the storeTestDir: " + storeTestResultDir + "/" + "testResult");
+    protected void storeTestResult(String fileName){
+        File file = new File(storeTestResultDir + "/" + fileName);
+        Log.d(TAG, "storeTestResult: get the storeTestDir: " + storeTestResultDir + "/" + fileName);
         if (!file.exists()){
             try {
                 file.createNewFile();
@@ -160,8 +251,6 @@ public abstract class AutoTestService extends Service {
         testResultBuilder.append("\r\n" + getString(R.string.text_failed_times) +  failedCount);
         testResultBuilder.append("\r\n");
         testResultBuilder.append("\r\n" + getString(R.string.text_succeed_rate) + (successCount / totalRunTimes) * 100 + "%");
-//        testResultBuilder.append("\r\n");
-//        testResultBuilder.append("\r\n" + getString(R.string.text_log_dir) + storeTestResultDir);
 
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;

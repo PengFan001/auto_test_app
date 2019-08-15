@@ -143,7 +143,11 @@ public class ModuleRebootActivity extends Activity implements View.OnClickListen
         etTestTime = (EditText) findViewById(R.id.module_reboot_times);
         tvTestResult = (TextView) findViewById(R.id.module_reboot_test_result);
         btnStart = (Button) findViewById(R.id.module_reboot_btn);
-        etTestTime.setText(moduleTestTimes);
+        if (Integer.parseInt(moduleTestTimes) == 0){
+            etTestTime.setText(getString(R.string.reboot_default_value));
+        }else {
+            etTestTime.setText(moduleTestTimes);
+        }
         etTestTime.requestFocus();
         etTestTime.setSelection(etTestTime.getText().length());
         btnStart.setOnClickListener(this);
@@ -205,7 +209,6 @@ public class ModuleRebootActivity extends Activity implements View.OnClickListen
             case R.id.module_reboot_btn:
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
                     if (saveTestParams() == 0){
-                        saveTestParams();
                         moduleRebootBinder.startTest(getTestParameter());
                         btnStart.setText(getString(R.string.btn_stop_test));
                     }else {

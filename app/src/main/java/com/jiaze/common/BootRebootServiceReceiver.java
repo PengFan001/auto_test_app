@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.jiaze.airmode.AirModeTestService;
 import com.jiaze.call.CallTestService;
+import com.jiaze.combination.CombinationTestService;
 import com.jiaze.network.NetworkTestService;
 import com.jiaze.ps.PsTestService;
 import com.jiaze.reboot.ModuleRebootService;
@@ -36,20 +37,8 @@ public class BootRebootServiceReceiver extends BroadcastReceiver {
         Intent networkServiceIntent = new Intent(context, NetworkTestService.class);
         context.startService(networkServiceIntent);
         Log.d(TAG, "onReceive: receiver the start NetworkService broadcast, start the networkTestService");
-        Intent psIntent = new Intent(context, PsTestService.class);
-        context.startService(psIntent);
-        Log.d(TAG, "onReceive: receiver the start PsTestService broadcast, start the PsTestService");
-        Intent airModeIntent = new Intent(context, AirModeTestService.class);
-        context.startService(airModeIntent);
-        Log.d(TAG, "onReceive: receiver the start AirModeTestService broadcast, start the AirModeTestService");
-        Intent moduleIntent = new Intent(context, ModuleRebootService.class);
-        context.startService(moduleIntent);
-        Log.d(TAG, "onReceive: receiver the start ModuleRebootService broadcast, start the ModuleRebootService");
-        Intent callIntent = new Intent(context, CallTestService.class);
-        context.startService(callIntent);
-        Log.d(TAG, "onReceive: receiver the start CallTestService broadcast, start the CallTestService");
-        Intent smsIntent = new Intent(context, SmsTestService.class);
-        context.startService(smsIntent);
-        Log.d(TAG, "onReceive: receiver the start SmsTestService broadcast, start the SmsTestService ");
+        Intent combinationServiceIntent = new Intent(context, CombinationTestService.class);
+        context.startService(combinationServiceIntent);
+        Log.d(TAG, "onReceive: receiver the start CombinationTestService broadcast, start the CombinationTestService");
     }
 }

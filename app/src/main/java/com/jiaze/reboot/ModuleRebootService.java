@@ -5,11 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
 
 import com.jiaze.autotestapp.R;
+import com.jiaze.callback.NormalTestCallback;
 import com.jiaze.common.Constant;
 
 import java.io.BufferedReader;
@@ -38,6 +41,7 @@ public class ModuleRebootService extends Service {
     private static final String TEST_PARAM = "ModuleRebootTest";
     private static final String POWER_STATE_PATH = "sys/misc-config/spower_key";    //this path can read and write
     private static final String POWER_PATH = "sys/misc-config/spower";  //this path write-only
+    private static final int COMBINATION_ONE_TEST_FINISHED = 7;
     
     private int moduleTestTime = 0;
     private String moduleState;
@@ -57,6 +61,24 @@ public class ModuleRebootService extends Service {
     private PowerManager.WakeLock mWakeLock;
     private String storeModuleTestResultDir;
     private ModuleRebootBinder moduleRebootBinder = new ModuleRebootBinder();
+    private NormalTestCallback callback;
+
+
+    Handler mHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            Log.d(TAG, "handleMessage: get the message, msg.what = " + msg.what);
+            switch (msg.what){
+                case COMBINATION_ONE_TEST_FINISHED:
+                    callback.testResultCallback(true, successTimes, failedTimes);
+                    Log.d(TAG, "handleMessage: COMBINATION_ONE_TEST_FINISHED, finish one test");
+                    resetValue();
+                    saveTmpTestResult();
+                    break;
+            }
+            return false;
+        }
+    });
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -69,24 +91,24 @@ public class ModuleRebootService extends Service {
         Log.d(TAG, "onCreate: the Module Reboot Test Service is Start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-        getTestParams();
-        if (isStartTest){
-            Log.d(TAG, "onCreate: isStartTest is true, start the test");
-            new ModuleRebootTestThread().start();
-        }else {
-            Log.d(TAG, "onCreate: isStartTest is false, need not do anythings");
-        }
+//        getTestParams();
+//        if (isStartTest){
+//            Log.d(TAG, "onCreate: isStartTest is true, start the test");
+//            new ModuleRebootTestThread().start();
+//        }else {
+//            Log.d(TAG, "onCreate: isStartTest is false, need not do anythings");
+//        }
     }
 
-    class ModuleRebootBinder extends Binder{
+    public class ModuleRebootBinder extends Binder{
         public void startTest(Bundle bundle){
             isStartTest = true;
             moduleTestTime = bundle.getInt(getString(R.string.key_module_test_time));
             storeModuleTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the storeModuleTestResultDir = " + storeModuleTestResultDir);
-            saveTmpTestResult();
-            Constant.delLog(powerManager);
-            //new ModuleRebootTestThread().start();
+//            saveTmpTestResult();
+//            Constant.delLog(powerManager);
+            new ModuleRebootTestThread().start();
         }
 
         public void stopTest(){
@@ -108,6 +130,14 @@ public class ModuleRebootService extends Service {
                 return null;
             }
             return moduleState;
+        }
+
+        public void startOneTest(String saveDir, NormalTestCallback normalTestCallback){
+            callback = normalTestCallback;
+            storeModuleTestResultDir = saveDir;
+            moduleTestTime = 1;
+            Log.d(TAG, "startOneTest: get the storeModuleTestResultDir = " + storeModuleTestResultDir);
+            new OneModuleRebootTestThread().start();
         }
     }
 
@@ -138,6 +168,25 @@ public class ModuleRebootService extends Service {
             Log.d(TAG, "run: finished the test, then will show you the test result");
             resetValue();
             saveTmpTestResult();
+        }
+    }
+
+    class OneModuleRebootTestThread extends Thread{
+        OneModuleRebootTestThread(){
+            super();
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            mWakeLock.acquire();
+            isInTesting = true;
+            runLogical();
+            if (mWakeLock != null && mWakeLock.isHeld()){
+                mWakeLock.release();
+            }
+            isInTesting = false;
+            mHandler.sendEmptyMessage(COMBINATION_ONE_TEST_FINISHED);
         }
     }
 
@@ -337,7 +386,7 @@ public class ModuleRebootService extends Service {
 
     private void saveModuleTestResult(){
         Log.d(TAG, "saveModuleTestResult: Start Save the Module Test Result");
-        File file = new File(storeModuleTestResultDir + "/" + "testResult");
+        File file = new File(storeModuleTestResultDir + "/" + "moduleRebootTestResult");
         Log.d(TAG, "saveModuleTestResult: get the storeModuleTestResultDir = " + storeModuleTestResultDir);
         if (!file.exists()){
             try {
@@ -397,7 +446,7 @@ public class ModuleRebootService extends Service {
         Intent intent = new Intent();
         intent.setClass(this, resultActivity);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(getString(R.string.key_test_result_path), storeModuleTestResultDir + "/" + "testResult" );
+        intent.putExtra(getString(R.string.key_test_result_path), storeModuleTestResultDir + "/" + "moduleRebootTestResult");
         startActivity(intent);
     }
 

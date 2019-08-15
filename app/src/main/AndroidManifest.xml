@@ -18,8 +18,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.jiaze.reboot.ModuleRebootActivity"
+            android:name="com.jiaze.combination.CombinationTestActivity"
             android:launchMode="singleTask"></activity>
+        <activity
+            android:name="com.jiaze.reboot.ModuleRebootActivity"
+            android:launchMode="singleTask" />
         <activity
             android:name="com.jiaze.ps.PsTestActivity"
             android:launchMode="singleTask" />
@@ -76,8 +79,11 @@
             android:enabled="true" />
         <service
             android:name="com.jiaze.reboot.ModuleRebootService"
-            android:enabled="true"></service>
-
+            android:enabled="true" />
+        <service
+            android:name="com.jiaze.combination.CombinationTestService"
+            android:enabled="true">
+        </service>
         <receiver android:name="com.jiaze.common.BootRebootServiceReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

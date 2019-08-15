@@ -9,12 +9,13 @@
     <string name="title_air_mode">飞行模式切换测试</string>
     <string name="title_pps">PS业务测试</string>
     <string name="title_module_reboot">模块重启测试</string>
+    <string name="title_combination_test">组合测试</string>
 
     <string name="btn_start_test">开始测试</string>
     <string name="btn_stop_test">停止测试</string>
 
     <string name="text_in_testing">正在测试中</string>
-    <string name="text_phone_null">测试手机号为空</string>
+    <string name="text_phone_null">测试手机号为空, 或者测试手机号不合法</string>
     <string name="text_result">测试结果:</string>
     <string name="text_test_times">测试次数:</string>
     <string name="text_total_runTimes">执行次数:</string>
@@ -88,6 +89,26 @@
     <string name="text_up_power_failed_times">上电失败次数:</string>
     <string name="text_down_power_success_times">下电成功次数:</string>
     <string name="text_down_power_failed_times">下电失败次数:</string>
+    <string name="air_mode_open">已开启</string>
+    <string name="air_mode_close">已关闭</string>
+    <string name="text_reboot_device">重启终端</string>
+    <string name="text_reboot_radio">开关Radio</string>
+    <string name="text_checkbox_reboot">整机重启</string>
+    <string name="text_checkbox_sim">sim检测</string>
+    <string name="text_checkbox_network">入网测试</string>
+    <string name="text_checkbox_call">通话测试</string>
+    <string name="text_checkbox_air_mode">飞行模式</string>
+    <string name="text_checkbox_sms">短信测试</string>
+    <string name="text_checkbox_ps">PS测试</string>
+    <string name="text_checkbox_module_reboot">模块重启</string>
+    <string name="text_reboot_test_result">=======重启测试结果=======</string>
+    <string name="text_sim_test_result">=======sim卡测试结果=======</string>
+    <string name="text_network_test_result">=======入网测试结果=======</string>
+    <string name="text_call_test_result">=======通话测试结果=======</string>
+    <string name="text_sms_test_result">=======短信测试结果=======</string>
+    <string name="text_air_mode_test_result">=======飞行模式测试结果=======</string>
+    <string name="text_ps_test_result">=======PS测试结果=======</string>
+    <string name="text_module_reboot_test_result">=======模块重启测试结果=======</string>
 
     <string name="param_phone">手机号</string>
     <string name="param_test_times">测试次数</string>
@@ -100,6 +121,8 @@
 
     <string name="key_result">result</string>
     <string name="key_phone">phone</string>
+    <string name="key_call_phone">call_phone</string>
+    <string name="key_sms_phone">sms_phone</string>
     <string name="key_test_times">times</string>
     <string name="key_wait_time">wait_time</string>
     <string name="key_duration_time">duration_time</string>
@@ -139,12 +162,33 @@
     <string name="key_sms_type">sms_type</string>
     <string name="key_is_start_test">is_start_test</string>
     <string name="key_is_testing">is_testing</string>
+    <string name="key_reboot_is_checked">reboot_is_checked</string>
+    <string name="key_sim_is_checked">sim_is_checked</string>
+    <string name="key_network_is_checked">network_is_checked</string>
+    <string name="key_call_is_checked">call_is_checked</string>
+    <string name="key_air_mode_is_checked">air_mode_is_checked</string>
+    <string name="key_sms_is_checked">sms_is_checked</string>
+    <string name="key_ps_is_checked">ps_is_checked</string>
+    <string name="key_module_reboot_is_checked">module_reboot_is_checked</string>
+    <string name="key_total_run_time">total_run_times</string>
+    <string name="key_ps_success_time">ps_success_time</string>
+    <string name="key_sim_success_time">sim_success_time</string>
+    <string name="key_network_success_time">network_success_time</string>
+    <string name="key_call_success_time">call_success_time</string>
+    <string name="key_air_mode_success_time">air_mode_success_time</string>
+    <string name="key_sms_success_time">sms_success_time</string>
+    <string name="key_module_reboot_success_time">module_reboot_success_time</string>
+    <string name="key_sim_failed_time">sim_failed_time</string>
+    <string name="key_network_failed_time">network_failed_time</string>
+    <string name="key_call_failed_time">call_failed_time</string>
+    <string name="key_air_mode_failed_time">air_mode_failed_time</string>
+    <string name="key_sms_failed_time">sms_failed_time</string>
+    <string name="key_ps_failed_time">ps_failed_time</string>
+    <string name="key_module_reboot_failed_time">module_reboot_failed_time</string>
+    <string name="key_is_combination_test">is_combination_test</string>
+    <string name="key_is_run_next_time">is_run_next_time</string>
 
     <string name="reboot_times">重启次数: </string>
     <string name="reboot_default_value">1</string>
 
-    <string name="air_mode_open">已开启</string>
-    <string name="air_mode_close">已关闭</string>
-    <string name="text_reboot_device">重启终端</string>
-    <string name="text_reboot_radio">开关Radio</string>
 </resources>

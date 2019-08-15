@@ -5,12 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 
 import com.jiaze.autotestapp.R;
+import com.jiaze.callback.NormalTestCallback;
 import com.jiaze.common.Constant;
 
 import java.io.BufferedWriter;
@@ -35,6 +38,7 @@ public class AirModeTestService extends Service {
     private static final String TAG = "AirModeTestService";
     private static final String AIR_MODE_TEST_PARAM_SAVE_PATH = "AirModeTestParams";
     private static final String TEST_PARAM = "AirModeTest";
+    private static final int COMBINATION_ONE_TEST_FINISHED = 7;
 
     private int airModeTestTime = 0;
     private String airModeState = null;
@@ -51,11 +55,28 @@ public class AirModeTestService extends Service {
     private int lastState = 0;
     private static boolean isTesting = false;
     private static boolean isRunNextTime = false;
-    private boolean isStartTest = false;
+    //private boolean isStartTest = false;
     private String storeAirModeTestResultDir;
     private PowerManager powerManager;
     private PowerManager.WakeLock mWakeLock;
     private AirModeTestBinder airModeTestBinder = new AirModeTestBinder();
+    private NormalTestCallback callback;
+
+    Handler mHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            Log.d(TAG, "handleMessage: get the message, msg.what = " + msg.what);
+            switch (msg.what){
+                case COMBINATION_ONE_TEST_FINISHED:
+                    callback.testResultCallback(true, successTimes, failedTimes);
+                    Log.d(TAG, "handleMessage: COMBINATION_ONE_TEST_FINISHED, finish one test");
+                    resetTestValue();
+                    saveTmpTestResult();
+                    break;
+            }
+            return false;
+        }
+    });
 
     @Override
     public void onCreate() {
@@ -63,13 +84,13 @@ public class AirModeTestService extends Service {
         Log.d(TAG, "onCreate: Air Mode Test Service is start");
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-        getTestParams();
-        if (isStartTest){
-            Log.d(TAG, "onCreate: isStartTest is true, start the test");
-            new AirModeTestThread().start();
-        }else {
-            Log.d(TAG, "onCreate: isStartTest is false, need not do anythings");
-        }
+//        getTestParams();
+//        if (isStartTest){
+//            Log.d(TAG, "onCreate: isStartTest is true, start the test");
+//            new AirModeTestThread().start();
+//        }else {
+//            Log.d(TAG, "onCreate: isStartTest is false, need not do anythings");
+//        }
     }
 
     @Override
@@ -77,15 +98,15 @@ public class AirModeTestService extends Service {
         return airModeTestBinder;
     }
 
-    class AirModeTestBinder extends Binder{
+    public class AirModeTestBinder extends Binder{
         public void startTest(Bundle bundle){
-            isStartTest = true;
+            //isStartTest = true;
             airModeTestTime = bundle.getInt(getString(R.string.key_air_mode_test_time));
             storeAirModeTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
-            Log.d(TAG, "startTest: Create the Air Mode Test Resulr Dir : " + storeAirModeTestResultDir);
-            saveTmpTestResult();
-            Constant.delLog(powerManager);
-            //new AirModeTestThread().start();
+            Log.d(TAG, "startTest: Create the storeAirModeTestResultDir = " + storeAirModeTestResultDir);
+            //saveTmpTestResult();
+            //Constant.delLog(powerManager);
+            new AirModeTestThread().start();
         }
 
         public void stopTest(){
@@ -99,6 +120,14 @@ public class AirModeTestService extends Service {
 
         public boolean isInTesting(){
             return isTesting;
+        }
+
+        public void startOneTest(String saveDir, NormalTestCallback normalTestCallback){
+            airModeTestTime = 1;
+            storeAirModeTestResultDir = saveDir;
+            callback = normalTestCallback;
+            Log.d(TAG, "startOneTest: get the storeAirModeTestResultDir = " + storeAirModeTestResultDir);
+            new OneAirModeTestThread().start();
         }
     }
 
@@ -116,7 +145,7 @@ public class AirModeTestService extends Service {
                 e.printStackTrace();
             }
             Log.d(TAG, "run: start air mode Test");
-           // mWakeLock.acquire();
+            mWakeLock.acquire();
             isTesting = true;
             Constant.openTTLog();
             Constant.readTTLog(Constant.getTestResultFileName(storeAirModeTestResultDir));
@@ -130,6 +159,26 @@ public class AirModeTestService extends Service {
             Log.d(TAG, "run: finished the test, then will show you the AirMode Test result");
             resetTestValue();
             saveTmpTestResult();
+        }
+    }
+
+    class OneAirModeTestThread extends Thread{
+        OneAirModeTestThread(){
+            super();
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            Log.d(TAG, "run: start air mode Test");
+            mWakeLock.acquire();
+            isTesting = true;
+            runLogical();
+            if (mWakeLock != null && mWakeLock.isHeld()){
+                mWakeLock.release();
+            }
+            isTesting = false;
+            mHandler.sendEmptyMessage(COMBINATION_ONE_TEST_FINISHED);
         }
     }
 
@@ -298,8 +347,8 @@ public class AirModeTestService extends Service {
         Properties properties = Constant.loadTestParameter(this, AIR_MODE_TEST_PARAM_SAVE_PATH);
         airModeTestTime = Integer.parseInt(properties.getProperty(getString(R.string.key_air_mode_test_time), "0"));
         storeAirModeTestResultDir = properties.getProperty(getString(R.string.key_test_result_path), null);
-        isStartTest = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_start_test), "false"));
-        Log.d(TAG, "getTestParams: airModeTestTime = " + airModeTestTime + "   isStartTest = " + isStartTest + "    storeAirModeTestResultDir = " + storeAirModeTestResultDir);
+        //isStartTest = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_start_test), "false"));
+        Log.d(TAG, "getTestParams: airModeTestTime = " + airModeTestTime + "    storeAirModeTestResultDir = " + storeAirModeTestResultDir);
     }
 
     private void saveTmpTestResult(){
@@ -320,7 +369,7 @@ public class AirModeTestService extends Service {
             OutputStream outputStream = new FileOutputStream(file);
             properties.setProperty(getString(R.string.key_air_mode_test_time), String.valueOf(airModeTestTime));
             properties.setProperty(getString(R.string.key_test_result_path), storeAirModeTestResultDir);
-            properties.setProperty(getString(R.string.key_is_start_test), String.valueOf(isStartTest));
+            //properties.setProperty(getString(R.string.key_is_start_test), String.valueOf(isStartTest));
             properties.store(outputStream, "save the Air mode test tmp test result");
             if (outputStream != null){
                 outputStream.close();
@@ -338,7 +387,7 @@ public class AirModeTestService extends Service {
 
     private void saveAirModeTestResult(){
         Log.d(TAG, "saveAirModeTestResult: Start save the AirMode Test Result");
-        File file = new File(storeAirModeTestResultDir + "/" + "testResult");
+        File file = new File(storeAirModeTestResultDir + "/" + "airModeTestResult");
         Log.d(TAG, "saveAirModeTestResult: get the storeAirModeTestResultDir : " + storeAirModeTestResultDir);
         if (!file.exists()){
             try {
@@ -405,14 +454,14 @@ public class AirModeTestService extends Service {
         failedTimes = 0;
         airModeState = null;
         isTesting =false;
-        isStartTest = false;
+        //isStartTest = false;
     }
 
     private void showResultActivity(Class<?> resultActivity){
         Intent intent = new Intent();
         intent.setClass(this, resultActivity);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(getString(R.string.key_test_result_path), storeAirModeTestResultDir + "/" + "testResult" );
+        intent.putExtra(getString(R.string.key_test_result_path), storeAirModeTestResultDir + "/" + "airModeTestResult");
         startActivity(intent);
     }
 

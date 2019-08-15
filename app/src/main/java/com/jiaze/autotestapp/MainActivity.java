@@ -11,6 +11,7 @@ import android.widget.SimpleAdapter;
 
 import com.jiaze.airmode.AirModeTestActivity;
 import com.jiaze.call.CallTestActivity;
+import com.jiaze.combination.CombinationTestActivity;
 import com.jiaze.network.NetworkTestActivity;
 import com.jiaze.ps.PsTestActivity;
 import com.jiaze.reboot.ModuleRebootActivity;
@@ -34,7 +35,7 @@ public class MainActivity extends Activity {
             R.mipmap.icon_feixingmoshi, R.mipmap.icon_message, R.mipmap.icon_psyewu, R.mipmap.icon_ceshi, R.mipmap.icon_tongyong
     };
 
-    private String[] mAppNames = new String[8];
+    private String[] mAppNames = new String[9];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +69,8 @@ public class MainActivity extends Activity {
                     intent.setClass(parent.getContext(), PsTestActivity.class);
                 }else if (mAppNames[position].equals(getString(R.string.title_module_reboot))){
                     intent.setClass(parent.getContext(), ModuleRebootActivity.class);
+                }else if (mAppNames[position].equals(getString(R.string.title_combination_test))){
+                    intent.setClass(parent.getContext(), CombinationTestActivity.class);
                 }
 
                 if (intent != null){
@@ -91,6 +94,7 @@ public class MainActivity extends Activity {
         mAppNames[5] = getString(R.string.title_sms);
         mAppNames[6] = getString(R.string.title_pps);
         mAppNames[7] = getString(R.string.title_module_reboot);
+        mAppNames[8] = getString(R.string.title_combination_test);
 
         for (int i = 0; i < mAppIcons.length; i++){
             Map<String, Object> gridItem = new HashMap<String, Object>();

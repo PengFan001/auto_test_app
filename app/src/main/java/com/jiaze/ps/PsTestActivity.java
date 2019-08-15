@@ -147,7 +147,11 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
         tvTestResult = (TextView) findViewById(R.id.ps_test_result);
         btnStart = (Button) findViewById(R.id.ps_start_btn);
         etTestTime = (EditText) findViewById(R.id.ps_test_time);
-        etTestTime.setText(psTestTime);
+        if (Integer.parseInt(psTestTime) == 0){
+            etTestTime.setText(getString(R.string.reboot_default_value));
+        }else {
+            etTestTime.setText(psTestTime);
+        }
         etTestTime.requestFocus();
         etTestTime.setSelection(etTestTime.getText().length());
         btnStart.setOnClickListener(this);
@@ -166,7 +170,6 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
             case R.id.ps_start_btn:
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
                     if (saveTestParams() == 0){
-                        saveTestParams();
                         psTestBinder.startTest(getTestParameter());
                         btnStart.setText(getString(R.string.btn_stop_test));
                     }else {
@@ -176,6 +179,7 @@ public class PsTestActivity extends Activity implements View.OnClickListener {
                     psTestBinder.stopTest();
                     btnStart.setText(getString(R.string.btn_start_test));
                 }
+                break;
         }
     }
 

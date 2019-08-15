@@ -6,7 +6,7 @@
     android:orientation="horizontal">
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:orientation="vertical">
@@ -24,7 +24,7 @@
                 android:text="@string/text_module_state"
                 android:textSize="18sp"
                 android:gravity="center"
-                android:paddingLeft="50dp"/>
+                android:paddingLeft="20dp"/>
 
             <TextView
                 android:id="@+id/module_state"
@@ -49,7 +49,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="@string/text_test_times"
-                android:paddingLeft="50dp"
+                android:paddingLeft="20dp"
                 android:gravity="center"
                 android:textSize="18sp"
                 android:textColor="@color/default_text_color"/>
@@ -70,7 +70,7 @@
             android:layout_width="253dp"
             android:layout_height="50dp"
             android:layout_marginTop="20dp"
-            android:layout_marginLeft="50dp"
+            android:layout_marginLeft="20dp"
             android:text="@string/btn_start_test"
             android:background="@mipmap/btn_starttest"
             android:textSize="18sp"
@@ -79,7 +79,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="match_parent"
         android:layout_weight="1">
 

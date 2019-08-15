@@ -167,7 +167,11 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
         etTestTimes = (EditText) findViewById(R.id.air_mode_test_time);
         btnStart = (Button) findViewById(R.id.air_start_btn);
         tvTestResult = (TextView) findViewById(R.id.air_test_result);
-        etTestTimes.setText(airModeTestTime);
+        if (Integer.parseInt(airModeTestTime) == 0){
+            etTestTimes.setText(getString(R.string.reboot_default_value));
+        }else {
+            etTestTimes.setText(airModeTestTime);
+        }
         etTestTimes.requestFocus();
         etTestTimes.setSelection(etTestTimes.getText().length());
         btnStart.setOnClickListener(this);
@@ -231,7 +235,6 @@ public class AirModeTestActivity extends Activity implements View.OnClickListene
             case R.id.air_start_btn:
                 if (btnStart.getText().equals(getString(R.string.btn_start_test))){
                     if (saveTestParams() == 0){
-                        saveTestParams();
                         airModeTestBinder.startTest(getTestParameter());
                         Log.d(TAG, "onClick: send the update UI message");
                         btnStart.setText(getString(R.string.btn_stop_test));
