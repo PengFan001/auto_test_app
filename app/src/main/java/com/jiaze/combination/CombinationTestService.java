@@ -340,6 +340,9 @@ public class CombinationTestService extends Service {
         public void stopTest(){
             isInTesting = false;
             isStartTest = false;
+            if (rebootIsChecked){
+                testTime = 0;
+            }
             saveTmpTestResult();
             Log.d(TAG, "stopTest: isInTesting = " + isInTesting);
         }
@@ -361,7 +364,7 @@ public class CombinationTestService extends Service {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            Log.d(TAG, "run: start ps Test");
+            Log.d(TAG, "run: start combination Test");
             mWakeLock.acquire();
             isInTesting = true;
             Constant.openTTLog();

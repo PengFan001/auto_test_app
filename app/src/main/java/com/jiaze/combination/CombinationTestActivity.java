@@ -433,6 +433,8 @@ public class CombinationTestActivity extends Activity implements View.OnClickLis
                     return -1;
                 }
             }
+
+
             properties.setProperty(getString(R.string.key_test_times), etTestTime.getText().toString());
             properties.store(outputStream, "CombinationParameter");
             if (outputStream != null){

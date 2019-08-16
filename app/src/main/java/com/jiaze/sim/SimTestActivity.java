@@ -138,7 +138,7 @@ public class SimTestActivity extends Activity implements View.OnClickListener {
         etTestTime = (EditText) findViewById(R.id.sim_test_time);
         btnStart = (Button) findViewById(R.id.sim_start_btn);
         tvTestResult = (TextView) findViewById(R.id.sim_test_result);
-        if (Integer.parseInt(simTestTime) == 0){
+        if (Integer.parseInt(simTestTime) <= 0){
             etTestTime.setText(getString(R.string.reboot_default_value));
         }else {
             etTestTime.setText(simTestTime);

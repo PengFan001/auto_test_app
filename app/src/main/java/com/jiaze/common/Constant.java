@@ -6,7 +6,6 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.SimpleAdapter;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -18,11 +17,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 public class Constant {
@@ -95,10 +94,26 @@ public class Constant {
     }
 
     public static void  zipLog(String fileName){
-        String filePath = AUTO_TEST_RESULT_DIR + "/" + fileName + ZIP_SUFFIX;
+        String filePath = AUTO_TEST_RESULT_DIR + "/" + fileName + "/" +"log" + ZIP_SUFFIX;
         setFilePermission(LOG_FILE_DIR);
         ZipUtil.zip(LOG_FILE_DIR, filePath);
+        String desFilePath = AUTO_TEST_RESULT_DIR + "/" + fileName + ZIP_SUFFIX;
+        String srcFilePath = AUTO_TEST_RESULT_DIR + "/" + fileName;
+        setFilePermission(srcFilePath);
+        ZipUtil.zip(srcFilePath, desFilePath);
     }
+
+    public static void  zipLogAndUploadftp(String fileName){
+        String filePath = AUTO_TEST_RESULT_DIR + "/" + fileName + "/" +"log" + ZIP_SUFFIX;
+        setFilePermission(LOG_FILE_DIR);
+        ZipUtil.zip(LOG_FILE_DIR, filePath);
+        String desFilePath = AUTO_TEST_RESULT_DIR + "/" + fileName + ZIP_SUFFIX;
+        String srcFilePath = AUTO_TEST_RESULT_DIR + "/" + fileName;
+        setFilePermission(srcFilePath);
+        ZipUtil.zip(srcFilePath, desFilePath);
+        upload(desFilePath);
+    }
+
 
     public static void zipLog(String dir, String fileName){
         String filePath = dir + "/" + fileName + ZIP_SUFFIX;
@@ -532,5 +547,18 @@ public class Constant {
                 }
             }
         }).start();
+    }
+
+    public static boolean upload(String path){
+        File uploadFile = new File(path);
+        if (!uploadFile.exists()){
+            uploadFile.setWritable(true);
+            uploadFile.mkdirs();
+        }
+        List<File> fileList = new ArrayList<File>();
+        fileList.add(uploadFile);
+
+        /**upload the file**/
+        return FTPUtil.uploadFile(fileList);
     }
 }

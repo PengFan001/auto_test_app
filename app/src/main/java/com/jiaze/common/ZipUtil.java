@@ -74,6 +74,7 @@ public class ZipUtil {
         }
     }
 
+
     private static void zipByType(File file, ZipOutputStream out, String basedir){
         if (file.isDirectory()){
             Log.d(TAG, "zipByType: type is zipDirectory basedir = " + basedir + "   fileName = " + file.getName());

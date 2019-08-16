@@ -2,6 +2,7 @@ package com.jiaze.autotestapp;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +13,7 @@ import android.widget.SimpleAdapter;
 import com.jiaze.airmode.AirModeTestActivity;
 import com.jiaze.call.CallTestActivity;
 import com.jiaze.combination.CombinationTestActivity;
+import com.jiaze.ftp.FTPLoginActivity;
 import com.jiaze.network.NetworkTestActivity;
 import com.jiaze.ps.PsTestActivity;
 import com.jiaze.reboot.ModuleRebootActivity;
@@ -32,10 +34,10 @@ public class MainActivity extends Activity {
 
     private int[] mAppIcons = {
             R.mipmap.icon_kaiguanji, R.mipmap.con_sim, R.mipmap.icon_ruwang, R.mipmap.icon_yuyingtonghua,
-            R.mipmap.icon_feixingmoshi, R.mipmap.icon_message, R.mipmap.icon_psyewu, R.mipmap.icon_ceshi, R.mipmap.icon_tongyong
+            R.mipmap.icon_feixingmoshi, R.mipmap.icon_message, R.mipmap.icon_psyewu, R.mipmap.icon_ceshi, R.mipmap.icon_tongyong, R.mipmap.icon_ftp
     };
 
-    private String[] mAppNames = new String[9];
+    private String[] mAppNames = new String[10];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,8 @@ public class MainActivity extends Activity {
                     intent.setClass(parent.getContext(), ModuleRebootActivity.class);
                 }else if (mAppNames[position].equals(getString(R.string.title_combination_test))){
                     intent.setClass(parent.getContext(), CombinationTestActivity.class);
+                }else if (mAppNames[position].equals(getString(R.string.title_login_ftp))){
+                    intent.setClass(parent.getContext(), FTPLoginActivity.class);
                 }
 
                 if (intent != null){
@@ -81,6 +85,15 @@ public class MainActivity extends Activity {
                 }
             }
         });
+
+        Configuration configuration = this.getResources().getConfiguration();
+        int ori = configuration.orientation;
+        if (ori == configuration.ORIENTATION_LANDSCAPE){
+            Log.d(TAG, "onCreate: the device is ORIENTATION_LANDSCAPE");
+        }else if (ori == configuration.ORIENTATION_PORTRAIT){
+            Log.d(TAG, "onCreate: the device is ORIENTATION_PORTRAIT");
+        }
+
     }
 
     private void initGridViewData(){
@@ -95,6 +108,7 @@ public class MainActivity extends Activity {
         mAppNames[6] = getString(R.string.title_pps);
         mAppNames[7] = getString(R.string.title_module_reboot);
         mAppNames[8] = getString(R.string.title_combination_test);
+        mAppNames[9] = getString(R.string.title_login_ftp);
 
         for (int i = 0; i < mAppIcons.length; i++){
             Map<String, Object> gridItem = new HashMap<String, Object>();

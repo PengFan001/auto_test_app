@@ -10,6 +10,7 @@
     <string name="title_pps">PS业务测试</string>
     <string name="title_module_reboot">模块重启测试</string>
     <string name="title_combination_test">组合测试</string>
+    <string name="title_login_ftp">FTP登录</string>
 
     <string name="btn_start_test">开始测试</string>
     <string name="btn_stop_test">停止测试</string>
@@ -190,5 +191,10 @@
 
     <string name="reboot_times">重启次数: </string>
     <string name="reboot_default_value">1</string>
+    <string name="text_ftp_ip">ip地址:</string>
+    <string name="text_ftp_port">端口号:</string>
+    <string name="text_ftp_user">用户名:</string>
+    <string name="text_ftp_password">密码:</string>
+    <string name="btn_login_ftp">登录FTP</string>
 
 </resources>

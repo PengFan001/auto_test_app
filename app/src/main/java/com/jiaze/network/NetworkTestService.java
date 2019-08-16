@@ -495,6 +495,7 @@ public class NetworkTestService extends Service {
         for (; networkTestTime > 0 && isTesting; networkTestTime--){
             totalRunTimes++;
             mHandler.postDelayed(getServiceStateTask, 120 * 1000);
+            isStopCheck = false;
             Log.d(TAG, "runLogical: is isStopCheck = " + isStopCheck);
             while (!isStopCheck){
                 try {
@@ -506,19 +507,19 @@ public class NetworkTestService extends Service {
             switch (myPhoneStateListener.getNetworkState()){
                 case ServiceState.STATE_IN_SERVICE:
                     Log.d(TAG, "runLogical: serviceState = " + myPhoneStateListener.getNetworkState());
-                    mHandler.sendEmptyMessage(IN_SERVICE);
+                    inServiceTime++;
                     break;
                 case ServiceState.STATE_OUT_OF_SERVICE:
                     Log.d(TAG, "runLogical: serviceState = " + myPhoneStateListener.getNetworkState());
-                    mHandler.sendEmptyMessage(OUT_OF_SERVICE);
+                    outServiceTime++;
                     break;
                 case ServiceState.STATE_EMERGENCY_ONLY:
                     Log.d(TAG, "runLogical: serviceState = " + myPhoneStateListener.getNetworkState());
-                    mHandler.sendEmptyMessage(EMERGENCY_ONLY);
+                    emergencyTime++;
                     break;
                 case ServiceState.STATE_POWER_OFF:
                     Log.d(TAG, "runLogical: serviceState = " + myPhoneStateListener.getNetworkState());
-                    mHandler.sendEmptyMessage(POWER_OFF);
+                    powerOffTime++;
                     break;
             }
         }
@@ -584,6 +585,7 @@ public class NetworkTestService extends Service {
             }
 
             mHandler.postDelayed(getServiceStateTask, 120 * 1000);
+            isStopCheck = false;
             Log.d(TAG, "runLogical: is isStopCheck = " + isStopCheck);
             while (!isStopCheck){
                 try {

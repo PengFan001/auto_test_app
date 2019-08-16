@@ -173,7 +173,7 @@ public class RebootTestActivity extends Activity implements View.OnClickListener
         etRebootTimes = (EditText) findViewById(R.id.reboot_times);
         btnTest = (Button) findViewById(R.id.reboot_btn);
         tvRebootResult = (TextView) findViewById(R.id.reboot_test_result);
-        if (Integer.parseInt(testTime) == 0){
+        if (Integer.parseInt(testTime) <= 0){
             etRebootTimes.setText(getString(R.string.reboot_default_value));
         }else {
             etRebootTimes.setText(testTime);
