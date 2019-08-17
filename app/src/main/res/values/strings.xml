@@ -110,6 +110,18 @@
     <string name="text_air_mode_test_result">=======飞行模式测试结果=======</string>
     <string name="text_ps_test_result">=======PS测试结果=======</string>
     <string name="text_module_reboot_test_result">=======模块重启测试结果=======</string>
+    <string name="text_ftp_ip">ip地址:</string>
+    <string name="text_ftp_port">端口号:</string>
+    <string name="text_ftp_user">用户名:</string>
+    <string name="text_ftp_password">密码:</string>
+    <string name="text_ip_not_null">ip不能为空</string>
+    <string name="text_port_not_null">port不能为空</string>
+    <string name="text_username_not_null">username不能为空</string>
+    <string name="text_password_not_null">password不能为空</string>
+    <string name="text_connect_ftp_success">连接FTP服务器成功</string>
+    <string name="text_connect_ftp_failed">连接FTP服务器失败</string>
+    <string name="text_ip_address_format_error">Ip格式错误</string>
+
 
     <string name="param_phone">手机号</string>
     <string name="param_test_times">测试次数</string>
@@ -188,13 +200,14 @@
     <string name="key_module_reboot_failed_time">module_reboot_failed_time</string>
     <string name="key_is_combination_test">is_combination_test</string>
     <string name="key_is_run_next_time">is_run_next_time</string>
+    <string name="key_ftp_ip">ftp_ip</string>
+    <string name="key_ftp_port">ftp_port</string>
+    <string name="key_ftp_username">ftp_username</string>
+    <string name="key_ftp_password">ftp_password</string>
+    <string name="key_ftp_is_login">ftp_is_login</string>
 
     <string name="reboot_times">重启次数: </string>
     <string name="reboot_default_value">1</string>
-    <string name="text_ftp_ip">ip地址:</string>
-    <string name="text_ftp_port">端口号:</string>
-    <string name="text_ftp_user">用户名:</string>
-    <string name="text_ftp_password">密码:</string>
     <string name="btn_login_ftp">登录FTP</string>
 
 </resources>

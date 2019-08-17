@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:orientation="horizontal">
+
+                    <CheckBox
+                        android:id="@+id/checkbox_reboot"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:textColor="@color/default_text_color"
+                        android:text="@string/text_checkbox_reboot"
+                        android:textSize="14sp"/>
+
+                    <CheckBox
+                        android:id="@+id/checkbox_sim"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:textColor="@color/default_text_color"
+                        android:text="@string/text_checkbox_sim"
+                        android:textSize="14sp" />
+
+                    <CheckBox
+                        android:id="@+id/checkbox_network"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="17dp"
+                        android:textColor="@color/default_text_color"
+                        android:text="@string/text_checkbox_network"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:orientation="horizontal">
+
+                    <CheckBox
+                        android:id="@+id/checkbox_call"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:textColor="@color/default_text_color"
+                        android:text="@string/text_checkbox_call"
+                        android:textSize="14sp" />
+
+                    <CheckBox
+                        android:id="@+id/checkbox_air_mode"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:textColor="@color/default_text_color"
+                        android:text= "@string/text_checkbox_air_mode"
+                        android:textSize="14sp"/>
+
+                    <CheckBox
+                        android:id="@+id/checkbox_sms"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:textColor="@color/default_text_color"
+                        android:text="@string/text_checkbox_sms"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:orientation="horizontal">
+
+                    <CheckBox
+                        android:id="@+id/checkbox_ps"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:textColor="@color/default_text_color"
+                        android:text="@string/text_checkbox_ps"
+                        android:textSize="14sp" />
+
+                    <CheckBox
+                        android:id="@+id/checkbox_module_reboot"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="22dp"
+                        android:textColor="@color/default_text_color"
+                        android:text="@string/text_checkbox_module_reboot"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/combination_network_test_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="@string/text_network_test_module"
+                        android:paddingLeft="10dp"
+                        android:gravity="center"
+                        android:textSize="18sp"
+                        android:textColor="@color/default_text_color"/>
+
+                    <RadioGroup
+                        android:id="@+id/combination_network_test_module"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="8dp"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/combination_reboot_device"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="@string/text_reboot_device"
+                            android:textSize="14sp"
+                            android:textColor="@color/default_text_color"
+                            android:checked="true"/>
+
+                        <RadioButton
+                            android:id="@+id/combination_reboot_radio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="@string/text_reboot_radio"
+                            android:textSize="14sp"
+                            android:textColor="@color/default_text_color"
+                            android:layout_marginLeft="8dp"/>
+
+                    </RadioGroup>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/combination_call_test"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:orientation="vertical"
+                    android:layout_marginTop="10dp"
+                    android:visibility="visible">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:orientation="horizontal"
+                        android:layout_marginLeft="10dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:textSize="18sp"
+                            android:text="@string/param_phone"
+                            android:gravity="center"
+                            android:textColor="@color/default_text_color" />
+
+                        <EditText
+                            android:id="@+id/combination_call_phone"
+                            android:layout_width="140dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="48dp"
+                            android:singleLine="true"
+                            android:inputType="number"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:orientation="horizontal"
+                        android:layout_marginLeft="10dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:textSize="18sp"
+                            android:text="@string/param_wait_time"
+                            android:gravity="center"
+                            android:textColor="@color/default_text_color" />
+
+                        <EditText
+                            android:id="@+id/combination_wait_time"
+                            android:layout_width="140dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="30dp"
+                            android:singleLine="true"
+                            android:inputType="number"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:orientation="horizontal"
+                        android:layout_marginLeft="10dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:textSize="18sp"
+                            android:text="@string/param_duration_time"
+                            android:gravity="center"
+                            android:textColor="@color/default_text_color" />
+
+                        <EditText
+                            android:id="@+id/combination_duration_time"
+                            android:layout_width="140dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="30dp"
+                            android:singleLine="true"
+                            android:inputType="number"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/combination_sms_test"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:orientation="vertical"
+                    android:visibility="visible"
+                    android:layout_marginTop="10dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:orientation="horizontal"
+                        android:layout_marginLeft="10dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:textSize="18sp"
+                            android:text="@string/param_phone"
+                            android:gravity="center"
+                            android:textColor="@color/default_text_color" />
+
+                        <EditText
+                            android:id="@+id/combination_sms_phone"
+                            android:layout_width="140dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="48dp"
+                            android:singleLine="true"
+                            android:inputType="number"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:orientation="horizontal"
+                        android:layout_marginLeft="10dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:textSize="18sp"
+                            android:text="@string/param_wait_sms_result_time"
+                            android:gravity="center"
+                            android:textColor="@color/default_text_color" />
+
+                        <EditText
+                            android:id="@+id/combination_wait_result_time"
+                            android:layout_width="100dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="2dp"
+                            android:singleLine="true"
+                            android:inputType="number"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:orientation="horizontal"
+                        android:layout_marginLeft="10dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:textSize="18sp"
+                            android:text="@string/param_sms_str"
+                            android:gravity="center"
+                            android:textColor="@color/default_text_color" />
+
+                        <EditText
+                            android:id="@+id/combination_sms_str"
+                            android:layout_width="140dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="30dp"
+                            android:singleLine="true"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp">
+
+                    <TextView
+                        android:id="@+id/combination_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="@string/text_test_times"
+                        android:paddingLeft="10dp"
+                        android:gravity="center"
+                        android:textSize="18sp"
+                        android:textColor="@color/default_text_color"/>
+
+                    <EditText
+                        android:id="@+id/combination_times"
+                        android:layout_width="80dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="20dp"
+                        android:text="@string/reboot_default_value"
+                        android:singleLine="true"
+                        android:inputType="number"/>
+
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/combination_btn"
+                    android:layout_width="253dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginLeft="35dp"
+                    android:text="@string/btn_start_test"
+                    android:background="@mipmap/btn_starttest"
+                    android:textSize="18sp"
+                    android:textColor="@color/white"/>
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/combination_test_result"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"/>
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </LinearLayout>
+
+</LinearLayout>

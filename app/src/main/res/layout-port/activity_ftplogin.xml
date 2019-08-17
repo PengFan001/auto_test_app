@@ -16,7 +16,6 @@
         android:orientation="vertical">
 
         <LinearLayout
-            android:layout_marginTop="30dp"
             android:layout_width="wrap_content"
             android:layout_height="60dp"
             android:orientation="horizontal">
@@ -32,16 +31,16 @@
             <EditText
                 android:id="@+id/ip"
                 android:layout_marginLeft="55dp"
-                android:layout_width="300dp"
+                android:layout_width="200dp"
                 android:layout_height="match_parent"
-                android:inputType="number"
+                android:inputType="text"
+                android:digits=".0123456789"
                 android:singleLine="true"/>
 
         </LinearLayout>
 
 
         <LinearLayout
-            android:layout_marginTop="30dp"
             android:layout_width="wrap_content"
             android:layout_height="60dp"
             android:orientation="horizontal">
@@ -57,7 +56,7 @@
             <EditText
                 android:id="@+id/port"
                 android:layout_marginLeft="50dp"
-                android:layout_width="300dp"
+                android:layout_width="200dp"
                 android:layout_height="match_parent"
                 android:inputType="number"
                 android:singleLine="true"
@@ -66,7 +65,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_marginTop="30dp"
             android:layout_width="wrap_content"
             android:layout_height="60dp"
             android:orientation="horizontal">
@@ -82,7 +80,7 @@
             <EditText
                 android:id="@+id/username"
                 android:layout_marginLeft="50dp"
-                android:layout_width="300dp"
+                android:layout_width="200dp"
                 android:layout_height="match_parent"
                 android:inputType="text"
                 android:singleLine="true"/>
@@ -90,7 +88,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_marginTop="30dp"
             android:layout_width="wrap_content"
             android:layout_height="60dp"
             android:orientation="horizontal">
@@ -106,9 +103,9 @@
             <EditText
                 android:id="@+id/password"
                 android:layout_marginLeft="75dp"
-                android:layout_width="300dp"
+                android:layout_width="200dp"
                 android:layout_height="match_parent"
-                android:inputType="text"
+                android:inputType="textPassword"
                 android:singleLine="true"/>
 
         </LinearLayout>
@@ -118,7 +115,6 @@
             android:layout_width="253dp"
             android:layout_height="50dp"
             android:layout_marginTop="30dp"
-            android:layout_marginLeft="dp"
             android:text="@string/btn_login_ftp"
             android:background="@mipmap/btn_starttest"
             android:textSize="18sp"

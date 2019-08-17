@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/title_service_state"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textColor="@color/default_text_color"
+                android:text="@string/text_network_state"
+                android:textSize="18sp"
+                android:gravity="center"
+                android:paddingLeft="20dp"/>
+
+            <TextView
+                android:id="@+id/service_state"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textColor="@color/default_text_color"
+                android:textSize="18sp"
+                android:text="@string/text_unknown"
+                android:gravity="center"
+                android:layout_marginLeft="20dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/text_network_test_module"
+                android:paddingLeft="20dp"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:textColor="@color/default_text_color"/>
+
+            <RadioGroup
+                android:id="@+id/network_test_module"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="8dp"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/reboot_device"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/text_reboot_device"
+                    android:textSize="14sp"
+                    android:textColor="@color/default_text_color"
+                    android:checked="true"/>
+
+                <RadioButton
+                    android:id="@+id/reboot_radio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/text_reboot_radio"
+                    android:textSize="14sp"
+                    android:textColor="@color/default_text_color"
+                    android:layout_marginLeft="8dp"/>
+
+            </RadioGroup>
+            
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/text_test_times"
+                android:paddingLeft="20dp"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:textColor="@color/default_text_color"/>
+
+            <EditText
+                android:id="@+id/network_test_time"
+                android:layout_width="80dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="20dp"
+                android:text="@string/reboot_default_value"
+                android:singleLine="true"
+                android:inputType="number"/>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/network_start_btn"
+            android:layout_width="253dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="35dp"
+            android:text="@string/btn_start_test"
+            android:background="@mipmap/btn_starttest"
+            android:textSize="18sp"
+            android:textColor="@color/white"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/network_test_result"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"/>
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </LinearLayout>
+
+</LinearLayout>

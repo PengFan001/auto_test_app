@@ -42,9 +42,43 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate: ===========onCreate============");
         setContentView(R.layout.activity_main);
-        mGridView = (GridView) findViewById(R.id.gridView);
         initGridViewData();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Log.d(TAG, "onConfigurationChanged: ==============onConfigurationChanged===============");
+        setContentView(R.layout.activity_main);
+        initGridViewData();
+    }
+
+    private void initGridViewData(){
+
+        mGridView = (GridView) findViewById(R.id.gridView);
+        gridItems = new ArrayList<Map<String, Object>>();
+
+        mAppNames[0] = getString(R.string.title_boot_and_shutdown);
+        mAppNames[1] = getString(R.string.title_sim);
+        mAppNames[2] = getString(R.string.title_net);
+        mAppNames[3] = getString(R.string.title_call);
+        mAppNames[4] = getString(R.string.title_air_mode);
+        mAppNames[5] = getString(R.string.title_sms);
+        mAppNames[6] = getString(R.string.title_pps);
+        mAppNames[7] = getString(R.string.title_module_reboot);
+        mAppNames[8] = getString(R.string.title_combination_test);
+        mAppNames[9] = getString(R.string.title_login_ftp);
+
+        for (int i = 0; i < mAppIcons.length; i++){
+            Map<String, Object> gridItem = new HashMap<String, Object>();
+            gridItem.put(getString(R.string.key_icon), mAppIcons[i]);
+            gridItem.put(getString(R.string.key_name), mAppNames[i]);
+            gridItems.add(gridItem);
+        }
+
+
         SimpleAdapter simpleAdapter = new SimpleAdapter(this, gridItems, R.layout.gridview_item,
                 new String[]{getString(R.string.key_icon), getString(R.string.key_name)},
                 new int[]{R.id.icon_image, R.id.name_tv});
@@ -85,36 +119,5 @@ public class MainActivity extends Activity {
                 }
             }
         });
-
-        Configuration configuration = this.getResources().getConfiguration();
-        int ori = configuration.orientation;
-        if (ori == configuration.ORIENTATION_LANDSCAPE){
-            Log.d(TAG, "onCreate: the device is ORIENTATION_LANDSCAPE");
-        }else if (ori == configuration.ORIENTATION_PORTRAIT){
-            Log.d(TAG, "onCreate: the device is ORIENTATION_PORTRAIT");
-        }
-
-    }
-
-    private void initGridViewData(){
-        gridItems = new ArrayList<Map<String, Object>>();
-
-        mAppNames[0] = getString(R.string.title_boot_and_shutdown);
-        mAppNames[1] = getString(R.string.title_sim);
-        mAppNames[2] = getString(R.string.title_net);
-        mAppNames[3] = getString(R.string.title_call);
-        mAppNames[4] = getString(R.string.title_air_mode);
-        mAppNames[5] = getString(R.string.title_sms);
-        mAppNames[6] = getString(R.string.title_pps);
-        mAppNames[7] = getString(R.string.title_module_reboot);
-        mAppNames[8] = getString(R.string.title_combination_test);
-        mAppNames[9] = getString(R.string.title_login_ftp);
-
-        for (int i = 0; i < mAppIcons.length; i++){
-            Map<String, Object> gridItem = new HashMap<String, Object>();
-            gridItem.put(getString(R.string.key_icon), mAppIcons[i]);
-            gridItem.put(getString(R.string.key_name), mAppNames[i]);
-            gridItems.add(gridItem);
-        }
     }
 }

@@ -203,7 +203,11 @@ public class PsTestService extends Service {
             mWakeLock.acquire();
             isInTesting = true;
             Constant.openTTLog();
-            Constant.readTTLog(Constant.getTestResultFileName(storePsTestResultDir));
+            if (Constant.isUpload(getApplicationContext())){
+                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storePsTestResultDir), getApplicationContext());
+            }else {
+                Constant.readTTLog(Constant.getTestResultFileName(storePsTestResultDir));
+            }
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();

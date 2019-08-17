@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.jiaze.ftp.FTPLoginActivity"
+    android:orientation="vertical">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_marginTop="30dp"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textColor="@color/default_text_color"
+                android:textSize="24sp"
+                android:text="@string/text_ftp_ip"
+                android:gravity="center" />
+
+            <EditText
+                android:id="@+id/ip"
+                android:layout_marginLeft="55dp"
+                android:layout_width="300dp"
+                android:layout_height="match_parent"
+                android:inputType= "text"
+                android:digits=".0123456789"
+                android:singleLine="true"/>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textColor="@color/default_text_color"
+                android:textSize="24sp"
+                android:text="@string/text_ftp_port"
+                android:gravity="center" />
+
+            <EditText
+                android:id="@+id/port"
+                android:layout_marginLeft="50dp"
+                android:layout_width="300dp"
+                android:layout_height="match_parent"
+                android:inputType="number"
+                android:singleLine="true"
+                android:numeric="integer"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textColor="@color/default_text_color"
+                android:textSize="24sp"
+                android:text="@string/text_ftp_user"
+                android:gravity="center" />
+
+            <EditText
+                android:id="@+id/username"
+                android:layout_marginLeft="50dp"
+                android:layout_width="300dp"
+                android:layout_height="match_parent"
+                android:inputType="text"
+                android:singleLine="true"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textColor="@color/default_text_color"
+                android:textSize="24sp"
+                android:text="@string/text_ftp_password"
+                android:gravity="center" />
+
+            <EditText
+                android:id="@+id/password"
+                android:layout_marginLeft="75dp"
+                android:layout_width="300dp"
+                android:layout_height="match_parent"
+                android:inputType="textPassword"
+                android:singleLine="true"/>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_login"
+            android:layout_width="253dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="20dp"
+            android:text="@string/btn_login_ftp"
+            android:background="@mipmap/btn_starttest"
+            android:textSize="18sp"
+            android:textColor="@color/white"/>
+
+    </LinearLayout>
+
+</LinearLayout>

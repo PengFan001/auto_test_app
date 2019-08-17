@@ -1,6 +1,9 @@
 package com.jiaze.common;
 
+import android.content.Context;
 import android.util.Log;
+
+import com.jiaze.autotestapp.R;
 
 import org.apache.commons.net.ftp.FTPClient;
 
@@ -8,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * =========================================
@@ -18,12 +22,14 @@ import java.util.List;
  * =========================================
  */
 public class FTPUtil {
+
+    private static final String FTP_SET_PARAMS = "FTPParams";
     private static final String TAG = "FTPUtil";
     private static final String REMOTE_PATH = "testResult";
-    private static String ftpIp = "203.156.236.67";
-    private static int ftpPort = 10021;
-    private static String ftpUser = "jzlab";
-    private static String ftpPassword = "jzlab";
+    public static String ftpIp = "203.156.236.67";
+    public static int ftpPort = 10021;
+    public static String ftpUser = "jzlab";
+    public static String ftpPassword = "jzlab";
 
     private String ip;
     private int port;
@@ -38,7 +44,8 @@ public class FTPUtil {
         this.password = password;
     }
 
-    public static boolean uploadFile(List<File> fileList){
+    public static boolean uploadFile(Context context, List<File> fileList){
+        loadFTPSetParams(context);
         FTPUtil ftpUtil = new FTPUtil(ftpIp, ftpPort, ftpUser, ftpPassword);
         Log.d(TAG, "uploadFile: start connect the ftp server, and upload the file");
         boolean result = ftpUtil.uploadFile(REMOTE_PATH, fileList);
@@ -91,6 +98,32 @@ public class FTPUtil {
 
         return isLogin;
     }
+
+    public boolean connectFTPServer(){
+        ftpClient = new FTPClient();
+        boolean isLogin = false;
+        Log.d(TAG, "connectFTPServer: ip = " + ip + "   port = " + port + "   user = " + user + "   password = " + password);
+
+        try {
+            ftpClient.connect(ip, port);
+            isLogin = ftpClient.login(user, password);
+        } catch (IOException e) {
+            Log.d(TAG, "connectFTPServer: connect the ftp server exception");
+            e.printStackTrace();
+            isLogin = false;
+        }
+
+        return isLogin;
+    }
+
+    private static void loadFTPSetParams(Context context){
+        Properties properties = Constant.loadTestParameter(context, FTP_SET_PARAMS);
+        ftpIp = properties.getProperty(context.getString(R.string.key_ftp_ip), null);
+        ftpPort = Integer.parseInt(properties.getProperty(context.getString(R.string.key_ftp_port), "21"));
+        ftpUser = properties.getProperty(context.getString(R.string.key_ftp_username), null);
+        ftpPassword = properties.getProperty(context.getString(R.string.key_ftp_password), null);
+        Log.d(TAG, "loadFTPSetParams: ftpIp = " + ftpIp + "  ftpPort = " + ftpPort + "   ftpUser = " + ftpUser + "   ftpPassword = " + ftpPassword);
+}
 
     public String getIp() {
         return ip;

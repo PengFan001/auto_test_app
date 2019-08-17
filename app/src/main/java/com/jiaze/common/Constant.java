@@ -7,6 +7,8 @@ import android.os.PowerManager;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.jiaze.autotestapp.R;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -36,6 +38,8 @@ public class Constant {
     private static final String CLOSE_AT_DLKS = "AT^DLKS=0\r\n";
     private static final String TT_LOG_PORT = "/dev/STTYEMS50";
 
+    public static final String IP_FORMAT = "^(2(5[0-5]{1}|[0-4]\\d{1})|[0-1]?\\d{1,2})(\\.(2(5[0-5]{1}|[0-4]\\d{1})|[0-1]?\\d{1,2})){3}$";
+    public static final String FTP_SET_PARAMS = "FTPParams";
     public static final String PRE_KEY_BOOT_OR_SHUTDOWN = "boot_or_shutdown";
     public static final String PRE_KEY_CALL = "call";
     public static final String PRE_KEY_SIM = "sim";
@@ -103,7 +107,7 @@ public class Constant {
         ZipUtil.zip(srcFilePath, desFilePath);
     }
 
-    public static void  zipLogAndUploadftp(String fileName){
+    public static void  zipLogAndUploadftp(Context context, String fileName){
         String filePath = AUTO_TEST_RESULT_DIR + "/" + fileName + "/" +"log" + ZIP_SUFFIX;
         setFilePermission(LOG_FILE_DIR);
         ZipUtil.zip(LOG_FILE_DIR, filePath);
@@ -111,7 +115,7 @@ public class Constant {
         String srcFilePath = AUTO_TEST_RESULT_DIR + "/" + fileName;
         setFilePermission(srcFilePath);
         ZipUtil.zip(srcFilePath, desFilePath);
-        upload(desFilePath);
+        upload(context, desFilePath);
     }
 
 
@@ -284,6 +288,8 @@ public class Constant {
         }
         return properties;
     }
+
+
 
     public static void showTestResult(final String resultPath, final Message getResult){
         new Thread(new Runnable() {
@@ -506,6 +512,41 @@ public class Constant {
         }).start();
     }
 
+    public static void readAndUploadTTLog(final String fileName, final Context context){
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: start read the ttLog");
+                BufferedReader bufferedReader = null;
+                try {
+                    bufferedReader = new BufferedReader(new FileReader(TT_LOG_PORT));
+                    String log;
+                    while (((log = bufferedReader.readLine()) != null) && isRead){
+                        Log.d(TAG, "run: isRead = " + isRead +" ==== log ==== " + log);
+                        saveTTLog(log + "\n");
+                    }
+                    zipLogAndUploadftp(context, fileName);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    Log.d(TAG, "readTTLog: Open the BufferReader Failed");
+                } catch (IOException e) {
+                    Log.d(TAG, "readTTLog: readLine Exception");
+                    e.printStackTrace();
+                }finally {
+                    if (bufferedReader != null){
+                        try {
+                            bufferedReader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }).start();
+    }
+
+
     /**
      * 将读到的TT log 存储到你自定义的目录下面
      * @param saveDir 自定义的存储路径
@@ -549,7 +590,7 @@ public class Constant {
         }).start();
     }
 
-    public static boolean upload(String path){
+    public static boolean upload(Context context, String path){
         File uploadFile = new File(path);
         if (!uploadFile.exists()){
             uploadFile.setWritable(true);
@@ -559,6 +600,18 @@ public class Constant {
         fileList.add(uploadFile);
 
         /**upload the file**/
-        return FTPUtil.uploadFile(fileList);
+        return FTPUtil.uploadFile(context, fileList);
     }
+
+    public static boolean isUpload(Context context){
+        Properties properties = loadTestParameter(context, FTP_SET_PARAMS);
+        String ip = properties.getProperty(context.getString(R.string.key_ftp_ip), null);
+        String port = properties.getProperty(context.getString(R.string.key_ftp_port), "21");
+        String username = properties.getProperty(context.getString(R.string.key_ftp_username), null);
+        String password = properties.getProperty(context.getString(R.string.key_ftp_password), null);
+        FTPUtil ftpUtil = new FTPUtil(ip, Integer.parseInt(port), username, password);
+        return ftpUtil.connectFTPServer();
+    }
+
+
 }
