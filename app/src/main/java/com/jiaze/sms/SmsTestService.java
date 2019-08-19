@@ -213,9 +213,11 @@ public class SmsTestService extends AutoTestService {
                         break;
 
                     case SmsManager.RESULT_ERROR_RADIO_OFF:
+                        Log.d(TAG, "onReceive: RESULT_ERROR_RADIO_OFF");
                         break;
 
                     case SmsManager.RESULT_ERROR_NULL_PDU:
+                        Log.d(TAG, "onReceive: RESULT_ERROR_NULL_PDU");
                         break;
                 }
             }catch (Exception e){

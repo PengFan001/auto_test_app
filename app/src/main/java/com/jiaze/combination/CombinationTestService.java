@@ -58,6 +58,7 @@ public class CombinationTestService extends Service {
 
     private boolean isStartTest = false;
     private boolean continueTest = false;
+    private boolean isPaused = false;
     private static boolean isInTesting = false;
     private static boolean rebootIsChecked = false;
     private static boolean simIsChecked = false;
@@ -291,7 +292,7 @@ public class CombinationTestService extends Service {
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         bindSignalTestService();
         getTestParams();
-        if (isInTesting){
+        if (isInTesting || isPaused){
             atSender = new AtSender(this, mHandler);
             new Thread(new Runnable() {
                 @Override
@@ -320,8 +321,6 @@ public class CombinationTestService extends Service {
                     }
                 }
             }).start();
-        }else {
-            Log.d(TAG, "onCreate: isInTesting is false, wait the Combination test");
         }
     }
 
@@ -348,6 +347,7 @@ public class CombinationTestService extends Service {
             if (rebootIsChecked){
                 testTime = 0;
             }
+            isPaused = true;
             saveTmpTestResult();
             Log.d(TAG, "stopTest: isInTesting = " + isInTesting);
         }
@@ -365,7 +365,7 @@ public class CombinationTestService extends Service {
         public void run() {
             super.run();
             try {
-                Thread.sleep(5 * 1000);
+                Thread.sleep(3 * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -734,8 +734,9 @@ public class CombinationTestService extends Service {
         storeCombinationResultDir = properties.getProperty(getString(R.string.key_test_result_path), null);
         isStartTest = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_start_test), "false"));
         isInTesting = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_testing), "false"));
+        isPaused = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_paused), "false"));
         totalRunTime = Integer.parseInt(properties.getProperty(getString(R.string.key_total_run_time), "0"));
-        Log.d(TAG, "getTestParams: testTime = " + testTime + "   isStartTest = " + isStartTest + "   isInTesting = " + isInTesting + "    storeCombinationResultDir = " + storeCombinationResultDir);
+        Log.d(TAG, "getTestParams: testTime = " + testTime + "   isStartTest = " + isStartTest + "   isInTesting = " + isInTesting + "   isPaused = " + isPaused + "    storeCombinationResultDir = " + storeCombinationResultDir);
 
 
         rebootIsChecked = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_reboot_is_checked), "false"));
@@ -827,6 +828,7 @@ public class CombinationTestService extends Service {
             properties.setProperty(getString(R.string.key_is_start_test), String.valueOf(isStartTest));
             properties.setProperty(getString(R.string.key_is_testing), String.valueOf(isInTesting));
             properties.setProperty(getString(R.string.key_total_run_time), String.valueOf(totalRunTime));
+            properties.setProperty(getString(R.string.key_is_paused), String.valueOf(isPaused));
             /**test result tmp save**/
             properties.setProperty(getString(R.string.key_total_run_time), String.valueOf(totalRunTime));
             /**test isChecked save**/
@@ -904,6 +906,7 @@ public class CombinationTestService extends Service {
     private void resetTestValue(){
         isStartTest = false;
         isInTesting = false;
+        isPaused = false;
         totalRunTime = 0;
 
         rebootSuccessTime = 0;

@@ -436,6 +436,12 @@ public class CombinationTestActivity extends Activity implements View.OnClickLis
             }
 
             properties.setProperty(getString(R.string.key_test_times), etTestTime.getText().toString());
+            properties.setProperty(getString(R.string.key_call_phone), etCallPhone.getText().toString().trim());
+            properties.setProperty(getString(R.string.key_wait_time), etWaitTime.getText().toString().trim());
+            properties.setProperty(getString(R.string.key_duration_time), etDurationTime.getText().toString().trim());
+            properties.setProperty(getString(R.string.key_sms_phone), etSmsPhone.getText().toString().trim());
+            properties.setProperty(getString(R.string.key_wait_sms_result_time), etWaitResultTime.getText().toString().trim());
+            properties.setProperty(getString(R.string.key_sms_string), etSmsBody.getText().toString().trim());
             properties.store(outputStream, "CombinationParameter");
             if (outputStream != null){
                 outputStream.close();

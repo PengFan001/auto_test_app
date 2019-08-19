@@ -124,6 +124,7 @@
     <string name="text_ip_address_format_error">Ip格式错误</string>
     <string name="text_combination_is_all_uncheck">请勾选组合测试项在点击开始测试</string>
     <string name="text_logining">登录中</string>
+    <string name="text_min_wait_result_time">等待发送结果需要一定时间，太短必定接收超时，请输入大于或等于15秒</string>
 
 
     <string name="param_phone">手机号</string>
@@ -208,6 +209,7 @@
     <string name="key_ftp_username">ftp_username</string>
     <string name="key_ftp_password">ftp_password</string>
     <string name="key_ftp_is_login">ftp_is_login</string>
+    <string name="key_is_paused">is_paused</string>
 
     <string name="reboot_times">重启次数: </string>
     <string name="reboot_default_value">1</string>
