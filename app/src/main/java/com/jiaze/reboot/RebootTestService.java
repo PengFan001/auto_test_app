@@ -109,7 +109,11 @@ public class RebootTestService extends Service {
                     }
                     Log.d(TAG, "onCreate: continue the last time test, rebootTestTime = " + rebootTestTime);
                     Constant.openTTLog();
-                    Constant.readTTLog(Constant.getTestResultFileName(storeRebootTestResultDir));
+                    if (Constant.isUpload(getApplicationContext())){
+                        Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeRebootTestResultDir), getApplicationContext());
+                    }else {
+                        Constant.readTTLog(Constant.getTestResultFileName(storeRebootTestResultDir));
+                    }
                     Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
                     int sendResult = atSender.sendATCommand(command, message, false);
                     if (sendResult == -1){
@@ -216,6 +220,7 @@ public class RebootTestService extends Service {
     //RebootTestService 提供的服务均写在这个里面
     public class RebootTestBinder extends Binder{
         public void startTest(Bundle bundle){
+            resetTestValue();
             isStop = false;
             isStartTest = true;
             rebootTestTime = bundle.getInt(getString(R.string.key_reboot_test_time));

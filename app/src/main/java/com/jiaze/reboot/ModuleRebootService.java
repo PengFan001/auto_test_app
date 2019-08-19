@@ -102,6 +102,7 @@ public class ModuleRebootService extends Service {
 
     public class ModuleRebootBinder extends Binder{
         public void startTest(Bundle bundle){
+            resetValue();
             isStartTest = true;
             moduleTestTime = bundle.getInt(getString(R.string.key_module_test_time));
             storeModuleTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
@@ -157,7 +158,11 @@ public class ModuleRebootService extends Service {
             mWakeLock.acquire();
             isInTesting = true;
             Constant.openTTLog();
-            Constant.readTTLog(Constant.getTestResultFileName(storeModuleTestResultDir));
+            if (Constant.isUpload(getApplicationContext())){
+                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeModuleTestResultDir), getApplicationContext());
+            }else {
+                Constant.readTTLog(Constant.getTestResultFileName(storeModuleTestResultDir));
+            }
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();

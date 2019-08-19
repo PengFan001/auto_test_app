@@ -271,6 +271,7 @@ public class NetworkTestService extends Service {
 
     public class NetworkTestBinder extends Binder{
         public void startTest(Bundle bundle){
+            resetTestValue();
             isStop = false;
             isStartTest = true;
             networkTestTime = bundle.getInt(getString(R.string.key_network_test_time));
@@ -344,7 +345,11 @@ public class NetworkTestService extends Service {
             mWakeLock.acquire();
             isTesting = true;
             Constant.openTTLog();
-            Constant.readTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir));
+            if (Constant.isUpload(getApplicationContext())){
+                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir), getApplicationContext());
+            }else {
+                Constant.readTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir));
+            }
             runLogicalRebootDevice();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();
@@ -394,7 +399,11 @@ public class NetworkTestService extends Service {
             mWakeLock.acquire();
             isTesting = true;
             Constant.openTTLog();
-            Constant.readTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir));
+            if (Constant.isUpload(getApplicationContext())){
+                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir), getApplicationContext());
+            }else {
+                Constant.readTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir));
+            }
             runLogicalRebootRadio();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();

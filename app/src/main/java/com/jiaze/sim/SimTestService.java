@@ -120,6 +120,7 @@ public class SimTestService extends Service {
 
     public class SimTestBinder extends Binder{
         public void startTest(Bundle bundle){
+            resetTestValue();
             isStop = false;
             isStartTest = true;
             runtNextTime = false;
@@ -196,7 +197,11 @@ public class SimTestService extends Service {
             mWakeLock.acquire();
             isTesting = true;
             Constant.openTTLog();
-            Constant.readTTLog(Constant.getTestResultFileName(storeSimTestResultDir));
+            if (Constant.isUpload(getApplicationContext())){
+                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeSimTestResultDir), getApplicationContext());
+            }else {
+                Constant.readTTLog(Constant.getTestResultFileName(storeSimTestResultDir));
+            }
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();

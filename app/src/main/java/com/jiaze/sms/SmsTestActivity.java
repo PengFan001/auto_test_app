@@ -107,10 +107,10 @@ public class SmsTestActivity extends AutoTestActivity implements View.OnClickLis
             Toast.makeText(this, getString(R.string.text_send_content_not_null), Toast.LENGTH_SHORT).show();
             return -1;
         }
-        properties.setProperty(getString(R.string.key_phone), etPhone.getText().toString());
+        properties.setProperty(getString(R.string.key_phone), etPhone.getText().toString().trim());
         properties.setProperty(getString(R.string.key_test_times), etTestTime.getText().toString());
         properties.setProperty(getString(R.string.key_wait_sms_result_time), etWaitResultTime.getText().toString());
-        properties.setProperty(getString(R.string.key_sms_string), etSmsStr.getText().toString());
+        properties.setProperty(getString(R.string.key_sms_string), etSmsStr.getText().toString().trim());
 
         properties.store(fileOutputStream, PARAM_DESC);
         if (fileOutputStream != null){

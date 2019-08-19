@@ -102,7 +102,7 @@ public class CallTestActivity extends AutoTestActivity implements View.OnClickLi
             Toast.makeText(this, getString(R.string.text_duration_time_not_null),Toast.LENGTH_SHORT).show();
             return -1;
         }
-        properties.setProperty(getString(R.string.key_phone), etPhone.getText().toString());
+        properties.setProperty(getString(R.string.key_phone), etPhone.getText().toString().trim());
         properties.setProperty(getString(R.string.key_test_times), etTestTime.getText().toString());
         properties.setProperty(getString(R.string.key_wait_time), etWaitTime.getText().toString());
         properties.setProperty(getString(R.string.key_duration_time), etDurationTime.getText().toString());

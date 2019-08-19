@@ -302,7 +302,11 @@ public class CombinationTestService extends Service {
                         e.printStackTrace();
                     }
                     Constant.openTTLog();
-                    Constant.readTTLog(Constant.getTestResultFileName(storeCombinationResultDir));
+                    if (Constant.isUpload(getApplicationContext())){
+                        Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeCombinationResultDir), getApplicationContext());
+                    }else {
+                        Constant.readTTLog(Constant.getTestResultFileName(storeCombinationResultDir));
+                    }
                     Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
                     int sendResult = atSender.sendATCommand(command, message, false);
                     if (sendResult == -1){
@@ -328,6 +332,7 @@ public class CombinationTestService extends Service {
 
     class CombinationTestBinder extends Binder{
         public void startTest(Bundle bundle){
+            resetTestValue();
             if (initTestParams(bundle) == 0){
                 storeCombinationResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
                 Log.d(TAG, "startTest: Create the storePsTestResultDir success : " + storeCombinationResultDir);
@@ -368,7 +373,11 @@ public class CombinationTestService extends Service {
             mWakeLock.acquire();
             isInTesting = true;
             Constant.openTTLog();
-            Constant.readTTLog(Constant.getTestResultFileName(storeCombinationResultDir));
+            if (Constant.isUpload(getApplicationContext())){
+                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeCombinationResultDir), getApplicationContext());
+            }else {
+                Constant.readTTLog(Constant.getTestResultFileName(storeCombinationResultDir));
+            }
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();
@@ -569,8 +578,13 @@ public class CombinationTestService extends Service {
             waitResultTime = 0;
             smsString = null;
         }
-        
-        return 0;
+
+        if (rebootIsChecked || simIsChecked || networkIsChecked || callIsChecked || airModeIsChecked || smsIsChecked || psIsChecked || moduleRebootIsChecked){
+           return 0;
+        }else {
+            Toast.makeText(getApplicationContext(), getString(R.string.text_combination_is_all_uncheck), Toast.LENGTH_SHORT).show();
+            return -1;
+        }
     }
 
     private void saveCombinationTestResult(){

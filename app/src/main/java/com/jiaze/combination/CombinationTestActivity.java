@@ -424,6 +424,7 @@ public class CombinationTestActivity extends Activity implements View.OnClickLis
         try {
             OutputStream outputStream = new FileOutputStream(paramFile);
             Properties properties = new Properties();
+
             if (TextUtils.isEmpty(etTestTime.getText().toString())){
                 Toast.makeText(this, getString(R.string.text_test_not_null),Toast.LENGTH_SHORT).show();
                 return -1;
@@ -433,7 +434,6 @@ public class CombinationTestActivity extends Activity implements View.OnClickLis
                     return -1;
                 }
             }
-
 
             properties.setProperty(getString(R.string.key_test_times), etTestTime.getText().toString());
             properties.store(outputStream, "CombinationParameter");

@@ -228,7 +228,6 @@ public class NetworkTestActivity extends Activity implements View.OnClickListene
                         networkTestBinder.startTest(getTestParameter());
                         btnStart.setText(getString(R.string.btn_stop_test));
                     }else {
-                        Toast.makeText(this, getString(R.string.text_params_error), Toast.LENGTH_SHORT).show();
                     }
 
                 }else {

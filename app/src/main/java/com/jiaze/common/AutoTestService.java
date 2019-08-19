@@ -174,7 +174,11 @@ public abstract class AutoTestService extends Service {
             mWakeLock.acquire();
             isInTesting = true;
             Constant.openTTLog();
-            Constant.readTTLog(Constant.getTestResultFileName(storeTestResultDir));
+            if (Constant.isUpload(getApplicationContext())){
+                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeTestResultDir), getApplicationContext());
+            }else {
+                Constant.readTTLog(Constant.getTestResultFileName(storeTestResultDir));
+            }
             runTestLogic();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();

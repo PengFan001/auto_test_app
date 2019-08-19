@@ -120,7 +120,10 @@
     <string name="text_password_not_null">password不能为空</string>
     <string name="text_connect_ftp_success">连接FTP服务器成功</string>
     <string name="text_connect_ftp_failed">连接FTP服务器失败</string>
+    <string name="text_connect_ftp_timeout">连接FTP服务器超时，连接失败</string>
     <string name="text_ip_address_format_error">Ip格式错误</string>
+    <string name="text_combination_is_all_uncheck">请勾选组合测试项在点击开始测试</string>
+    <string name="text_logining">登录中</string>
 
 
     <string name="param_phone">手机号</string>

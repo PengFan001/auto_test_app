@@ -125,6 +125,7 @@ public class PsTestService extends Service {
     /**有关PSTestService所提供的服务**/
     public class PsTestBinder extends Binder{
         public void startTest(Bundle bundle){
+            resetTestValue();
             isStartTest = true;
             psTestTimes = bundle.getInt(getString(R.string.key_ps_test_time), 1);
             Log.d(TAG, "startTest: psTestTimes = " + psTestTimes);

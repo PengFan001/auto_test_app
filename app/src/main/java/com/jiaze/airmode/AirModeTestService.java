@@ -101,6 +101,7 @@ public class AirModeTestService extends Service {
     public class AirModeTestBinder extends Binder{
         public void startTest(Bundle bundle){
             //isStartTest = true;
+            resetTestValue();
             airModeTestTime = bundle.getInt(getString(R.string.key_air_mode_test_time));
             storeAirModeTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the storeAirModeTestResultDir = " + storeAirModeTestResultDir);
@@ -148,7 +149,11 @@ public class AirModeTestService extends Service {
             mWakeLock.acquire();
             isTesting = true;
             Constant.openTTLog();
-            Constant.readTTLog(Constant.getTestResultFileName(storeAirModeTestResultDir));
+            if (Constant.isUpload(getApplicationContext())){
+                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeAirModeTestResultDir), getApplicationContext());
+            }else {
+                Constant.readTTLog(Constant.getTestResultFileName(storeAirModeTestResultDir));
+            }
             runLogical();
             if (mWakeLock != null && mWakeLock.isHeld()){
                 mWakeLock.release();

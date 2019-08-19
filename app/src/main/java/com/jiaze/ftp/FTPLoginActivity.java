@@ -15,6 +15,8 @@ import com.jiaze.autotestapp.R;
 import com.jiaze.common.Constant;
 import com.jiaze.common.FTPUtil;
 
+import org.apache.commons.net.io.ToNetASCIIInputStream;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -30,6 +32,7 @@ public class FTPLoginActivity extends Activity {
     private static final String FTP_SET_PARAMS = "FTPParams";
     private static final int IS_LOGIN_IN = 1;
     private static final int IS_LOGIN_FAILED = 2;
+    private static final int LOGIN_TIMEOUT = 3;
 
     private EditText etIp;
     private EditText etPort;
@@ -48,10 +51,26 @@ public class FTPLoginActivity extends Activity {
             switch (msg.what){
                 case IS_LOGIN_IN:
                     Toast.makeText(getApplicationContext(), getString(R.string.text_connect_ftp_success), Toast.LENGTH_SHORT).show();
+                    btnLogin.setText(getString(R.string.btn_login_ftp));
+                    if (mHandler != null && loginTimeout != null){
+                        mHandler.removeCallbacks(loginTimeout);
+                    }
                     break;
 
                 case IS_LOGIN_FAILED:
                     Toast.makeText(getApplicationContext(), getString(R.string.text_connect_ftp_failed), Toast.LENGTH_SHORT).show();
+                    btnLogin.setText(getString(R.string.btn_login_ftp));
+                    if (mHandler != null && loginTimeout != null){
+                        mHandler.removeCallbacks(loginTimeout);
+                    }
+                    break;
+
+                case LOGIN_TIMEOUT:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_connect_ftp_timeout), Toast.LENGTH_SHORT).show();
+                    btnLogin.setText(getString(R.string.btn_login_ftp));
+                    if (mHandler != null && loginTimeout != null){
+                        mHandler.removeCallbacks(loginTimeout);
+                    }
                     break;
             }
 
@@ -72,6 +91,8 @@ public class FTPLoginActivity extends Activity {
                 port = etPort.getText().toString();
                 username = etUsername.getText().toString();
                 password = etPassword.getText().toString();
+                btnLogin.setText(getString(R.string.text_logining));
+                btnLogin.setEnabled(false);
 
                 if (saveFTPParams() == 0){
                     new Thread(new Runnable() {
@@ -79,8 +100,10 @@ public class FTPLoginActivity extends Activity {
                         public void run() {
                             FTPUtil ftpUtil = new FTPUtil(ip, Integer.parseInt(port), username, password);
                             if (ftpUtil.connectFTPServer()){
+                                mHandler.postDelayed(loginTimeout, 40 * 1000);
                                 mHandler.sendEmptyMessage(IS_LOGIN_IN);
                             }else {
+                                mHandler.postDelayed(loginTimeout, 40 * 1000);
                                 mHandler.sendEmptyMessage(IS_LOGIN_FAILED);
                             }
                         }
@@ -89,6 +112,14 @@ public class FTPLoginActivity extends Activity {
             }
         });
     }
+
+    Runnable loginTimeout = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "run: connect the ftp server timeout");
+            mHandler.sendEmptyMessage(LOGIN_TIMEOUT);
+        }
+    };
 
     private void initUI(){
         Properties properties = Constant.loadTestParameter(this, FTP_SET_PARAMS);
@@ -106,7 +137,6 @@ public class FTPLoginActivity extends Activity {
         setEditTextValue(etPort, ftpPort);
         setEditTextValue(etUsername, ftpUsername);
         setEditTextValue(etPassword, ftpPassword);
-
     }
 
     private void setEditTextValue(EditText editText, String value){
@@ -146,8 +176,8 @@ public class FTPLoginActivity extends Activity {
                 return -1;
             }
 
-            Log.d(TAG, "saveFTPParams: etIP = " + etIp.getText().toString());
-            if (isInputValid(etIp.getText().toString().trim(), Constant.IP_FORMAT)){
+            Log.d(TAG, "saveFTPParams: etIP = " + etIp.getText().toString().trim());
+            if (!isInputValid(etIp.getText().toString().trim(), Constant.IP_FORMAT)){
                 Toast.makeText(this, getString(R.string.text_ip_address_format_error), Toast.LENGTH_SHORT).show();
                 return -1;
             }
