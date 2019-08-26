@@ -1,11 +1,14 @@
 package com.jiaze.common;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Environment;
 import android.os.Message;
 import android.os.PowerManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 
@@ -428,6 +431,11 @@ public class Constant {
 
 
     public static void openTTLog(){
+        try {
+            Thread.sleep(1 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         String command_close_dlks = CLOSE_AT_DLKS;
         sendAtCommand(command_close_dlks);
         startRead();
@@ -613,5 +621,14 @@ public class Constant {
         return ftpUtil.connectFTPServer();
     }
 
+    public static boolean isWifiConnected(Context context){
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.getType() == ConnectivityManager.TYPE_WIFI){
+            return true;
+        }else {
+            return false;
+        }
+    }
 
 }

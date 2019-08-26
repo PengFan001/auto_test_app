@@ -13,6 +13,7 @@ import android.os.PowerManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.callback.NormalTestCallback;
@@ -47,7 +48,9 @@ public class PsTestService extends Service {
     private static final int DATA_SUSPEND = 4;
     private static final int CONNECTING_TIMEOUT = 5;
     private static final int COMBINATION_ONE_TEST_FINISHED = 7;
-    
+    private static final int WIFI_DISCONNECTED = 8;
+    private static final int FTP_SERVER_CONNECT_FAILED = 9;
+
     private static boolean isInTesting = false;
     private int psTestTimes = 0;
     private int totalRunTimes = 0;
@@ -93,6 +96,14 @@ public class PsTestService extends Service {
                     Log.d(TAG, "handleMessage: COMBINATION_ONE_TEST_FINISHED, finished one ps Test");
                     resetTestValue();
                     saveTmpTestResult();
+                    break;
+
+                case WIFI_DISCONNECTED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_wifi_disconnected), Toast.LENGTH_SHORT).show();
+                    break;
+
+                case FTP_SERVER_CONNECT_FAILED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_connect_ftp_server_failed), Toast.LENGTH_SHORT).show();
                     break;
             }
             return false;
@@ -145,6 +156,7 @@ public class PsTestService extends Service {
         }
 
         public String getPsState(){
+            Log.d(TAG, "getPsState: get the psState = " + psState);
             return psState;
         }
 
@@ -195,18 +207,21 @@ public class PsTestService extends Service {
         @Override
         public void run() {
             super.run();
-            try {
-                Thread.sleep(5 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             Log.d(TAG, "run: start ps Test");
             mWakeLock.acquire();
             isInTesting = true;
             Constant.openTTLog();
-            if (Constant.isUpload(getApplicationContext())){
-                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storePsTestResultDir), getApplicationContext());
+            if (Constant.isWifiConnected(getApplicationContext())){
+                Log.d(TAG, "run: wifi have been connected, jude the ftp server weather be login");
+                if (Constant.isUpload(getApplicationContext())){
+                    Constant.readAndUploadTTLog(Constant.getTestResultFileName(storePsTestResultDir), getApplicationContext());
+                }else {
+                    mHandler.sendEmptyMessage(FTP_SERVER_CONNECT_FAILED);
+                    Constant.readTTLog(Constant.getTestResultFileName(storePsTestResultDir));
+                }
             }else {
+                Log.d(TAG, "run: wifi haven't been connected, don't upload the file to ftp server");
+                mHandler.sendEmptyMessage(WIFI_DISCONNECTED);
                 Constant.readTTLog(Constant.getTestResultFileName(storePsTestResultDir));
             }
             runLogical();

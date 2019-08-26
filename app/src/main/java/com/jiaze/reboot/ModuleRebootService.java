@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.callback.NormalTestCallback;
@@ -42,6 +43,8 @@ public class ModuleRebootService extends Service {
     private static final String POWER_STATE_PATH = "sys/misc-config/spower_key";    //this path can read and write
     private static final String POWER_PATH = "sys/misc-config/spower";  //this path write-only
     private static final int COMBINATION_ONE_TEST_FINISHED = 7;
+    private static final int WIFI_DISCONNECTED = 8;
+    private static final int FTP_SERVER_CONNECT_FAILED = 9;
     
     private int moduleTestTime = 0;
     private String moduleState;
@@ -74,6 +77,14 @@ public class ModuleRebootService extends Service {
                     Log.d(TAG, "handleMessage: COMBINATION_ONE_TEST_FINISHED, finish one test");
                     resetValue();
                     saveTmpTestResult();
+                    break;
+
+                case WIFI_DISCONNECTED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_wifi_disconnected), Toast.LENGTH_SHORT).show();
+                    break;
+
+                case FTP_SERVER_CONNECT_FAILED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_connect_ftp_server_failed), Toast.LENGTH_SHORT).show();
                     break;
             }
             return false;
@@ -150,17 +161,20 @@ public class ModuleRebootService extends Service {
         @Override
         public void run() {
             super.run();
-            try {
-                Thread.sleep(5 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             mWakeLock.acquire();
             isInTesting = true;
             Constant.openTTLog();
-            if (Constant.isUpload(getApplicationContext())){
-                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeModuleTestResultDir), getApplicationContext());
+            if (Constant.isWifiConnected(getApplicationContext())){
+                Log.d(TAG, "run: wifi have been connected, jude the ftp server weather be login");
+                if (Constant.isUpload(getApplicationContext())){
+                    Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeModuleTestResultDir), getApplicationContext());
+                }else {
+                    mHandler.sendEmptyMessage(FTP_SERVER_CONNECT_FAILED);
+                    Constant.readTTLog(Constant.getTestResultFileName(storeModuleTestResultDir));
+                }
             }else {
+                Log.d(TAG, "run: wifi haven't been connected, don't upload the file to ftp server");
+                mHandler.sendEmptyMessage(WIFI_DISCONNECTED);
                 Constant.readTTLog(Constant.getTestResultFileName(storeModuleTestResultDir));
             }
             runLogical();

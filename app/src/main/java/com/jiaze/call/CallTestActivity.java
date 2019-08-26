@@ -48,6 +48,10 @@ public class CallTestActivity extends AutoTestActivity implements View.OnClickLi
         String waitTime = properties.getProperty(getString(R.string.key_wait_time), "20");
         String durationTime = properties.getProperty(getString(R.string.key_duration_time), "20");
 
+        if (Integer.parseInt(testTimes) <= 0){
+            testTimes = getString(R.string.reboot_default_value);
+        }
+
         mTable.addParamsInput(getString(R.string.param_phone), true, getString(R.string.key_phone),
                 phone, Constant.EDIT_ID_PHONE, Constant.EnumDataType.DATA_TYPE_PHONE.getType());
         mTable.addParamsInput(getString(R.string.param_test_times), true, getString(R.string.key_test_times),
@@ -98,6 +102,12 @@ public class CallTestActivity extends AutoTestActivity implements View.OnClickLi
             Toast.makeText(this, getString(R.string.text_wait_time_not_null), Toast.LENGTH_SHORT).show();
             return -1;
         }
+
+        if (Integer.parseInt(etWaitTime.getText().toString()) <= 0){
+            Toast.makeText(this, getString(R.string.text_wait_time_must_large_zero), Toast.LENGTH_SHORT).show();
+            return -1;
+        }
+
         if (TextUtils.isEmpty(etDurationTime.getText().toString())){
             Toast.makeText(this, getString(R.string.text_duration_time_not_null),Toast.LENGTH_SHORT).show();
             return -1;

@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.jiaze.at.AtSender;
 import com.jiaze.autotestapp.R;
@@ -39,6 +40,8 @@ public class RebootTestService extends Service {
     private static final String TEST_PARAM = "RebootTest";
     private static final String TAG = "RebootTestService";
     private static final int SEND_JUDEGE_BOOT_MESSAGE = 1;
+    private static final int WIFI_DISCONNECTED = 8;
+    private static final int FTP_SERVER_CONNECT_FAILED = 9;
     private int rebootTestTime = 0;
     private int totalRunTimes = 0;
     private int rebootSuccessTime = 0;
@@ -82,6 +85,14 @@ public class RebootTestService extends Service {
                     }
                     break;
 
+                case WIFI_DISCONNECTED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_wifi_disconnected), Toast.LENGTH_SHORT).show();
+                    break;
+
+                case FTP_SERVER_CONNECT_FAILED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_connect_ftp_server_failed), Toast.LENGTH_SHORT).show();
+                    break;
+
                 default:
                     atSender.handleMessage(msg);
                     break;
@@ -102,16 +113,19 @@ public class RebootTestService extends Service {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        Thread.sleep(5 * 1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
                     Log.d(TAG, "onCreate: continue the last time test, rebootTestTime = " + rebootTestTime);
                     Constant.openTTLog();
-                    if (Constant.isUpload(getApplicationContext())){
-                        Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeRebootTestResultDir), getApplicationContext());
+                    if (Constant.isWifiConnected(getApplicationContext())){
+                        Log.d(TAG, "run: wifi have been connected, jude the ftp server weather be login");
+                        if (Constant.isUpload(getApplicationContext())){
+                            Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeRebootTestResultDir), getApplicationContext());
+                        }else {
+                            mHandler.sendEmptyMessage(FTP_SERVER_CONNECT_FAILED);
+                            Constant.readTTLog(Constant.getTestResultFileName(storeRebootTestResultDir));
+                        }
                     }else {
+                        Log.d(TAG, "run: wifi haven't been connected, don't upload the file to ftp server");
+                        mHandler.sendEmptyMessage(WIFI_DISCONNECTED);
                         Constant.readTTLog(Constant.getTestResultFileName(storeRebootTestResultDir));
                     }
                     Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);

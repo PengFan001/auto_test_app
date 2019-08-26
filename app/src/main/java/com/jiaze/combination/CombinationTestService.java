@@ -55,10 +55,16 @@ public class CombinationTestService extends Service {
     private static final String COMBINATION_TEST_PARAMS_SAVE_PATH = "CombinationTestParams";
     private static final String TEST_PARAM = "CombinationTest";
     private static final int SEND_JUDEGE_BOOT_MESSAGE = 1;
+    private static final int IN_SERVICE_TIMEOUT = 2;
+    private static final int WIFI_DISCONNECTED = 8;
+    private static final int FTP_SERVER_CONNECT_FAILED = 9;
 
     private boolean isStartTest = false;
     private boolean continueTest = false;
     private boolean isPaused = false;
+    private boolean isStartCallTest = false;
+    private boolean isTestFailed = false;
+    private static boolean isReboot = false;
     private static boolean isInTesting = false;
     private static boolean rebootIsChecked = false;
     private static boolean simIsChecked = false;
@@ -148,6 +154,23 @@ public class CombinationTestService extends Service {
                         rebootFailedTime++;
                         Log.d(TAG, "handleMessage: the device reboot failed, rebootFailedTime = " + rebootFailedTime);
                         new CombinationTestThread().start();
+                    }
+                    break;
+
+                case WIFI_DISCONNECTED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_wifi_disconnected), Toast.LENGTH_SHORT).show();
+                    break;
+
+                case FTP_SERVER_CONNECT_FAILED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_connect_ftp_server_failed), Toast.LENGTH_SHORT).show();
+                    break;
+
+                case IN_SERVICE_TIMEOUT:
+                    Log.d(TAG, "handleMessage: IN_SERVICE_TIMEOUT, call test or sms test failTimes+1");
+                    isStartCallTest = true;
+                    isTestFailed = true;
+                    if (mHandler != null || inServiceTimeout != null){
+                        mHandler.removeCallbacks(inServiceTimeout);
                     }
                     break;
 
@@ -293,34 +316,79 @@ public class CombinationTestService extends Service {
         bindSignalTestService();
         getTestParams();
         if (isInTesting || isPaused){
-            atSender = new AtSender(this, mHandler);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(5 * 1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+
+            if (rebootIsChecked){
+                atSender = new AtSender(this, mHandler);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Constant.openTTLog();
+                        if (Constant.isWifiConnected(getApplicationContext())){
+                            Log.d(TAG, "run: wifi have been connected, jude the ftp server weather be login");
+                            if (Constant.isUpload(getApplicationContext())){
+                                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeCombinationResultDir), getApplicationContext());
+                            }else {
+                                mHandler.sendEmptyMessage(FTP_SERVER_CONNECT_FAILED);
+                                Constant.readTTLog(Constant.getTestResultFileName(storeCombinationResultDir));
+                            }
+                        }else {
+                            Log.d(TAG, "run: wifi haven't been connected, don't upload the file to ftp server");
+                            mHandler.sendEmptyMessage(WIFI_DISCONNECTED);
+                            Constant.readTTLog(Constant.getTestResultFileName(storeCombinationResultDir));
+                        }
+                        Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
+                        int sendResult = atSender.sendATCommand(command, message, false);
+                        if (sendResult == -1){
+                            Log.d(TAG, "onCreate: open the device dev/STTYEMS42 failed, The Test was suspend, please Check the device, then reStart the CombinationTest");
+                            isInTesting = false;
+                            Constant.closeTTLog();
+                            resetTestValue();
+                            saveTmpTestResult();
+                        }else {
+                            Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
+                        }
                     }
-                    Constant.openTTLog();
-                    if (Constant.isUpload(getApplicationContext())){
-                        Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeCombinationResultDir), getApplicationContext());
-                    }else {
-                        Constant.readTTLog(Constant.getTestResultFileName(storeCombinationResultDir));
-                    }
-                    Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
-                    int sendResult = atSender.sendATCommand(command, message, false);
-                    if (sendResult == -1){
-                        Log.d(TAG, "onCreate: open the device dev/STTYEMS42 failed, The Test was suspend, please Check the device, then reStart the CombinationTest");
-                        isInTesting = false;
-                        Constant.closeTTLog();
-                        resetTestValue();
-                        saveTmpTestResult();
-                    }else {
-                        Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
-                    }
+                }).start();
+            }else {
+                try {
+                    Thread.sleep(4 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-            }).start();
+                new CombinationTestThread().start();
+            }
+
+//            atSender = new AtSender(this, mHandler);
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    Constant.openTTLog();
+//                    if (Constant.isWifiConnected(getApplicationContext())){
+//                        Log.d(TAG, "run: wifi have been connected, jude the ftp server weather be login");
+//                        if (Constant.isUpload(getApplicationContext())){
+//                            Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeCombinationResultDir), getApplicationContext());
+//                        }else {
+//                            mHandler.sendEmptyMessage(FTP_SERVER_CONNECT_FAILED);
+//                            Constant.readTTLog(Constant.getTestResultFileName(storeCombinationResultDir));
+//                        }
+//                    }else {
+//                        Log.d(TAG, "run: wifi haven't been connected, don't upload the file to ftp server");
+//                        mHandler.sendEmptyMessage(WIFI_DISCONNECTED);
+//                        Constant.readTTLog(Constant.getTestResultFileName(storeCombinationResultDir));
+//                    }
+//                    Message message = mHandler.obtainMessage(SEND_JUDEGE_BOOT_MESSAGE);
+//                    int sendResult = atSender.sendATCommand(command, message, false);
+//                    if (sendResult == -1){
+//                        Log.d(TAG, "onCreate: open the device dev/STTYEMS42 failed, The Test was suspend, please Check the device, then reStart the CombinationTest");
+//                        isInTesting = false;
+//                        Constant.closeTTLog();
+//                        resetTestValue();
+//                        saveTmpTestResult();
+//                    }else {
+//                        Log.d(TAG, "onCreate: send the AT Code: AT+CFUN?");
+//                    }
+//                }
+//            }).start();
         }
     }
 
@@ -344,9 +412,8 @@ public class CombinationTestService extends Service {
         public void stopTest(){
             isInTesting = false;
             isStartTest = false;
-            if (rebootIsChecked){
-                testTime = 0;
-            }
+            testTime = 0;
+            isReboot = false;
             isPaused = true;
             saveTmpTestResult();
             Log.d(TAG, "stopTest: isInTesting = " + isInTesting);
@@ -364,18 +431,21 @@ public class CombinationTestService extends Service {
         @Override
         public void run() {
             super.run();
-            try {
-                Thread.sleep(3 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             Log.d(TAG, "run: start combination Test");
             mWakeLock.acquire();
             isInTesting = true;
             Constant.openTTLog();
-            if (Constant.isUpload(getApplicationContext())){
-                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeCombinationResultDir), getApplicationContext());
+            if (Constant.isWifiConnected(getApplicationContext())){
+                Log.d(TAG, "run: wifi have been connected, jude the ftp server weather be login");
+                if (Constant.isUpload(getApplicationContext())){
+                    Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeCombinationResultDir), getApplicationContext());
+                }else {
+                    mHandler.sendEmptyMessage(FTP_SERVER_CONNECT_FAILED);
+                    Constant.readTTLog(Constant.getTestResultFileName(storeCombinationResultDir));
+                }
             }else {
+                Log.d(TAG, "run: wifi haven't been connected, don't upload the file to ftp server");
+                mHandler.sendEmptyMessage(WIFI_DISCONNECTED);
                 Constant.readTTLog(Constant.getTestResultFileName(storeCombinationResultDir));
             }
             runLogical();
@@ -399,8 +469,16 @@ public class CombinationTestService extends Service {
             testTime = testTime -1;
             Log.d(TAG, "runLogical: testTime = " + testTime + "   isInTesting = " + isInTesting);
             continueTest = true;
+            isReboot = false;
             if (networkIsChecked){
                 continueTest = false;
+                if (networkTestModule.equals(getString(R.string.text_reboot_device))){
+                    if (testTime > 0){
+                        isReboot = true;
+                    }else {
+                        isReboot = false;
+                    }
+                }
                 Log.d(TAG, "runLogical: ==============start networkTest=============");
                 networkTestBinder.startOneTest(storeCombinationResultDir, networkTestModule, new NetworkTestCallback() {
                     @Override
@@ -417,6 +495,16 @@ public class CombinationTestService extends Service {
 
             if (simIsChecked){
                 continueTest = false;
+                if (testTime > 0){
+                    isReboot = true;
+                }else {
+                    isReboot = false;
+                }
+                try {
+                    Thread.sleep(4 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 Log.d(TAG, "runLogical: ==============start simTest=============");
                 simTestBinder.startOneTest(storeCombinationResultDir, new SimTestCallback() {
                     @Override
@@ -435,29 +523,78 @@ public class CombinationTestService extends Service {
 
             if (callIsChecked){
                 continueTest = false;
+                isStartCallTest = false;
+                isTestFailed = false;
                 Log.d(TAG, "runLogical: ==============start callTest=============");
-                callTestService.startOneCallTest(storeCombinationResultDir, callPhone, waitTime, durationTime, new NormalTestCallback() {
-                    @Override
-                    public void testResultCallback(boolean isFinished, int successTime, int failedTime) {
-                        callSuccessTime = callSuccessTime + successTime;
-                        callFailedTime = callFailedTime + failedTime;
-                        continueTest = isFinished;
+                Log.d(TAG, "runLogical: isInService = " + networkTestBinder.isInService());
+                mHandler.postDelayed(inServiceTimeout, 120 * 1000);
+                while (!isStartCallTest){
+                    if (networkTestBinder.isInService()){
+                        isStartCallTest = true;
+                        if (mHandler != null || inServiceTimeout != null){
+                            mHandler.removeCallbacks(inServiceTimeout);
+                        }
+                    }else {
+                        try {
+                            Thread.sleep(2 * 1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                });
+                }
+
+                Log.d(TAG, "runLogical: isTestFailed = " + isTestFailed);
+                if (isTestFailed){
+                    callFailedTime = callFailedTime + 1;
+                    continueTest = true;
+                }else {
+                    callTestService.startOneCallTest(storeCombinationResultDir, callPhone, waitTime, durationTime, new NormalTestCallback() {
+                        @Override
+                        public void testResultCallback(boolean isFinished, int successTime, int failedTime) {
+                            callSuccessTime = callSuccessTime + successTime;
+                            callFailedTime = callFailedTime + failedTime;
+                            continueTest = isFinished;
+                        }
+                    });
+                }
             }
             waitTestFinished();
 
             if (smsIsChecked){
                 continueTest = false;
+                isStartCallTest = false;
+                isTestFailed = false;
                 Log.d(TAG, "runLogical: ==============start smsTest=============");
-                smsTestService.startOneSmsTest(storeCombinationResultDir, smsPhone, waitResultTime, smsString, new NormalTestCallback() {
-                    @Override
-                    public void testResultCallback(boolean isFinished, int successTime, int failedTime) {
-                        smsSuccessTime = smsSuccessTime + successTime;
-                        smsFailedTime = smsFailedTime + failedTime;
-                        continueTest =  isFinished;
+                Log.d(TAG, "runLogical: isInService = " + networkTestBinder.isInService());
+                mHandler.postDelayed(inServiceTimeout, 120 * 1000);
+                while (!isStartCallTest){
+                    if (networkTestBinder.isInService()){
+                        isStartCallTest = true;
+                        if (mHandler != null || inServiceTimeout != null){
+                            mHandler.removeCallbacks(inServiceTimeout);
+                        }
+                    }else {
+                        try {
+                            Thread.sleep(2 * 1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                });
+                }
+                Log.d(TAG, "runLogical: isTestFailed = " + isTestFailed);
+                if (isTestFailed){
+                    smsFailedTime = smsFailedTime + 1;
+                    continueTest = true;
+                }else {
+                    smsTestService.startOneSmsTest(storeCombinationResultDir, smsPhone, waitResultTime, smsString, new NormalTestCallback() {
+                        @Override
+                        public void testResultCallback(boolean isFinished, int successTime, int failedTime) {
+                            smsSuccessTime = smsSuccessTime + successTime;
+                            smsFailedTime = smsFailedTime + failedTime;
+                            continueTest =  isFinished;
+                        }
+                    });
+                }
             }
             waitTestFinished();
 
@@ -516,6 +653,23 @@ public class CombinationTestService extends Service {
                     powerManager.reboot("Combination Test Reboot");
                 }
             }
+
+            if (isReboot){
+                if (isPaused){
+                    Log.d(TAG, "runLogical: paused the test, don't reboot");
+                }else {
+                    Log.d(TAG, "runLogical: the device will reboot and the start the next test");
+                    saveTmpTestResult();
+                    try {
+                        Thread.sleep(1 * 1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if (powerManager != null){
+                        powerManager.reboot("Combination Test Reboot");
+                    }
+                }
+            }
         }
         saveCombinationTestResult();
     }
@@ -529,6 +683,14 @@ public class CombinationTestService extends Service {
             }
         }
     }
+
+    Runnable inServiceTimeout = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "run: wait the inService time, the call test or sms test failed");
+            mHandler.sendEmptyMessage(IN_SERVICE_TIMEOUT);
+        }
+    };
 
     private int initTestParams(Bundle bundle){
         testTime = bundle.getInt(getString(R.string.key_test_times), 0);
@@ -584,6 +746,30 @@ public class CombinationTestService extends Service {
         }else {
             Toast.makeText(getApplicationContext(), getString(R.string.text_combination_is_all_uncheck), Toast.LENGTH_SHORT).show();
             return -1;
+        }
+    }
+
+    private boolean isOnlySimTest(){
+        if (simIsChecked){
+            if (rebootIsChecked || networkIsChecked || callIsChecked || airModeIsChecked || smsIsChecked || psIsChecked || moduleRebootIsChecked){
+                return true;
+            }else {
+                return false;
+            }
+        }else {
+            return false;
+        }
+    }
+
+    private boolean isOnlyNetworkTest(){
+        if (networkIsChecked){
+            if (rebootIsChecked || simIsChecked || callIsChecked || airModeIsChecked || smsIsChecked || psIsChecked || moduleRebootIsChecked){
+                return true;
+            }else {
+                return false;
+            }
+        }else {
+            return false;
         }
     }
 
@@ -736,7 +922,8 @@ public class CombinationTestService extends Service {
         isInTesting = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_testing), "false"));
         isPaused = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_paused), "false"));
         totalRunTime = Integer.parseInt(properties.getProperty(getString(R.string.key_total_run_time), "0"));
-        Log.d(TAG, "getTestParams: testTime = " + testTime + "   isStartTest = " + isStartTest + "   isInTesting = " + isInTesting + "   isPaused = " + isPaused + "    storeCombinationResultDir = " + storeCombinationResultDir);
+        isReboot = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_is_reboot), "false"));
+        Log.d(TAG, "getTestParams: testTime = " + testTime + "  isReboot = " + isReboot + "   isStartTest = " + isStartTest + "   isInTesting = " + isInTesting + "   isPaused = " + isPaused + "    storeCombinationResultDir = " + storeCombinationResultDir);
 
 
         rebootIsChecked = Boolean.parseBoolean(properties.getProperty(getString(R.string.key_reboot_is_checked), "false"));
@@ -789,6 +976,7 @@ public class CombinationTestService extends Service {
         outServiceTime = Integer.parseInt(properties.getProperty(getString(R.string.key_network_out_service_time), "0"));
         emergencyTime = Integer.parseInt(properties.getProperty(getString(R.string.key_network_emergency_time), "0"));
         powerOffTime = Integer.parseInt(properties.getProperty(getString(R.string.key_network_power_off_time), "0"));
+        Log.d(TAG, "getTestParams: inServiceTime = " + inServiceTime + "  outServiceTime = " + outServiceTime);
 
         callSuccessTime = Integer.parseInt(properties.getProperty(getString(R.string.key_call_success_time), "0"));
         callFailedTime = Integer.parseInt(properties.getProperty(getString(R.string.key_call_failed_time), "0"));
@@ -829,6 +1017,7 @@ public class CombinationTestService extends Service {
             properties.setProperty(getString(R.string.key_is_testing), String.valueOf(isInTesting));
             properties.setProperty(getString(R.string.key_total_run_time), String.valueOf(totalRunTime));
             properties.setProperty(getString(R.string.key_is_paused), String.valueOf(isPaused));
+            properties.setProperty(getString(R.string.key_is_reboot), String.valueOf(isReboot));
             /**test result tmp save**/
             properties.setProperty(getString(R.string.key_total_run_time), String.valueOf(totalRunTime));
             /**test isChecked save**/
@@ -907,6 +1096,7 @@ public class CombinationTestService extends Service {
         isStartTest = false;
         isInTesting = false;
         isPaused = false;
+        isReboot = false;
         totalRunTime = 0;
 
         rebootSuccessTime = 0;

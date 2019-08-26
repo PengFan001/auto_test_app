@@ -435,6 +435,16 @@ public class CombinationTestActivity extends Activity implements View.OnClickLis
                 }
             }
 
+            if (Integer.parseInt(etWaitResultTime.getText().toString().trim()) < 15){
+                Toast.makeText(this, getString(R.string.text_min_wait_result_time), Toast.LENGTH_SHORT).show();
+                return -1;
+            }
+
+            if (Integer.parseInt(etWaitTime.getText().toString()) <= 0){
+                Toast.makeText(this, getString(R.string.text_wait_time_must_large_zero), Toast.LENGTH_SHORT).show();
+                return -1;
+            }
+
             properties.setProperty(getString(R.string.key_test_times), etTestTime.getText().toString());
             properties.setProperty(getString(R.string.key_call_phone), etCallPhone.getText().toString().trim());
             properties.setProperty(getString(R.string.key_wait_time), etWaitTime.getText().toString().trim());

@@ -9,7 +9,7 @@ import android.os.Message;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.text.TextUtils;
+import android.telephony.CallStateListener;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -39,26 +39,35 @@ public class CallTestService extends AutoTestService {
     public static final String TAG = "CallTestService";
     public static final String CALL_TEST_PARAMS_SAVE_PATH = "CallTestParams";
 
-    public static final int MSG_ID_CALL_OFF_HOOK = 2;
-    public static final int MSG_ID_CALL_IDLE = 0;
-    public static final int MSG_ID_CALL_RINGING = 1;
-    public static final int MSG_ID_WAIT_TIMEOUT = 4;
-    public static final int MSG_ID_DURATION_TIMEOUT = 5;
+
+    private static final int CALL_IDLE = 1;
+    private static final int CALL_ACTIVE = 2;
+    private static final int CALL_INCOMING = 3;
+    private static final int CALL_WAITING = 4;
+    private static final int CALL_DIALING = 5;
+    private static final int CALL_REDIALING = 6;
+    private static final int CALL_ONHOLD = 7;
+    private static final int CALL_DISCONNECTING = 8;
+    private static final int CALL_DISCONNECTED = 9;
+    private static final int CONFERENCED = 10;
+    private static final int MSG_ID_WAIT_TIMEOUT = 11;
+    private static final int MSG_ID_DURATION_TIMEOUT = 12;
+
+    private static final int MSG_ID_CALL_IDLE = 13;
+    private static final int MSG_ID_CALL_RINGING = 14;
+    private static final int MSG_ID_CALL_OFF_HOOK = 15;
+    private static final int MSG_ID_CALL_DIALING = 16;
+    private static final int MSG_ID_HOOK_OFF_TIMEOUT = 17;
 
 
     private TelephonyManager telephonyManager;
-    /**
-     * off_hook_state 表示监听到CALL_OFF_HOOK 状态是，用来区分它是刚打出去的状态还是被接听的状态
-     * off_hook_state = 1； 表示成功拨出号码
-     * off_hook_state = 2； 表示该拨打的号码被接听
-     */
     private int runTimes = 0;
     private int waitTimeOutTimes = 0;
     private int durationTimeOutTimes = 0;
     private String phone;
 
 
-    //通话等待计时器
+    //拨号等待计时器
     Runnable waitTimeOutCalculate = new Runnable() {
         @Override
         public void run() {
@@ -78,41 +87,74 @@ public class CallTestService extends AutoTestService {
         }
     };
 
+    //接听等待计时器
+    Runnable hookOffTimeout = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "run: ==============20 seconds not hook off wiil be auto end call===========");
+            mHandler.sendEmptyMessage(MSG_ID_HOOK_OFF_TIMEOUT);
+        }
+    };
+
     Handler mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
+                case MSG_ID_CALL_DIALING:
+                    if (isInTesting){
+                        Log.d(TAG, "handleMessage: MSG_ID_CALL_DIALING : Call the Phone Success , wait been hook off");
+                        successCount++;
+                        if (mHandler != null && waitTimeOutCalculate != null){
+                            mHandler.removeCallbacks(waitTimeOutCalculate);
+                            Log.d(TAG, "handleMessage: MSG_ID_CALL_DIALING, Call the phone success, remove the waitTimeout Task");
+                        }
+
+                        Log.d(TAG, "handleMessage: MSG_ID_CALL_DIALING, 30s not hook off, the call will be auto end");
+                        mHandler.postDelayed(hookOffTimeout, 30 * 1000);
+                    }else {
+                        Log.d(TAG, "handleMessage: MSG_ID_CALL_DIALING the coming Call is be OFF HOOK");
+                        Toast.makeText(getApplicationContext(), getString(R.string.text_call_been_hook_off), Toast.LENGTH_SHORT).show();
+                    }
+
+                    break;
 
                 case MSG_ID_CALL_OFF_HOOK:
                     if (isInTesting){
-                        Log.d(TAG, "handleMessage: MSG_ID_CALL_OFF_HOOK, Call the Phone");
-                        successCount++;
-                        if (mHandler != null && waitTimeOutCalculate != null) {
-                            mHandler.removeCallbacks(waitTimeOutCalculate);
-                            Log.d(TAG, "handleMessage: MSG_ID_CALL_OFF_HOOK : remove the waitTimeOutCalculate");
+                        Log.d(TAG, "handleMessage: MSG_ID_CALL_OFF_HOOK, the call been hook off");
+                        //successCount++;
+                        if (mHandler != null && hookOffTimeout != null) {
+                            mHandler.removeCallbacks(hookOffTimeout);
+                            Log.d(TAG, "handleMessage: MSG_ID_CALL_OFF_HOOK : remove the hookOffTimeout");
                         }
-                        Log.d(TAG, "======dispatchMessage: the phone is Calling, start the calculate the duration time，SuccessTime + 1:" + successCount);
+                        Log.d(TAG, "======dispatchMessage: the phone is be hook off, start the calculate the duration time，SuccessTime + 1:" + successCount);
                         mHandler.postDelayed(durationTimeOutCalculate, durationTimeOutTimes * 1000);
                     }else {
-                        Log.d(TAG, "handleMessage: the coming Call is OFF HOOK");
-                        Toast.makeText(getApplicationContext(), "The have been OFF HOOK", Toast.LENGTH_SHORT).show();
+//                        Log.d(TAG, "handleMessage: MSG_ID_CALL_OFF_HOOK the coming Call is be OFF HOOK");
+//                        Toast.makeText(getApplicationContext(), getString(R.string.text_call_been_hook_off), Toast.LENGTH_SHORT).show();
                     }
                     break;
+
                 case MSG_ID_CALL_IDLE:
                     runNextTime = true;
                     if (mHandler != null && waitTimeOutCalculate != null) {
                         mHandler.removeCallbacks(waitTimeOutCalculate);
                         Log.d(TAG, "handleMessage: MSG_ID_CALL_IDLE : remove the waitTimeOutCalculate");
                     }
+                    if (mHandler != null && durationTimeOutCalculate != null){
+                        mHandler.removeCallbacks(durationTimeOutCalculate);
+                        Log.d(TAG, "handleMessage: MSG_ID_CALL_IDLE : remove the durationTimeOutCalculate");
+                    }
                     Log.d(TAG, "=======dispatchMessage: the call is end or not call, we will runNextTimes = " + runNextTime);
                     break;
+
                 case MSG_ID_CALL_RINGING:
                     Log.d(TAG, "handleMessage: Call RINGING 响铃、 第三方来电等待");
-                    Toast.makeText(getApplicationContext(), "A Call Coming", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_call_coming), Toast.LENGTH_SHORT).show();
                     break;
+
                 case MSG_ID_WAIT_TIMEOUT:
                     failedCount++;
-                    //todo 在等待接听超时后挂断电话
+                    //todo 拨号超时后，测试失败，开始下一次测试
                     if (telephonyManager != null && !isCallStateIdle()) {
                         telephonyManager.endCall();
                     }
@@ -121,8 +163,21 @@ public class CallTestService extends AutoTestService {
                         Log.d(TAG, "handleMessage: MSG_ID_WAIT_TIMEOUT : remove the waitTimeOutCalculate");
                     }
                     runNextTime = true;
-                    Log.d(TAG, "=======dispatchMessage: 等待接听超时, 开始下一次呼叫 runNextTime: " + runNextTime);
+                    Log.d(TAG, "=======dispatchMessage: wait hook off timeout runNextTime: " + runNextTime);
                     break;
+
+                case MSG_ID_HOOK_OFF_TIMEOUT:
+                    if (telephonyManager != null && !isCallStateIdle()) {
+                        telephonyManager.endCall();
+                    }
+                    if (mHandler != null && hookOffTimeout != null) {
+                        mHandler.removeCallbacks(hookOffTimeout);
+                        Log.d(TAG, "handleMessage: MSG_ID_HOOK_OFF_TIMEOUT : remove the hookOffTimeoutCalculate");
+                    }
+                    runNextTime = true;
+                    Log.d(TAG, "=======dispatchMessage: MSG_ID_HOOK_OFF_TIMEOUT, wait hook off timeout runNextTime: " + runNextTime);
+                    break;
+
                 case MSG_ID_DURATION_TIMEOUT:
                     //todo 在通话时长达到之后，挂断电话
                     if (telephonyManager != null && !isCallStateIdle()) {
@@ -134,6 +189,7 @@ public class CallTestService extends AutoTestService {
                     }
                     Log.d(TAG, "=======dispatchMessage: 通话时间超时, 开始下一次呼叫");
                     break;
+
             }
             return false;
         }
@@ -148,7 +204,7 @@ public class CallTestService extends AutoTestService {
                     mHandler.sendEmptyMessage(MSG_ID_CALL_IDLE);
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:
-                    mHandler.sendEmptyMessage(MSG_ID_CALL_OFF_HOOK);
+                    mHandler.sendEmptyMessage(MSG_ID_CALL_DIALING);
                     break;
                 case TelephonyManager.CALL_STATE_RINGING:
                     mHandler.sendEmptyMessage(MSG_ID_CALL_RINGING);
@@ -162,6 +218,23 @@ public class CallTestService extends AutoTestService {
         super.onCreate();
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        telephonyManager.addCallStateListener(new CallStateListener() {
+            @Override
+            public void onCallStateChanged(int callId, int state, String number) {
+                Log.d(TAG, "onCallStateChanged: get the callId = " + callId + "  state = " + state + "  number = " + number);
+                switch (state){
+                    case CALL_ACTIVE:
+                        Log.d(TAG, "onCallStateChanged: the call be hook off");
+                        mHandler.sendEmptyMessage(MSG_ID_CALL_OFF_HOOK);
+                        break;
+
+//                    case CALL_DIALING:
+//                        Log.d(TAG, "onCallStateChanged: the call is calling ");
+//                        mHandler.sendEmptyMessage(MSG_ID_CALL_DIALING);
+//                        break;
+                }
+            }
+        });
 //        getTestParams();
 //        if (isStartTest){
 //            Log.d(TAG, "onCreate: isStarttest is true, start the test");

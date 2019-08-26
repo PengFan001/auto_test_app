@@ -11,6 +11,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.jiaze.autotestapp.R;
 import com.jiaze.callback.SimTestCallback;
@@ -38,6 +39,8 @@ public class SimTestService extends Service {
     private static final String SIM_TEST_PARAM_SAVE_PATH = "SimTestParam";
     private static final String TEST_PARAM = "SimTest";
     private static final int COMBINATION_ONE_TEST_FINISHED = 7;
+    private static final int WIFI_DISCONNECTED = 8;
+    private static final int FTP_SERVER_CONNECT_FAILED = 9;
 
     private int simTestTime = 0;
     private String simState = null;
@@ -70,6 +73,14 @@ public class SimTestService extends Service {
                     Log.d(TAG, "handleMessage: COMBINATION_ONE_TEST_FINISHED, finish one test");
                     resetTestValue();
                     saveTestParamsAndTmpResult();
+                    break;
+
+                case WIFI_DISCONNECTED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_wifi_disconnected), Toast.LENGTH_SHORT).show();
+                    break;
+
+                case FTP_SERVER_CONNECT_FAILED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_connect_ftp_server_failed), Toast.LENGTH_SHORT).show();
                     break;
             }
             return false;
@@ -188,18 +199,21 @@ public class SimTestService extends Service {
         @Override
         public void run() {
             super.run();
-            try {
-                Thread.sleep(5 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             Log.d(TAG, "run: start the simTest");
             mWakeLock.acquire();
             isTesting = true;
             Constant.openTTLog();
-            if (Constant.isUpload(getApplicationContext())){
-                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeSimTestResultDir), getApplicationContext());
+            if (Constant.isWifiConnected(getApplicationContext())){
+                Log.d(TAG, "run: wifi have been connected, jude the ftp server weather be login");
+                if (Constant.isUpload(getApplicationContext())){
+                    Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeSimTestResultDir), getApplicationContext());
+                }else {
+                    mHandler.sendEmptyMessage(FTP_SERVER_CONNECT_FAILED);
+                    Constant.readTTLog(Constant.getTestResultFileName(storeSimTestResultDir));
+                }
             }else {
+                Log.d(TAG, "run: wifi haven't been connected, don't upload the file to ftp server");
+                mHandler.sendEmptyMessage(WIFI_DISCONNECTED);
                 Constant.readTTLog(Constant.getTestResultFileName(storeSimTestResultDir));
             }
             runLogical();

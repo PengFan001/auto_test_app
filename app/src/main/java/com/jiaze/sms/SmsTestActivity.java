@@ -51,6 +51,9 @@ public class SmsTestActivity extends AutoTestActivity implements View.OnClickLis
         String waitResultTime = properties.getProperty(getString(R.string.key_wait_sms_result_time), "20");
         String smsStr = properties.getProperty(getString(R.string.key_sms_string), "hello world");
 
+        if (Integer.parseInt(testTimes) <= 0){
+            testTimes = getString(R.string.reboot_default_value);
+        }
         mTable.addParamsInput(getString(R.string.param_phone), true, getString(R.string.key_phone),
                 phone, Constant.SMS_ID_PHONE, Constant.EnumDataType.DATA_TYPE_PHONE.getType());
         mTable.addParamsInput(getString(R.string.param_test_times), true, getString(R.string.key_test_times),

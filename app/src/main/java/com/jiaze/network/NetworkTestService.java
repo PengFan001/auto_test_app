@@ -46,9 +46,11 @@ public class NetworkTestService extends Service {
     private static final int EMERGENCY_ONLY = 2;
     private static final int POWER_OFF = 3;
     private static final int FINISHED_ONE_TIME_TEST = 4;
-    private static final int REBOOT_RADIO_TIIME_OUT = 5;
+    private static final int REBOOT_RADIO_TIME_OUT = 5;
     private static final int REBOOT_RADIO_SUCCESS = 6;
     private static final int COMBINATION_ONE_TEST_FINISHED = 7;
+    private static final int WIFI_DISCONNECTED = 8;
+    private static final int FTP_SERVER_CONNECT_FAILED = 9;
 
     private int networkTestTime = 0;
     private String serviceState = null;
@@ -103,6 +105,14 @@ public class NetworkTestService extends Service {
                     saveTmpTestResult();
                     break;
 
+                case WIFI_DISCONNECTED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_wifi_disconnected), Toast.LENGTH_SHORT).show();
+                    break;
+
+                case FTP_SERVER_CONNECT_FAILED:
+                    Toast.makeText(getApplicationContext(), getString(R.string.text_connect_ftp_server_failed), Toast.LENGTH_SHORT).show();
+                    break;
+
                 case IN_SERVICE:
                     inServiceTime++;
                     Log.d(TAG, "handleMessage: inServiceTime + 1: " + inServiceTime);
@@ -131,7 +141,7 @@ public class NetworkTestService extends Service {
                     continueTest();
                     break;
 
-                case REBOOT_RADIO_TIIME_OUT:
+                case REBOOT_RADIO_TIME_OUT:
                     Log.d(TAG, "handleMessage: Rboot Radio timeout");
                     isRebootTimeout = true;
                     Toast.makeText(getApplicationContext(), getString(R.string.text_reboot_radio_failed), Toast.LENGTH_SHORT).show();
@@ -218,10 +228,19 @@ public class NetworkTestService extends Service {
                 if (isTesting && testModule.equals(getString(R.string.text_reboot_device))){
                     Log.d(TAG, "onCreate: continue the last test, check the device network State");
                     Log.d(TAG, "runLogical: 120 seconds later will run next time");
-                    try {
-                        Thread.sleep(10 * 1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    Constant.openTTLog();
+                    if (Constant.isWifiConnected(getApplicationContext())){
+                        Log.d(TAG, "run: wifi have been connected, jude the ftp server weather be login");
+                        if (Constant.isUpload(getApplicationContext())){
+                            Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir), getApplicationContext());
+                        }else {
+                            mHandler.sendEmptyMessage(FTP_SERVER_CONNECT_FAILED);
+                            Constant.readTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir));
+                        }
+                    }else {
+                        Log.d(TAG, "run: wifi haven't been connected, don't upload the file to ftp server");
+                        mHandler.sendEmptyMessage(WIFI_DISCONNECTED);
+                        Constant.readTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir));
                     }
                     mHandler.postDelayed(getServiceStateTask, 120 * 1000);
                     Log.d(TAG, "runLogical: is isStopCheck = " + isStopCheck);
@@ -279,8 +298,6 @@ public class NetworkTestService extends Service {
             Log.d(TAG, "startTest: get the test module = " + testModule);
             storeNetworkTestResultDir = Constant.createSaveTestResultPath(TEST_PARAM);
             Log.d(TAG, "startTest: Create the storeNetworkTestResultDir success : " + storeNetworkTestResultDir);
-            //saveTmpTestResult();
-            //Constant.delLog(powerManager);
 
             if (testModule.equals(getString(R.string.text_reboot_device))){
                 Log.d(TAG, "run: the testModule is reboot device, start the test");
@@ -322,8 +339,14 @@ public class NetworkTestService extends Service {
                 Log.d(TAG, "run: the testRadio is reboot radio, start the test");
                 new OneNetworkTestThreadRebootRadio().start();
             }
+        }
 
-
+        public boolean isInService(){
+            if (myPhoneStateListener.getNetworkState() == IN_SERVICE){
+                return true;
+            }else {
+                return false;
+            }
         }
 
     }
@@ -337,17 +360,20 @@ public class NetworkTestService extends Service {
         @Override
         public void run() {
             super.run();
-            try {
-                Thread.sleep(5 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             mWakeLock.acquire();
             isTesting = true;
             Constant.openTTLog();
-            if (Constant.isUpload(getApplicationContext())){
-                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir), getApplicationContext());
+            if (Constant.isWifiConnected(getApplicationContext())){
+                Log.d(TAG, "run: wifi have been connected, jude the ftp server weather be login");
+                if (Constant.isUpload(getApplicationContext())){
+                    Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir), getApplicationContext());
+                }else {
+                    mHandler.sendEmptyMessage(FTP_SERVER_CONNECT_FAILED);
+                    Constant.readTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir));
+                }
             }else {
+                Log.d(TAG, "run: wifi haven't been connected, don't upload the file to ftp server");
+                mHandler.sendEmptyMessage(WIFI_DISCONNECTED);
                 Constant.readTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir));
             }
             runLogicalRebootDevice();
@@ -391,17 +417,20 @@ public class NetworkTestService extends Service {
         @Override
         public void run() {
             super.run();
-            try {
-                Thread.sleep(5 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             mWakeLock.acquire();
             isTesting = true;
             Constant.openTTLog();
-            if (Constant.isUpload(getApplicationContext())){
-                Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir), getApplicationContext());
+            if (Constant.isWifiConnected(getApplicationContext())){
+                Log.d(TAG, "run: wifi have been connected, jude the ftp server weather be login");
+                if (Constant.isUpload(getApplicationContext())){
+                    Constant.readAndUploadTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir), getApplicationContext());
+                }else {
+                    mHandler.sendEmptyMessage(FTP_SERVER_CONNECT_FAILED);
+                    Constant.readTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir));
+                }
             }else {
+                Log.d(TAG, "run: wifi haven't been connected, don't upload the file to ftp server");
+                mHandler.sendEmptyMessage(WIFI_DISCONNECTED);
                 Constant.readTTLog(Constant.getTestResultFileName(storeNetworkTestResultDir));
             }
             runLogicalRebootRadio();
@@ -644,7 +673,7 @@ public class NetworkTestService extends Service {
         @Override
         public void run() {
             Log.d(TAG, "run: reboot radio timeout");
-            mHandler.sendEmptyMessage(REBOOT_RADIO_TIIME_OUT);
+            mHandler.sendEmptyMessage(REBOOT_RADIO_TIME_OUT);
         }
     };
 

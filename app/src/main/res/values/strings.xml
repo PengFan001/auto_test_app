@@ -71,6 +71,7 @@
     <string name="text_test_not_null">测试次数不能为空</string>
     <string name="text_test_time_is_zero">测试次数为0，不开始测试</string>
     <string name="text_wait_time_not_null">等待时间不能为空</string>
+    <string name="text_wait_time_must_large_zero">等待拨通时间请输入大于0的数</string>
     <string name="text_send_content_not_null">发送内容不能为空</string>
     <string name="text_duration_time_not_null">通话时间不能为空</string>
     <string name="text_params_error">参数错误</string>
@@ -124,13 +125,17 @@
     <string name="text_ip_address_format_error">Ip格式错误</string>
     <string name="text_combination_is_all_uncheck">请勾选组合测试项在点击开始测试</string>
     <string name="text_logining">登录中</string>
+    <string name="text_wifi_disconnected">wifi未连接,测试结果不上传FTP服务器</string>
+    <string name="text_connect_ftp_server_failed">连接ftp服务器失败，测试结果不上传。如果想上传请先去FTP登录界面登录</string>
+    <string name="text_call_coming">有来电</string>
+    <string name="text_call_been_hook_off">来电被接听</string>
     <string name="text_min_wait_result_time">等待发送结果需要一定时间，太短必定接收超时，请输入大于或等于15秒</string>
 
 
     <string name="param_phone">手机号</string>
     <string name="param_test_times">测试次数</string>
     <string name="param_duration_time">通话时长</string>
-    <string name="param_wait_time">等待时间</string>
+    <string name="param_wait_time">等待拨通时间</string>
     <string name="param_wait_sms_result_time">等待短信发送结果时间</string>
     <string name="param_sms_str">短信内容</string>
     <string name="param_up_power">1</string>
@@ -169,6 +174,7 @@
     <string name="key_reboot_failed_time">reboot_failed</string>
     <string name="key_reboot_run_time">reboot_run_time</string>
     <string name="key_is_reboot_testing">is_reboot_testing</string>
+    <string name="key_is_reboot">is_reboot</string>
     <string name="key_is_sim_testing">is_sim_testing</string>
     <string name="key_wait_sms_result_time">wait_sms_result_time</string>
     <string name="key_sms_string">sms_string</string>
